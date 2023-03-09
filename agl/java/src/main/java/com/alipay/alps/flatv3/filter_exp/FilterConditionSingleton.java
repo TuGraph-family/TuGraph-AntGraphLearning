@@ -7,7 +7,7 @@ public class FilterConditionSingleton {
     // static instance of the class
     private static FilterConditionSingleton instance = null;
     // ArrayList of ArrayList of Expression objects
-    public ArrayList<ArrayList<Expression>> unionJoinFilters = new ArrayList<ArrayList<Expression>>();
+    private ArrayList<ArrayList<Expression>> unionJoinFilters = new ArrayList<ArrayList<Expression>>();
     private FilterConditionSingleton(){}
 
     public static FilterConditionSingleton getInstance(){
@@ -17,11 +17,14 @@ public class FilterConditionSingleton {
         return instance;
     }
 
+    public static void reset(){
+        if(instance != null){
+            instance = null;
+        }
+    }
+
     public ArrayList<ArrayList<Expression>> getUnionJoinFilters() {
         return this.unionJoinFilters;
     }
 
-    public void setUnionJoinFilters(ArrayList<ArrayList<Expression>> unionJoinFilters) {
-        this.unionJoinFilters = unionJoinFilters;
-    }
 }

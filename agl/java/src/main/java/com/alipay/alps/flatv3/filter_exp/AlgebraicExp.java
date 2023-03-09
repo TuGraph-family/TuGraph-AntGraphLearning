@@ -1,14 +1,19 @@
-package com.alipay.alps.flatv3.antlr2;
-
-import com.antfin.alps.graph.common.utils.Pair;
+package com.alipay.alps.flatv3.filter_exp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 
-
+/**
+ CategoryExp evaluates an algebraic string expressions
+ It allows for variables to be designated as the "index" or "seed" variables
+ Examples of AlgebraicExp could be:
+    SEED.1 + 10 < INDEX.time
+    INDEX.time - SEED.1 >= 0
+    2 < SEED.1 - INDEX.time
+ */
 public class AlgebraicExp extends Expression<Double> {
-    public ArrayList<Integer> signs = new ArrayList<>();
+    private ArrayList<Integer> signs = new ArrayList<>();
 
     /**
      Constructor for the AlgebraicExp class.
@@ -29,16 +34,16 @@ public class AlgebraicExp extends Expression<Double> {
      */
     private void parseExp(String expression, int sign) {
         String delimitor = "+-";
-        StringTokenizer x = new StringTokenizer(expression, delimitor, true);
+        StringTokenizer x = new StringTokenizer(expression.replaceAll("\\s+",""), delimitor, true);
         int op = 1;
         while (x.hasMoreTokens()) {
             String p = x.nextToken();
             if (delimitor.contains(p)) {
                 op = p.charAt(0) == '-' ? -1 : 1;
             } else {
-                if (p.startsWith("INDEX_")) {
+                if (p.startsWith("INDEX.") || p.startsWith("index.") ) {
                     indexedVariableIdx = variables.size();
-                } else if (p.startsWith("SEED_")) {
+                } else if (p.startsWith("SEED.") || p.startsWith("seed.")) {
                     seedVariableIdx = variables.size();
                 }
                 variables.add(p);
@@ -85,6 +90,7 @@ public class AlgebraicExp extends Expression<Double> {
                 "indexedVariableIdx=" + indexedVariableIdx +
                 ", seedVariableIdx=" + seedVariableIdx +
                 ", variables=" + Arrays.toString(variables.toArray()) +
+                ", signs=" + Arrays.toString(signs.toArray()) +
                 ", cmpOp='" + cmpOp + '\'' +
                 '}';
     }
