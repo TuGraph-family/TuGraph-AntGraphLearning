@@ -8,8 +8,8 @@ expr:
     literal_value                                                   #LiteralExp
     | column_name                                                   #ColumnExp
     | unary_operator expr                                           #UnaryExp
-    | expr ( PLUS | MINUS) expr                                     #PlusExp
-    | expr ( LT | LT_EQ | GT | GT_EQ) expr                          #LtExp
+    | expr ( PLUS | MINUS) expr                                     #PlusMinusExp
+    | expr ( LT | LT_EQ | GT | GT_EQ) expr                          #CompareExp
     | expr (
         ASSIGN
         | EQ
@@ -17,7 +17,7 @@ expr:
         | NOT_EQ2
         | IN_
         | NOT_ IN_
-    ) expr                                                          #EqExp
+    ) expr                                                          #CategoryExp
     | expr AND_ expr                                                #AndExp
     | expr OR_ expr                                                 #OrExp
     | OPEN_PAR expr (COMMA expr)* CLOSE_PAR                         #ParExp
@@ -78,7 +78,6 @@ EQ:        '==';
 NOT_EQ1:   '!=';
 NOT_EQ2:   '<>';
 
-// http://www.sqlite.org/lang_keywords.html
 AND_:               'AND'|'and';
 AS_:                'AS';
 IN_:                'IN'|'in';

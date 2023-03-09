@@ -180,30 +180,6 @@ public class FilterParser extends Parser {
 			else return visitor.visitChildren(this);
 		}
 	}
-	public static class PlusExpContext extends ExprContext {
-		public List<ExprContext> expr() {
-			return getRuleContexts(ExprContext.class);
-		}
-		public ExprContext expr(int i) {
-			return getRuleContext(ExprContext.class,i);
-		}
-		public TerminalNode PLUS() { return getToken(FilterParser.PLUS, 0); }
-		public TerminalNode MINUS() { return getToken(FilterParser.MINUS, 0); }
-		public PlusExpContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FilterListener ) ((FilterListener)listener).enterPlusExp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FilterListener ) ((FilterListener)listener).exitPlusExp(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitPlusExp(this);
-			else return visitor.visitChildren(this);
-		}
-	}
 	public static class ColumnExpContext extends ExprContext {
 		public Column_nameContext column_name() {
 			return getRuleContext(Column_nameContext.class,0);
@@ -220,60 +196,6 @@ public class FilterParser extends Parser {
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitColumnExp(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	public static class LtExpContext extends ExprContext {
-		public List<ExprContext> expr() {
-			return getRuleContexts(ExprContext.class);
-		}
-		public ExprContext expr(int i) {
-			return getRuleContext(ExprContext.class,i);
-		}
-		public TerminalNode LT() { return getToken(FilterParser.LT, 0); }
-		public TerminalNode LT_EQ() { return getToken(FilterParser.LT_EQ, 0); }
-		public TerminalNode GT() { return getToken(FilterParser.GT, 0); }
-		public TerminalNode GT_EQ() { return getToken(FilterParser.GT_EQ, 0); }
-		public LtExpContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FilterListener ) ((FilterListener)listener).enterLtExp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FilterListener ) ((FilterListener)listener).exitLtExp(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitLtExp(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	public static class EqExpContext extends ExprContext {
-		public List<ExprContext> expr() {
-			return getRuleContexts(ExprContext.class);
-		}
-		public ExprContext expr(int i) {
-			return getRuleContext(ExprContext.class,i);
-		}
-		public TerminalNode ASSIGN() { return getToken(FilterParser.ASSIGN, 0); }
-		public TerminalNode EQ() { return getToken(FilterParser.EQ, 0); }
-		public TerminalNode NOT_EQ1() { return getToken(FilterParser.NOT_EQ1, 0); }
-		public TerminalNode NOT_EQ2() { return getToken(FilterParser.NOT_EQ2, 0); }
-		public TerminalNode IN_() { return getToken(FilterParser.IN_, 0); }
-		public TerminalNode NOT_() { return getToken(FilterParser.NOT_, 0); }
-		public EqExpContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FilterListener ) ((FilterListener)listener).enterEqExp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FilterListener ) ((FilterListener)listener).exitEqExp(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitEqExp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -297,6 +219,32 @@ public class FilterParser extends Parser {
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitAndExp(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class CompareExpContext extends ExprContext {
+		public List<ExprContext> expr() {
+			return getRuleContexts(ExprContext.class);
+		}
+		public ExprContext expr(int i) {
+			return getRuleContext(ExprContext.class,i);
+		}
+		public TerminalNode LT() { return getToken(FilterParser.LT, 0); }
+		public TerminalNode LT_EQ() { return getToken(FilterParser.LT_EQ, 0); }
+		public TerminalNode GT() { return getToken(FilterParser.GT, 0); }
+		public TerminalNode GT_EQ() { return getToken(FilterParser.GT_EQ, 0); }
+		public CompareExpContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof FilterListener ) ((FilterListener)listener).enterCompareExp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof FilterListener ) ((FilterListener)listener).exitCompareExp(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitCompareExp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -351,6 +299,30 @@ public class FilterParser extends Parser {
 			else return visitor.visitChildren(this);
 		}
 	}
+	public static class PlusMinusExpContext extends ExprContext {
+		public List<ExprContext> expr() {
+			return getRuleContexts(ExprContext.class);
+		}
+		public ExprContext expr(int i) {
+			return getRuleContext(ExprContext.class,i);
+		}
+		public TerminalNode PLUS() { return getToken(FilterParser.PLUS, 0); }
+		public TerminalNode MINUS() { return getToken(FilterParser.MINUS, 0); }
+		public PlusMinusExpContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof FilterListener ) ((FilterListener)listener).enterPlusMinusExp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof FilterListener ) ((FilterListener)listener).exitPlusMinusExp(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitPlusMinusExp(this);
+			else return visitor.visitChildren(this);
+		}
+	}
 	public static class UnaryExpContext extends ExprContext {
 		public Unary_operatorContext unary_operator() {
 			return getRuleContext(Unary_operatorContext.class,0);
@@ -370,6 +342,34 @@ public class FilterParser extends Parser {
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitUnaryExp(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class CategoryExpContext extends ExprContext {
+		public List<ExprContext> expr() {
+			return getRuleContexts(ExprContext.class);
+		}
+		public ExprContext expr(int i) {
+			return getRuleContext(ExprContext.class,i);
+		}
+		public TerminalNode ASSIGN() { return getToken(FilterParser.ASSIGN, 0); }
+		public TerminalNode EQ() { return getToken(FilterParser.EQ, 0); }
+		public TerminalNode NOT_EQ1() { return getToken(FilterParser.NOT_EQ1, 0); }
+		public TerminalNode NOT_EQ2() { return getToken(FilterParser.NOT_EQ2, 0); }
+		public TerminalNode IN_() { return getToken(FilterParser.IN_, 0); }
+		public TerminalNode NOT_() { return getToken(FilterParser.NOT_, 0); }
+		public CategoryExpContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof FilterListener ) ((FilterListener)listener).enterCategoryExp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof FilterListener ) ((FilterListener)listener).exitCategoryExp(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FilterVisitor ) return ((FilterVisitor<? extends T>)visitor).visitCategoryExp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -467,7 +467,7 @@ public class FilterParser extends Parser {
 					switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
 					case 1:
 						{
-						_localctx = new PlusExpContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new PlusMinusExpContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(39);
 						if (!(precpred(_ctx, 6))) throw new FailedPredicateException(this, "precpred(_ctx, 6)");
@@ -484,7 +484,7 @@ public class FilterParser extends Parser {
 						break;
 					case 2:
 						{
-						_localctx = new LtExpContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new CompareExpContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(42);
 						if (!(precpred(_ctx, 5))) throw new FailedPredicateException(this, "precpred(_ctx, 5)");
@@ -501,7 +501,7 @@ public class FilterParser extends Parser {
 						break;
 					case 3:
 						{
-						_localctx = new EqExpContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new CategoryExpContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(45);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");

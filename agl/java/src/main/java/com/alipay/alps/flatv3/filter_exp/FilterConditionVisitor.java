@@ -34,7 +34,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<FilterConditionSin
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public FilterConditionSingleton visitLtExp(FilterParser.LtExpContext ctx) {
+    @Override public FilterConditionSingleton visitCompareExp(FilterParser.CompareExpContext ctx) {
         FilterConditionSingleton filterCondition = FilterConditionSingleton.getInstance();
         String leftExp = ctx.getChild(0).getText();
         String op = ctx.getChild(1).getText();
@@ -61,7 +61,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<FilterConditionSin
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public FilterConditionSingleton visitEqExp(FilterParser.EqExpContext ctx) {
+    @Override public FilterConditionSingleton visitCategoryExp(FilterParser.CategoryExpContext ctx) {
         FilterConditionSingleton filterCondition = FilterConditionSingleton.getInstance();
         String leftExp = ctx.getChild(0).getText();
         String op = ctx.getChild(1).getText();

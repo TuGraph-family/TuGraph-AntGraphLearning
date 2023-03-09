@@ -41,18 +41,6 @@ public class FilterBaseListener implements FilterListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterPlusExp(FilterParser.PlusExpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPlusExp(FilterParser.PlusExpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterColumnExp(FilterParser.ColumnExpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -65,30 +53,6 @@ public class FilterBaseListener implements FilterListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterLtExp(FilterParser.LtExpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLtExp(FilterParser.LtExpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterEqExp(FilterParser.EqExpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitEqExp(FilterParser.EqExpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterAndExp(FilterParser.AndExpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -96,6 +60,18 @@ public class FilterBaseListener implements FilterListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAndExp(FilterParser.AndExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterCompareExp(FilterParser.CompareExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCompareExp(FilterParser.CompareExpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -125,6 +101,18 @@ public class FilterBaseListener implements FilterListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterPlusMinusExp(FilterParser.PlusMinusExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPlusMinusExp(FilterParser.PlusMinusExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterUnaryExp(FilterParser.UnaryExpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -132,6 +120,18 @@ public class FilterBaseListener implements FilterListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitUnaryExp(FilterParser.UnaryExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterCategoryExp(FilterParser.CategoryExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCategoryExp(FilterParser.CategoryExpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

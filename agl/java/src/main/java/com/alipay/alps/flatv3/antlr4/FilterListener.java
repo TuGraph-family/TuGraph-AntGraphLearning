@@ -31,18 +31,6 @@ public interface FilterListener extends ParseTreeListener {
 	 */
 	void exitLiteralExp(FilterParser.LiteralExpContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code PlusExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterPlusExp(FilterParser.PlusExpContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code PlusExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitPlusExp(FilterParser.PlusExpContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code ColumnExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree
@@ -55,30 +43,6 @@ public interface FilterListener extends ParseTreeListener {
 	 */
 	void exitColumnExp(FilterParser.ColumnExpContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code LtExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterLtExp(FilterParser.LtExpContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code LtExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitLtExp(FilterParser.LtExpContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code EqExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterEqExp(FilterParser.EqExpContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code EqExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitEqExp(FilterParser.EqExpContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code AndExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree
@@ -90,6 +54,18 @@ public interface FilterListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAndExp(FilterParser.AndExpContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CompareExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompareExp(FilterParser.CompareExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CompareExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompareExp(FilterParser.CompareExpContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ParExp}
 	 * labeled alternative in {@link FilterParser#expr}.
@@ -115,6 +91,18 @@ public interface FilterListener extends ParseTreeListener {
 	 */
 	void exitOrExp(FilterParser.OrExpContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code PlusMinusExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPlusMinusExp(FilterParser.PlusMinusExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PlusMinusExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPlusMinusExp(FilterParser.PlusMinusExpContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code UnaryExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree
@@ -126,6 +114,18 @@ public interface FilterListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitUnaryExp(FilterParser.UnaryExpContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CategoryExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterCategoryExp(FilterParser.CategoryExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CategoryExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitCategoryExp(FilterParser.CategoryExpContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FilterParser#keyword}.
 	 * @param ctx the parse tree

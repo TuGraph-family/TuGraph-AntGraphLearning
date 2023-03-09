@@ -25,13 +25,6 @@ public interface FilterVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLiteralExp(FilterParser.LiteralExpContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code PlusExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitPlusExp(FilterParser.PlusExpContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code ColumnExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree
@@ -39,26 +32,19 @@ public interface FilterVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitColumnExp(FilterParser.ColumnExpContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code LtExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLtExp(FilterParser.LtExpContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code EqExp}
-	 * labeled alternative in {@link FilterParser#expr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitEqExp(FilterParser.EqExpContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code AndExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitAndExp(FilterParser.AndExpContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CompareExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCompareExp(FilterParser.CompareExpContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ParExp}
 	 * labeled alternative in {@link FilterParser#expr}.
@@ -74,12 +60,26 @@ public interface FilterVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitOrExp(FilterParser.OrExpContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code PlusMinusExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPlusMinusExp(FilterParser.PlusMinusExpContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code UnaryExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitUnaryExp(FilterParser.UnaryExpContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CategoryExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCategoryExp(FilterParser.CategoryExpContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FilterParser#keyword}.
 	 * @param ctx the parse tree
