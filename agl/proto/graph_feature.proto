@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+// java
+option java_package = "com.antfin.agl.proto.graph_feature";
+option java_outer_classname = "GraphFeature";
+option java_multiple_files = true;
+
+// python/cpp
+package agl.proto.graph_feature;
+
+// cpp
+option cc_enable_arenas = true;
+
+enum DType {
+  UNKNOWN = 0;
+  INT8 = 1;
+  UINT16 = 2;
+  INT16 = 3;
+  UINT32 = 4;
+  INT32 = 5;
+  UINT64 = 6;
+  INT64 = 7;
+  FLOAT = 8;
+  DOUBLE = 9;
+  STR = 10;
+  UINT8 = 11;
+  BF16 = 12;
+  FP16 = 13;
+}
+
+message BytesList {
+  repeated bytes value = 1;
+}
+message FloatList {
+  repeated float value = 1 [packed = true];
+}
+message Float64List {
+  repeated double value = 1 [packed = true];
+}
+message Int64List {
+  repeated int64 value = 1 [packed = true];   // varints
+}
+
+message IDs {
+  oneof ids {
+    BytesList str = 1;
+    Int64List u64 = 2;
+  }
+}
+
+message DenseFeatures {
+  int32 dim = 1;
+  oneof df {
+    FloatList f32s = 2;
+    Float64List f64s = 3;
+    Int64List i64s = 4;
+    BytesList raws = 5;
+  }
+}
+
+message SparseKvFeatures {
+  Int64List lens = 1;
+  Int64List keys = 2;
+  oneof values {
+    FloatList f32s = 3;
+    Float64List f64s = 4;
+    Int64List i64s = 5;
+  }
+}
+
+message VariantLenFeatures {
+  Int64List lens = 1;
+  oneof keys {
+    Int64List i64s = 2;
+    BytesList raws = 3;
+  }
+}
+
+message Nodes {
+  IDs nids = 1;
+  map<string, DenseFeatures> dfs = 2;
+  map<string, SparseKvFeatures> spkvs = 3;
+  map<string, VariantLenFeatures> vars = 4;
+}
+
+message CSR {
+  Int64List indptr = 1;
+  Int64List nbrs_indices = 2;
+}
+
+message COO {
+  Int64List n1_indices = 2;
+  Int64List n2_indices = 3;
+}
+
+message Edges {
+  IDs eids = 1;
+  oneof nbrs {
+    CSR csr = 2;
+    COO coo = 3;
+  }
+
+  map<string, DenseFeatures> dfs = 4;
+  map<string, SparseKvFeatures> spkvs = 5;
+  map<string, VariantLenFeatures> vars = 6;
+  string n1_name = 7;
+  string n2_name = 8;
+}
+
+message GraphFeature {
+  message Root {
+    message OneItem {
+      int64 idx = 1;  // node or edge index
+      string name = 2;  // name
+    }
+    message MultiItems {
+      map<string, Int64List> indices = 1; // node/edge indices
+    }
+    oneof root {
+      OneItem nidx = 1;
+      OneItem eidx = 2;
+      MultiItems subgraph = 3;
+    }
+  }
+
+  map<string, Nodes> nodes = 1;
+  map<string, Edges> edges = 2;
+  optional Root root = 3; // has(EgoGraph) or not(SubGraph)
+}
+
