@@ -48,38 +48,38 @@ message IDs {
   }
 }
 
-message DenseFeatures {
-  int32 dim = 1;
-  oneof df {
-    FloatList f32s = 2;
-    Float64List f64s = 3;
-    Int64List i64s = 4;
-    BytesList raws = 5;
-  }
-}
-
-message SparseKFeatures {
-  Int64List lens = 1;
-  oneof keys {
-    Int64List i64s = 2;
-    BytesList raws = 3;
-  }
-}
-
-message SparseKVFeatures {
-  Int64List lens = 1;
-  Int64List keys = 2;
-  oneof values {
-    FloatList f32s = 3;
-    Float64List f64s = 4;
-    Int64List i64s = 5;
-  }
-}
-
 message Features {
+  message DenseFeatures {
+    int32 dim = 1;
+    oneof df {
+      FloatList f32s = 2;
+      Float64List f64s = 3;
+      Int64List i64s = 4;
+      BytesList raws = 5;
+    }
+  }
+
+  message SparseKFeatures {
+    Int64List lens = 1;
+    oneof keys {
+      Int64List i64s = 2;
+      BytesList raws = 3;
+    }
+  }
+
+  message SparseKVFeatures {
+    Int64List lens = 1;
+    Int64List keys = 2;
+    oneof values {
+      FloatList f32s = 3;
+      Float64List f64s = 4;
+      Int64List i64s = 5;
+    }
+  }
+
   map<string, DenseFeatures> dfs = 1;
   map<string, SparseKVFeatures> spkvs = 2;
-  map<string, SparseKFeatures> vars = 3;
+  map<string, SparseKFeatures> spks = 3;
 }
 
 message Nodes {
@@ -127,6 +127,7 @@ message GraphFeature {
 
   map<string, Nodes> nodes = 1;
   map<string, Edges> edges = 2;
-  optional Root root = 3; // has(EgoGraph) or not(SubGraph)
+  Root root = 3; // has(EgoGraph) or not(SubGraph)
 }
+
 
