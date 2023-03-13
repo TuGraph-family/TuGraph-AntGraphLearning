@@ -1,12 +1,12 @@
 syntax = "proto3";
 
+// package(not affect python)
+package agl.proto.graph_feature;
+
 // java
 option java_package = "com.antfin.agl.proto.graph_feature";
 option java_outer_classname = "GraphFeature";
 option java_multiple_files = true;
-
-// python/cpp
-package agl.proto.graph_feature;
 
 // cpp
 option cc_enable_arenas = true;
@@ -58,7 +58,15 @@ message DenseFeatures {
   }
 }
 
-message SparseKvFeatures {
+message SparseKFeatures {
+  Int64List lens = 1;
+  oneof keys {
+    Int64List i64s = 2;
+    BytesList raws = 3;
+  }
+}
+
+message SparseKVFeatures {
   Int64List lens = 1;
   Int64List keys = 2;
   oneof values {
@@ -68,43 +76,37 @@ message SparseKvFeatures {
   }
 }
 
-message VariantLenFeatures {
-  Int64List lens = 1;
-  oneof keys {
-    Int64List i64s = 2;
-    BytesList raws = 3;
-  }
+message Features {
+  map<string, DenseFeatures> dfs = 1;
+  map<string, SparseKVFeatures> spkvs = 2;
+  map<string, SparseKFeatures> vars = 3;
 }
 
 message Nodes {
   IDs nids = 1;
-  map<string, DenseFeatures> dfs = 2;
-  map<string, SparseKvFeatures> spkvs = 3;
-  map<string, VariantLenFeatures> vars = 4;
-}
-
-message CSR {
-  Int64List indptr = 1;
-  Int64List nbrs_indices = 2;
-}
-
-message COO {
-  Int64List n1_indices = 2;
-  Int64List n2_indices = 3;
+  Features features = 2;
 }
 
 message Edges {
+  message CSR {
+    Int64List indptr = 1;
+    Int64List nbrs_indices = 2;
+  }
+
+  message COO {
+    Int64List n1_indices = 2;
+    Int64List n2_indices = 3;
+  }
+
   IDs eids = 1;
   oneof nbrs {
     CSR csr = 2;
     COO coo = 3;
   }
+  string n1_name = 4;
+  string n2_name = 5;
 
-  map<string, DenseFeatures> dfs = 4;
-  map<string, SparseKvFeatures> spkvs = 5;
-  map<string, VariantLenFeatures> vars = 6;
-  string n1_name = 7;
-  string n2_name = 8;
+  Features feats = 6;
 }
 
 message GraphFeature {
