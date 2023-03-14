@@ -8,11 +8,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import com.antfin.ai.alps.graph.aglstore.loader.CmpExp;
-import com.antfin.ai.alps.graph.aglstore.loader.Element;
-import com.antfin.ai.alps.graph.aglstore.loader.LogicExps;
-import com.antfin.ai.alps.graph.aglstore.loader.LogicOp;
-import com.antfin.ai.alps.graph.aglstore.loader.VariableSource;
+import com.antfin.ai.alps.graph.flat.sample.CmpExp;
+import com.antfin.ai.alps.graph.flat.sample.Element;
+import com.antfin.ai.alps.graph.flat.sample.LogicExps;
+import com.antfin.ai.alps.graph.flat.sample.LogicOp;
+import com.antfin.ai.alps.graph.flat.sample.VariableSource;
 
 public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder> {
     private LogicExps.Builder logicExpsBuilder = LogicExps.newBuilder();
@@ -36,7 +36,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
     @Override public LogicExps.Builder visitAndExp(FilterParser.AndExpContext ctx) {
         String op = ctx.getChild(1).getText();
         visitChildren(ctx);
-        logicExpsBuilder.addExps(LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf(op.toUpperCase())));
+        logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf(op.toUpperCase())));
         return logicExpsBuilder;
     }
 
@@ -49,7 +49,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
     @Override public LogicExps.Builder visitOrExp(FilterParser.OrExpContext ctx) {
         String op = ctx.getChild(1).getText();
         visitChildren(ctx);
-        logicExpsBuilder.addExps(LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf(op.toUpperCase())));
+        logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf(op.toUpperCase())));
         return logicExpsBuilder;
     }
 
@@ -78,12 +78,12 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         visitChildren(ctx);
         String arrs[] = exp.split("\\.");
         if (sourceTypeSet.contains(arrs[0].toUpperCase())) {
-            Element.Var.Builder elementVarBuilder = Element.newBuilder().getVBuilder().setSource(VariableSource.valueOf(arrs[0].toUpperCase()));
+            Element.Variable.Builder elementVarBuilder = Element.newBuilder().getVariableBuilder().setSource(VariableSource.valueOf(arrs[0].toUpperCase()));
             elementVarBuilder.setName(arrs.length <= 1 ? "" : arrs[1]);
-            arithmeticValOps.add(Element.newBuilder().setV(elementVarBuilder).build());
+            arithmeticValOps.add(Element.newBuilder().setVariable(elementVarBuilder).build());
         } else {
-            Element.Num.Builder elementNumBuilder = Element.newBuilder().getNBuilder().setS(exp);
-            arithmeticValOps.add(Element.newBuilder().setN(elementNumBuilder).build());
+            Element.Number.Builder elementNumBuilder = Element.newBuilder().getNumBuilder().setS(exp);
+            arithmeticValOps.add(Element.newBuilder().setNum(elementNumBuilder).build());
         }
         if (ctx.parent instanceof FilterParser.CompareExpContext || ctx.parent instanceof FilterParser.CategoryExpContext) {
             arithmeticValOps = arithmeticValOpsRight;
@@ -95,13 +95,13 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         String exp = ctx.getChild(0).getText();
         visitChildren(ctx);
 
-        Element.Num.Builder elementNumBuilder = Element.newBuilder().getNBuilder();
+        Element.Number.Builder elementNumBuilder = Element.newBuilder().getNumBuilder();
         if (exp.matches("\\d+(\\.\\d+)?")) {
             elementNumBuilder.setF(Float.parseFloat(exp));
         } else {
             elementNumBuilder.setF(Integer.parseInt(exp)); // setInt?
         }
-        arithmeticValOps.add(Element.newBuilder().setN(elementNumBuilder).build());
+        arithmeticValOps.add(Element.newBuilder().setNum(elementNumBuilder).build());
         if (ctx.parent instanceof FilterParser.CompareExpContext || ctx.parent instanceof FilterParser.CategoryExpContext) {
             arithmeticValOps = arithmeticValOpsRight;
         }
@@ -123,15 +123,15 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
 
         // generate compare expression from arithmetic values and arithmetic ops
         CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder();
-        cmpExpBuilder.addAllLeft(arithmeticValOpsLeft);
-        cmpExpBuilder.addAllRight(arithmeticValOpsRight);
+        cmpExpBuilder.addAllLeftFormulaRPN(arithmeticValOpsLeft);
+        cmpExpBuilder.addAllRightFormulaRPN(arithmeticValOpsRight);
         try {
             cmpExpBuilder.setOp(CompareExpUtil.parseCmpOp(op));
         } catch (Exception e) {
             e.printStackTrace();
         }
         // reverse Polish representation
-        logicExpsBuilder.addExps(LogicExps.ExpOp.newBuilder().setExp(cmpExpBuilder));
+        logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setExp(cmpExpBuilder));
         return logicExpsBuilder;
     }
 
@@ -155,8 +155,8 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
 
         // generate category expression from arithmetic values and arithmetic ops
         CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder();
-        cmpExpBuilder.addAllLeft(arithmeticValOpsLeft);
-        cmpExpBuilder.addAllRight(arithmeticValOpsRight);
+        cmpExpBuilder.addAllLeftFormulaRPN(arithmeticValOpsLeft);
+        cmpExpBuilder.addAllRightFormulaRPN(arithmeticValOpsRight);
         try {
             cmpExpBuilder.setOp(CompareExpUtil.parseCmpOp(op));
         } catch (Exception e) {
@@ -164,7 +164,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         }
 
         // reverse Polish representation
-        logicExpsBuilder.addExps(LogicExps.ExpOp.newBuilder().setExp(cmpExpBuilder));
+        logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setExp(cmpExpBuilder));
         return logicExpsBuilder;
     }
 }

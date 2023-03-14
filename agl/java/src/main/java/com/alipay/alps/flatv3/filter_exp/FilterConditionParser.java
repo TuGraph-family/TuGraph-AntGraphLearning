@@ -2,7 +2,7 @@ package com.alipay.alps.flatv3.filter_exp;
 
 import com.alipay.alps.flatv3.antlr4.FilterLexer;
 import com.alipay.alps.flatv3.antlr4.FilterParser;
-import com.antfin.ai.alps.graph.aglstore.loader.LogicExps;
+import com.antfin.ai.alps.graph.flat.sample.LogicExps;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 

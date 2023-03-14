@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 // java
-option java_package = "com.antfin.ai.alps.graph.aglstore.loader";
+option java_package = "com.antfin.ai.alps.graph.flat.sample";
 option java_outer_classname = "SampleMeta";
 option java_multiple_files = true;
 
@@ -43,13 +43,13 @@ enum VariableSource {
 }
 
 message Element {
-  message Var {
+  message Variable {
     string name = 1;
     VariableSource source = 2;
     int32 index = 3;
   }
 
-  message Num {
+  message Number {
     oneof data {
       float f = 1;
       int64 i = 2;
@@ -57,9 +57,9 @@ message Element {
     }
   }
 
-  oneof var {
-    Var v = 1;
-    Num n = 2;
+  oneof symbol {
+    Variable v = 1;
+    Number n = 2;
     ArithmeticOp op = 3;
   }
 }
@@ -72,8 +72,8 @@ message Element {
 // the converted right list is [10, seed.2, *]
 // the op is GREATER_EQ
 message CmpExp {
-  repeated Element left = 1;
-  repeated Element right = 2;
+  repeated Element leftFormulaRPN = 1;
+  repeated Element rightFormulaRPN = 2;
   CmpOp op = 3;
 }
 
@@ -82,12 +82,12 @@ message CmpExp {
 // For example, the original logic expressions are: CmpExp1 OR CmpExp2 AND CmpExp3,
 // the converted list is [CmpExp1, CmpExp2, CmpExp3, AND, OR]
 message LogicExps {
-  message ExpOp {
+  message ExpOrOp {
     oneof data {
       CmpExp exp = 1;
       LogicOp op = 2;
     }
   }
   
-  repeated ExpOp exps = 1;
+  repeated ExpOrOp expRPN = 1;
 }

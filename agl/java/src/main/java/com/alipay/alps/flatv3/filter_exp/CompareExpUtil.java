@@ -7,11 +7,11 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.List;
 
-import com.antfin.ai.alps.graph.aglstore.loader.ArithmeticOp;
-import com.antfin.ai.alps.graph.aglstore.loader.CmpExp;
-import com.antfin.ai.alps.graph.aglstore.loader.CmpOp;
-import com.antfin.ai.alps.graph.aglstore.loader.Element;
-import com.antfin.ai.alps.graph.aglstore.loader.VariableSource;
+import com.antfin.ai.alps.graph.flat.sample.ArithmeticOp;
+import com.antfin.ai.alps.graph.flat.sample.CmpExp;
+import com.antfin.ai.alps.graph.flat.sample.CmpOp;
+import com.antfin.ai.alps.graph.flat.sample.Element;
+import com.antfin.ai.alps.graph.flat.sample.VariableSource;
 
 public class CompareExpUtil {
     public static <T> boolean checkCategory(T left, List<T> categories, CmpOp cmpOp) {
@@ -22,35 +22,35 @@ public class CompareExpUtil {
         }
         return false;
     }
-    public static boolean evalCategoryExp(CmpExp cmpExp, Map<VariableSource, Map<String, Element.Num>> inputVariables) throws Exception {
-        Element.Var variableSource = null;
+    public static boolean evalCategoryExp(CmpExp cmpExp, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+        Element.Variable variableSource = null;
         List<Element> categoryElements = null;
-        if (cmpExp.getLeftCount() == 1 && cmpExp.getLeft(0).getVarCase() == Element.VarCase.V) {
-            variableSource = cmpExp.getLeft(0).getV();
-            categoryElements = cmpExp.getRightList();
-        } else if (cmpExp.getRightCount() == 1 && cmpExp.getRight(0).getVarCase() == Element.VarCase.V) {
-            variableSource = cmpExp.getRight(0).getV();
-            categoryElements = cmpExp.getLeftList();
+        if (cmpExp.getLeftFormulaRPNCount() == 1 && cmpExp.getLeftFormulaRPN(0).getSymbolCase() == Element.SymbolCase.VARIABLE) {
+            variableSource = cmpExp.getLeftFormulaRPN(0).getVariable();
+            categoryElements = cmpExp.getRightFormulaRPNList();
+        } else if (cmpExp.getRightFormulaRPNCount() == 1 && cmpExp.getRightFormulaRPN(0).getSymbolCase() == Element.SymbolCase.VARIABLE) {
+            variableSource = cmpExp.getRightFormulaRPN(0).getVariable();
+            categoryElements = cmpExp.getLeftFormulaRPNList();
         } else {
             throw new Exception("category expression should accept one variable");
         }
-        Element.Num variable = inputVariables.get(variableSource.getSource()).get(variableSource.getName());
-        if (variable.getDataCase() == Element.Num.DataCase.S) {
+        Element.Number variable = inputVariables.get(variableSource.getSource()).get(variableSource.getName());
+        if (variable.getDataCase() == Element.Number.DataCase.S) {
             List<String> categories = new ArrayList<>();
             for (int i = 0; i < categoryElements.size(); i++) {
-                categories.add(categoryElements.get(i).getN().getS());
+                categories.add(categoryElements.get(i).getNum().getS());
             }
             return checkCategory(variable.getS(), categories, cmpExp.getOp());
-        } else if (variable.getDataCase() == Element.Num.DataCase.F) {
+        } else if (variable.getDataCase() == Element.Number.DataCase.F) {
             List<Float> categories = new ArrayList<>();
             for (int i = 0; i < categoryElements.size(); i++) {
-                categories.add(categoryElements.get(i).getN().getF());
+                categories.add(categoryElements.get(i).getNum().getF());
             }
             return checkCategory(variable.getF(), categories, cmpExp.getOp());
         } else {
             List<Long> categories = new ArrayList<>();
             for (int i = 0; i < categoryElements.size(); i++) {
-                categories.add(categoryElements.get(i).getN().getI());
+                categories.add(categoryElements.get(i).getNum().getI());
             }
             return checkCategory(variable.getI(), categories, cmpExp.getOp());
         }
@@ -85,33 +85,33 @@ public class CompareExpUtil {
         return false;
     }
 
-    public static boolean evalStringCompareExp(CmpExp cmpExp, Map<VariableSource, Map<String, Element.Num>> inputVariables) {
-        String left = getStringValue(cmpExp.getLeft(0), inputVariables);
-        String right = getStringValue(cmpExp.getRight(0), inputVariables);
+    public static boolean evalStringCompareExp(CmpExp cmpExp, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
+        String left = getStringValue(cmpExp.getLeftFormulaRPN(0), inputVariables);
+        String right = getStringValue(cmpExp.getRightFormulaRPN(0), inputVariables);
         return compare(left, right, cmpExp.getOp());
     }
 
-    public static boolean evalDoubleCompareExp(CmpExp cmpExp, Map<VariableSource, Map<String, Element.Num>> inputVariables) {
-        double leftSum = calculateArithmetic(cmpExp.getLeftList(), inputVariables);
-        double rightSum = calculateArithmetic(cmpExp.getRightList(), inputVariables);
+    public static boolean evalDoubleCompareExp(CmpExp cmpExp, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
+        double leftSum = calculateArithmetic(cmpExp.getLeftFormulaRPNList(), inputVariables);
+        double rightSum = calculateArithmetic(cmpExp.getRightFormulaRPNList(), inputVariables);
         return compare(leftSum, rightSum, cmpExp.getOp());
     }
 
-    public static double getDoubleValue(Element.Num num) {
-        if (num.getDataCase() == Element.Num.DataCase.F) {
+    public static double getDoubleValue(Element.Number num) {
+        if (num.getDataCase() == Element.Number.DataCase.F) {
             return (double) num.getF();
-        } else if (num.getDataCase() == Element.Num.DataCase.I) {
+        } else if (num.getDataCase() == Element.Number.DataCase.I) {
             return (double) num.getI();
         }
         return -1;
     }
 
-    public static String getStringValue(Element element, Map<VariableSource, Map<String, Element.Num>> inputVariables) {
-        if (element.getVarCase() == Element.VarCase.N) {
-            return element.getN().getS();
+    public static String getStringValue(Element element, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
+        if (element.getSymbolCase() == Element.SymbolCase.NUM) {
+            return element.getNum().getS();
         } else {
-            VariableSource sourceType = element.getV().getSource();
-            String name = element.getV().getName();
+            VariableSource sourceType = element.getVariable().getSource();
+            String name = element.getVariable().getName();
             return inputVariables.get(sourceType).get(name).getS();
         }
     }
@@ -137,16 +137,16 @@ public class CompareExpUtil {
         throw new Exception("not supported comparison op:" + cmpOp);
     }
 
-    public static double calculateArithmetic(List<Element> elements, Map<VariableSource, Map<String, Element.Num>> inputVariables) {
+    public static double calculateArithmetic(List<Element> elements, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
         Stack<Double> vars = new Stack<>();
         for (int i = 0; i < elements.size(); i++) {
             Element element = elements.get(i);
-            if (element.getVarCase() == Element.VarCase.N) {
-                vars.push(getDoubleValue(element.getN()));
+            if (element.getSymbolCase() == Element.SymbolCase.NUM) {
+                vars.push(getDoubleValue(element.getNum()));
                 System.out.println("---calculate element:" + element + " push Num " + vars.peek());
-            } else if (element.hasV()) {
-                VariableSource sourceType = element.getV().getSource();
-                String name = element.getV().getName();
+            } else if (element.hasVariable()) {
+                VariableSource sourceType = element.getVariable().getSource();
+                String name = element.getVariable().getName();
                 vars.push(getDoubleValue(inputVariables.get(sourceType).get(name)));
                 System.out.println("---calculate element:" + element + " push Var " + vars.peek());
             } else {
