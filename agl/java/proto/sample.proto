@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+// java
+option java_package = "com.antfin.ai.alps.graph.aglstore.loader";
+option java_outer_classname = "SampleMeta";
+option java_multiple_files = true;
+
+// python/cpp
+package alps.graph_ml.proto.sampler;
+
+//option cc_enable_arenas = true;
+
+enum CmpOp {
+  LESS = 0;
+  LESS_EQ = 1;
+  EQ = 2;
+  GREATER = 3;
+  GREATER_EQ = 4;
+  NOT_EQ = 5;
+  IN = 6;
+  NOT_IN = 7;
+}
+
+enum LogicOp {
+  AND = 0;
+  OR = 1;
+  NOT = 2;
+}
+
+enum ArithmeticOp {
+  MINUS = 0;
+  PLUS = 1;
+  STAR = 2;
+  DIV = 3;
+  MOD = 4;
+}
+
+enum VariableSource {
+  INDEX = 0;
+  SEED = 1;
+  FRONTIER = 2;
+  EDGE = 3;
+}
+
+message Element {
+  message Var {
+    string name = 1;
+    VariableSource source = 2;
+    int32 index = 3;
+  }
+
+  message Num {
+    oneof data {
+      float f = 1;
+      int64 i = 2;
+      string s = 3;
+    }
+  }
+
+  oneof var {
+    Var v = 1;
+    Num n = 2;
+    ArithmeticOp op = 3;
+  }
+}
+
+message CmpExp {
+  repeated Element left = 1;
+  repeated Element right = 2;
+  CmpOp op = 3;
+}
+
+message LogicExps {  
+  message ExpOp {
+    oneof data {
+      CmpExp exp = 1;
+      LogicOp op = 2;
+    }
+  }
+  
+  repeated ExpOp exps = 1;
+}
