@@ -74,6 +74,13 @@ public interface FilterVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUnaryExp(FilterParser.UnaryExpContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code StarDivExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStarDivExp(FilterParser.StarDivExpContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code CategoryExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree

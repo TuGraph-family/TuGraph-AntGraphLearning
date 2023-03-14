@@ -8,19 +8,22 @@ expr:
     literal_value                                                   #LiteralExp
     | column_name                                                   #ColumnExp
     | unary_operator expr                                           #UnaryExp
+    | expr ( STAR | DIV | MOD) expr                                 #StarDivExp
     | expr ( PLUS | MINUS) expr                                     #PlusMinusExp
-    | expr ( LT | LT_EQ | GT | GT_EQ) expr                          #CompareExp
     | expr (
-        ASSIGN
+        LT
+        | LT_EQ
+        | GT
+        | GT_EQ
+        | ASSIGN
         | EQ
         | NOT_EQ1
         | NOT_EQ2
-        | IN_
-        | NOT_ IN_
-    ) expr                                                          #CategoryExp
+        ) expr                                                      #CompareExp
+    | expr ( IN_ | NOT_ IN_) expr                                   #CategoryExp
     | expr AND_ expr                                                #AndExp
     | expr OR_ expr                                                 #OrExp
-    | OPEN_PAR expr (COMMA expr)* CLOSE_PAR                         #ParExp
+    | OPEN_PAR expr (COMMA expr) * CLOSE_PAR                        #ParExp
 ;
 
 keyword:

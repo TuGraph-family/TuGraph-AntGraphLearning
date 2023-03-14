@@ -125,6 +125,18 @@ public class FilterBaseListener implements FilterListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterStarDivExp(FilterParser.StarDivExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitStarDivExp(FilterParser.StarDivExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterCategoryExp(FilterParser.CategoryExpContext ctx) { }
 	/**
 	 * {@inheritDoc}

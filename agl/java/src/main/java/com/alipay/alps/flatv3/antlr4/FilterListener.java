@@ -115,6 +115,18 @@ public interface FilterListener extends ParseTreeListener {
 	 */
 	void exitUnaryExp(FilterParser.UnaryExpContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code StarDivExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterStarDivExp(FilterParser.StarDivExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code StarDivExp}
+	 * labeled alternative in {@link FilterParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitStarDivExp(FilterParser.StarDivExpContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code CategoryExp}
 	 * labeled alternative in {@link FilterParser#expr}.
 	 * @param ctx the parse tree

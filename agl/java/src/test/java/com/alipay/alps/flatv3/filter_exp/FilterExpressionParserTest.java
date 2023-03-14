@@ -1,64 +1,63 @@
 package com.alipay.alps.flatv3.filter_exp;
 
-import com.alipay.alps.flatv3.antlr4.FilterLexer;
-import com.alipay.alps.flatv3.antlr4.FilterParser;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+import com.antfin.ai.alps.graph.aglstore.loader.CmpOp;
+import com.antfin.ai.alps.graph.aglstore.loader.LogicExps;
+import com.antfin.ai.alps.graph.aglstore.loader.LogicOp;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class FilterExpressionParserTest {
     @Test
     public void testParseFilterCond() {
-        FilterConditionSingleton.reset();
         String filterCond = "INDEX.TIME - SEED.1 >= 0.5 AND INDEX.TIME <= SEED.1 + 11";
-        ANTLRInputStream input = new ANTLRInputStream(filterCond);
-        FilterLexer lexer = new FilterLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        FilterParser parser = new FilterParser(tokens);
-        FilterConditionVisitor visitor = new FilterConditionVisitor();
-        visitor.visit(parser.start());
-        ArrayList<ArrayList<Expression>> unionJoinFilters = FilterConditionSingleton.getInstance().getUnionJoinFilters();
-        Assert.assertEquals(unionJoinFilters.size(), 1);
-        Assert.assertEquals(unionJoinFilters.get(0).size(), 2);
-        Assert.assertTrue(unionJoinFilters.get(0).get(0) instanceof AlgebraicExp);
-        Assert.assertTrue(unionJoinFilters.get(0).get(1) instanceof AlgebraicExp);
+        FilterConditionParser filterConditionParser = new FilterConditionParser();
+        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        List<LogicExps.ExpOp> expOps = logicExps.getExpsList();
+        Assert.assertEquals(expOps.size(), 3);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
+        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LESS_EQ);
+        Assert.assertEquals(expOps.get(2), LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf("AND")).build());
     }
 
     @Test
     public void testParseFilterCond2() {
-        FilterConditionSingleton.reset();
         String filterCond = "index.time - seed.1 >= 0.5 or index.type not in (node, item)";
-        ANTLRInputStream input = new ANTLRInputStream(filterCond);
-        FilterLexer lexer = new FilterLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        FilterParser parser = new FilterParser(tokens);
-        FilterConditionVisitor visitor = new FilterConditionVisitor();
-        visitor.visit(parser.start());
-        ArrayList<ArrayList<Expression>> unionJoinFilters = FilterConditionSingleton.getInstance().getUnionJoinFilters();
-        Assert.assertEquals(unionJoinFilters.size(), 2);
-        Assert.assertEquals(unionJoinFilters.get(1).size(), 1);
-        Assert.assertTrue(unionJoinFilters.get(0).get(0) instanceof AlgebraicExp);
-        Assert.assertTrue(unionJoinFilters.get(1).get(0) instanceof CategoryExp);
+        FilterConditionParser filterConditionParser = new FilterConditionParser();
+        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        List<LogicExps.ExpOp> expOps = logicExps.getExpsList();
+        Assert.assertEquals(expOps.size(), 3);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
+        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.NOT_IN);
+        Assert.assertEquals(expOps.get(2), LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf("OR")).build());
     }
 
     @Test
     public void testParseFilterCond3() {
-        FilterConditionSingleton.reset();
         String filterCond = "index.time - seed.1 >= 0.5 or INDEX.TIME <= SEED.1 + 11 and index.type not in (node, item)";
-        ANTLRInputStream input = new ANTLRInputStream(filterCond);
-        FilterLexer lexer = new FilterLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        FilterParser parser = new FilterParser(tokens);
-        FilterConditionVisitor visitor = new FilterConditionVisitor();
-        visitor.visit(parser.start());
-        ArrayList<ArrayList<Expression>> unionJoinFilters = FilterConditionSingleton.getInstance().getUnionJoinFilters();
-        Assert.assertEquals(unionJoinFilters.size(), 2);
-        Assert.assertEquals(unionJoinFilters.get(1).size(), 2);
-        Assert.assertTrue(unionJoinFilters.get(0).get(0) instanceof AlgebraicExp);
-        Assert.assertTrue(unionJoinFilters.get(1).get(0) instanceof AlgebraicExp);
-        Assert.assertTrue(unionJoinFilters.get(1).get(1) instanceof CategoryExp);
+        FilterConditionParser filterConditionParser = new FilterConditionParser();
+        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        List<LogicExps.ExpOp> expOps = logicExps.getExpsList();
+        Assert.assertEquals(expOps.size(), 5);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
+        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LESS_EQ);
+        Assert.assertEquals(expOps.get(2).getExp().getOp(), CmpOp.NOT_IN);
+        Assert.assertEquals(expOps.get(3), LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf("AND")).build());
+        Assert.assertEquals(expOps.get(4), LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf("OR")).build());
+    }
+
+    @Test
+    public void testParseFilterCond4() {
+        String filterCond = "index.time - (seed.1 - seed.2 * 4.3) / index.type >= 0.5 and INDEX.1 - 10 < SEED + 100 or SEED in (item, user)";
+        FilterConditionParser filterConditionParser = new FilterConditionParser();
+        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        List<LogicExps.ExpOp> expOps = logicExps.getExpsList();
+        Assert.assertEquals(expOps.size(), 5);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
+        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LESS);
+        Assert.assertEquals(expOps.get(2), LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf("AND")).build());
+        Assert.assertEquals(expOps.get(3).getExp().getOp(), CmpOp.IN);
+        Assert.assertEquals(expOps.get(4), LogicExps.ExpOp.newBuilder().setOp(LogicOp.valueOf("OR")).build());
     }
 }
