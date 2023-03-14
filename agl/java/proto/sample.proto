@@ -58,8 +58,8 @@ message Element {
   }
 
   oneof symbol {
-    Variable v = 1;
-    Number n = 2;
+    Variable variable = 1;
+    Number num = 2;
     ArithmeticOp op = 3;
   }
 }
