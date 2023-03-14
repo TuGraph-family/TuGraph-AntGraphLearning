@@ -6,9 +6,9 @@ option java_outer_classname = "SampleMeta";
 option java_multiple_files = true;
 
 // python/cpp
-package alps.graph_ml.proto.sampler;
+package alps.graph_ml.proto.sample;
 
-//option cc_enable_arenas = true;
+option cc_enable_arenas = true;
 
 enum CmpOp {
   LESS = 0;
@@ -64,13 +64,24 @@ message Element {
   }
 }
 
+// The left and right lists could contain variables, constants, and operators, arranged in reverse polish notation.
+// The comparison operator determines how the two lists are compared.
+// The original formula is converted into reverse polish notation, where the operands follow their operators.
+// For example, the original inequation is index.time - seed.1 / index.time2 >=  10 * seed.2,
+// the converted left list is [index.time, seed.1, seed.2, /, -]
+// the converted right list is [10, seed.2, *]
+// the op is GREATER_EQ
 message CmpExp {
   repeated Element left = 1;
   repeated Element right = 2;
   CmpOp op = 3;
 }
 
-message LogicExps {  
+// Similar to CmpExp, LogicExps represents logic expressions in reverse polish notation manner,
+// where operands follow their logic sub-expressions.
+// For example, the original logic expressions are: CmpExp1 OR CmpExp2 AND CmpExp3,
+// the converted list is [CmpExp1, CmpExp2, CmpExp3, AND, OR]
+message LogicExps {
   message ExpOp {
     oneof data {
       CmpExp exp = 1;
