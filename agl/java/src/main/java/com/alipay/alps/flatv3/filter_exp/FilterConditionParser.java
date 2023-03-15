@@ -2,7 +2,7 @@ package com.alipay.alps.flatv3.filter_exp;
 
 import com.alipay.alps.flatv3.antlr4.FilterLexer;
 import com.alipay.alps.flatv3.antlr4.FilterParser;
-import com.antfin.ai.alps.graph.flat.sample.LogicExps;
+import com.antfin.agl.proto.sampler.LogicExps;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -19,6 +19,7 @@ public class FilterConditionParser {
         FilterConditionVisitor visitor = new FilterConditionVisitor();
         LogicExps logicExps = visitor.visit(parser.start()).build();
         LOG.info("filterCond: {} logicExps: {}", filterCond, logicExps);
+        System.out.println("filterCond: "+filterCond+" logicExps: " + logicExps);
         return logicExps;
     }
 }

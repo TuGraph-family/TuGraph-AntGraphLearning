@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.filter_exp;
 
-import com.antfin.ai.alps.graph.flat.sample.CmpExp;
-import com.antfin.ai.alps.graph.flat.sample.Element;
-import com.antfin.ai.alps.graph.flat.sample.LogicExps;
-import com.antfin.ai.alps.graph.flat.sample.VariableSource;
+import com.antfin.agl.proto.sampler.CmpExp;
+import com.antfin.agl.proto.sampler.Element;
+import com.antfin.agl.proto.sampler.LogicExps;
+import com.antfin.agl.proto.sampler.VariableSource;
 import org.junit.Assert;
 import org.junit.Test;
 

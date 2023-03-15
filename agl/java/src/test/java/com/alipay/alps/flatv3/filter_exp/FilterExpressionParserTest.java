@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3.filter_exp;
 
-import com.antfin.ai.alps.graph.flat.sample.CmpOp;
-import com.antfin.ai.alps.graph.flat.sample.LogicExps;
-import com.antfin.ai.alps.graph.flat.sample.LogicOp;
+import com.antfin.agl.proto.sampler.CmpOp;
+import com.antfin.agl.proto.sampler.LogicExps;
+import com.antfin.agl.proto.sampler.LogicOp;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,8 +16,8 @@ public class FilterExpressionParserTest {
         LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 3);
-        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
-        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LESS_EQ);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);
+        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LE);
         Assert.assertEquals(expOps.get(2), LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf("AND")).build());
     }
 
@@ -28,7 +28,7 @@ public class FilterExpressionParserTest {
         LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 3);
-        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);
         Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.NOT_IN);
         Assert.assertEquals(expOps.get(2), LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf("OR")).build());
     }
@@ -40,8 +40,8 @@ public class FilterExpressionParserTest {
         LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 5);
-        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
-        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LESS_EQ);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);
+        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LE);
         Assert.assertEquals(expOps.get(2).getExp().getOp(), CmpOp.NOT_IN);
         Assert.assertEquals(expOps.get(3), LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf("AND")).build());
         Assert.assertEquals(expOps.get(4), LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf("OR")).build());
@@ -54,8 +54,8 @@ public class FilterExpressionParserTest {
         LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 5);
-        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GREATER_EQ);
-        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LESS);
+        Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);
+        Assert.assertEquals(expOps.get(1).getExp().getOp(), CmpOp.LT);
         Assert.assertEquals(expOps.get(2), LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf("AND")).build());
         Assert.assertEquals(expOps.get(3).getExp().getOp(), CmpOp.IN);
         Assert.assertEquals(expOps.get(4), LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf("OR")).build());
