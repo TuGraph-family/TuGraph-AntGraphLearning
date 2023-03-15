@@ -9,7 +9,7 @@ target_link_libraries(agl
         )
 target_include_directories(agl PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${PYBIND11_INCLUDE_DIR}
+        ${pybind11_INCLUDE_DIRS}
         )
 target_link_directories(agl PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
