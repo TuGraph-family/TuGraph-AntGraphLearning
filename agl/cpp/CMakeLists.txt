@@ -14,4 +14,4 @@ target_include_directories(agl PUBLIC
 target_link_directories(agl PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         )
-add_dependencies(agl protobuf)
+add_dependencies(agl pb_gen protobuf)
