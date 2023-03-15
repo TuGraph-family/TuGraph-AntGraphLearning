@@ -28,17 +28,19 @@ enum DType {
   FP16 = 13;
 }
 
-message BytesList {
+message BytesList {// string List
   repeated bytes value = 1;
 }
+// message FP16
+// message BF16
 message FloatList {
   repeated float value = 1 [packed = true];
 }
 message Float64List {
   repeated double value = 1 [packed = true];
 }
-message Int64List {
-  repeated int64 value = 1 [packed = true];   // varints
+message Int64List {// support varint compress
+  repeated int64 value = 1 [packed = true];
 }
 
 message IDs {
@@ -63,7 +65,7 @@ message Features {
     Int64List lens = 1;
     oneof keys {
       Int64List i64s = 2;
-      BytesList raws = 3;
+      BytesList raws = 3; // ragged tensor
     }
   }
 
@@ -98,7 +100,7 @@ message Edges {
     Int64List n2_indices = 3;
   }
 
-  IDs eids = 1;
+  IDs eids = 1; // optional
   oneof nbrs {
     CSR csr = 2;
     COO coo = 3;
