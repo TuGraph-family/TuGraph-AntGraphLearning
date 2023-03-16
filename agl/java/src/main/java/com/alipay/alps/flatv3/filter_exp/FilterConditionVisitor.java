@@ -72,7 +72,6 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         } else {
             visit(ctx.getChild(2));
         }
-        // generate category expression from arithmetic values and arithmetic ops
         CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder();
         cmpExpBuilder.addAllLhsRPN(arithmeticValOpsLeft);
         cmpExpBuilder.addAllRhsRPN(arithmeticValOpsRight);
