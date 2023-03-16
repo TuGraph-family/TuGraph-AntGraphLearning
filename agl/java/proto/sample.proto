@@ -67,12 +67,12 @@ message Element {
   }
 }
 
-// The left and right lists could contain variables, constants, and operators, arranged in reverse polish notation.
+// The left and right lists could contain variables, constants, and operators, arranged in reverse polish notation(RPN).
 // The comparison operator determines how the two lists are compared.
 // The original formula is converted into reverse polish notation, where the operands follow their operators.
 // For example, the original inequation is index.time - seed.1 / index.time2 + seed.3 >=  10 * seed.2,
-// the converted left list is [index.time, seed.1, seed.2, /, -, seed.3, +]
-// the converted right list is [10, seed.2, *]
+// the converted leftRPN is [index.time, seed.1, seed.2, /, -, seed.3, +]
+// the converted rightRPN is [10, seed.2, *]
 // the op is GE
 message CmpExp {
   repeated Element lhsRPN = 1;

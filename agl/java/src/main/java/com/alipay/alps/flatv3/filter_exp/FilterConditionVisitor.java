@@ -59,16 +59,15 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
     }
 
     private LogicExps.Builder visitCompareOrCategoryExp(FilterParser.ExprContext ctx) {
-        String op = ctx.getChild(1).getText();
-        if (ctx.getChildCount() >= 4) {
-            op += " " + ctx.getChild(2).getText();
-        }
         arithmeticValOpsLeft.clear();
         arithmeticValOpsRight.clear();
         arithmeticValOps = arithmeticValOpsLeft;
         visit(ctx.getChild(0));
         arithmeticValOps = arithmeticValOpsRight;
-        if (ctx.getChildCount() >= 4) {
+
+        String op = ctx.getChild(1).getText();
+        if (op.compareToIgnoreCase("not") == 0) {
+            op += " " + ctx.getChild(2).getText();
             visit(ctx.getChild(3));
         } else {
             visit(ctx.getChild(2));
@@ -141,7 +140,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         if (exp.matches("\\d+(\\.\\d+)?")) {
             elementNumBuilder.setF(Float.parseFloat(exp));
         } else {
-            elementNumBuilder.setF(Integer.parseInt(exp)); // setInt?
+            elementNumBuilder.setF(Integer.parseInt(exp));
         }
         elementBuilder.setNum(elementNumBuilder);
         visitChildren(ctx);
