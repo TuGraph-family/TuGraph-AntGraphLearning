@@ -3,7 +3,6 @@ package com.alipay.alps.flatv3.filter_exp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 import java.util.List;
 
@@ -65,7 +64,9 @@ public class CompareExpUtil {
             Double d2 = (Double) right;
 
             if (cmpOp == CmpOp.LE || cmpOp == CmpOp.GE || cmpOp == CmpOp.EQ) {
-                if (Math.abs(d1 - d2) < 0.001) return true;
+                if (Math.abs(d1 - d2) < 0.001) {
+                    return true;
+                }
             } else if (cmpOp == CmpOp.NE) {
                 return Math.abs(d1 - d2) >= 0.001;
             }
@@ -147,12 +148,10 @@ public class CompareExpUtil {
             Element element = elements.get(i);
             if (element.getSymbolCase() == Element.SymbolCase.NUM) {
                 vars.push(getDoubleValue(element.getNum()));
-                System.out.println("---calculate element:" + element + " push Num " + vars.peek());
             } else if (element.hasVar()) {
                 VariableSource sourceType = element.getVar().getSource();
                 String name = element.getVar().getName();
                 vars.push(getDoubleValue(inputVariables.get(sourceType).get(name)));
-                System.out.println("---calculate element:" + element + " push Var " + vars.peek());
             } else {
                 double varRight = vars.pop();
                 double varLeft = vars.pop();
@@ -167,10 +166,8 @@ public class CompareExpUtil {
                 } else if (element.getOp() == ArithmeticOp.MINUS) {
                     vars.push(varLeft - varRight);
                 }
-                System.out.println("---calculate op:" + element.getOp() + " get var " + vars.peek());
             }
         }
-        System.out.println("---final result:" + Arrays.toString(vars.toArray()));
         return vars.peek();
     }
 }

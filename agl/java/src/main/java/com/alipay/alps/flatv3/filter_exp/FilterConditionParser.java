@@ -19,7 +19,6 @@ public class FilterConditionParser {
         FilterConditionVisitor visitor = new FilterConditionVisitor();
         LogicExps logicExps = visitor.visit(parser.start()).build();
         LOG.info("filterCond: {} logicExps: {}", filterCond, logicExps);
-        System.out.println("filterCond: "+filterCond+" logicExps: " + logicExps);
         return logicExps;
     }
 }

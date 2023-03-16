@@ -73,7 +73,7 @@ message Element {
 // For example, the original inequation is index.time - seed.1 / index.time2 + seed.3 >=  10 * seed.2,
 // the converted left list is [index.time, seed.1, seed.2, /, -, seed.3, +]
 // the converted right list is [10, seed.2, *]
-// the op is GREATER_EQ
+// the op is GE
 message CmpExp {
   repeated Element lhsRPN = 1;
   repeated Element rhsRPN = 2;
