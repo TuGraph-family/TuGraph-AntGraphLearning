@@ -18,5 +18,4 @@ include(cmake/submodule.cmake)
 include(cmake/pybind11.cmake)
 include(cmake/protobuf.cmake)
 
-add_subdirectory(agl/proto)
 add_subdirectory(agl/cpp)
