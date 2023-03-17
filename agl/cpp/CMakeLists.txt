@@ -3,6 +3,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # libpb_cpp.a
 include(ExternalProject)
 ExternalProject_Get_property(protobuf BINARY_DIR)
+set(protobuf_BINARY_DIR ${BINARY_DIR})
+message(STATUS "bindir:${protobuf_BINARY_DIR}, srcdir:${protobuf_SOURCE_DIR}")
+
 set(PROTO_FILE_DIR "${PROJECT_SOURCE_DIR}/agl/proto")
 FILE(GLOB PROTO_FILES "${PROTO_FILE_DIR}/*.proto")
 FOREACH (PROTO_FILE ${PROTO_FILES})
@@ -13,7 +16,7 @@ FOREACH (PROTO_FILE ${PROTO_FILES})
 ENDFOREACH ()
 
 add_custom_command(OUTPUT ${OUTPUT_SOURCES}
-        COMMAND ${BINARY_DIR}/protoc -I ${PROTO_FILE_DIR} --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/proto ${PROTO_FILES} 
+        COMMAND ${protobuf_BINARY_DIR}/protoc -I ${PROTO_FILE_DIR} --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/proto ${PROTO_FILES} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS protobuf ${PROTO_FILES})
 add_library(pb_cpp STATIC ${OUTPUT_SOURCES})
