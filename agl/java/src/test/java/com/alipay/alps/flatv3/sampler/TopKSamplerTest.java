@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.IndexResult;
-import com.alipay.alps.flatv3.index.Range;
+import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.RangeIndex;
-import com.alipay.alps.flatv3.index.RangeIndexResult;
+import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import org.junit.Before;
 import org.junit.Test;
 

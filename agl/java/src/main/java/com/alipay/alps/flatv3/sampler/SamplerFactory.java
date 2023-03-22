@@ -15,7 +15,7 @@ public class SamplerFactory {
      */
     public static Sampler createSampler(SampleCondition sampleCondition, BaseIndex index) {
         if (sampleCondition.method.compareToIgnoreCase("weighted_sampler") == 0) {
-//            return new WeightedSampler(sampleCondition, index);
+            return new WeightedSampler(sampleCondition, index);
         } else if (sampleCondition.method.compareToIgnoreCase("topk") == 0) {
             String dtype = (index.getIndexColumn().compareToIgnoreCase(sampleCondition.key) == 0) ? index.getIndexDtype() : index.getSamplingDtype();
             if (dtype.compareToIgnoreCase("float") == 0) {

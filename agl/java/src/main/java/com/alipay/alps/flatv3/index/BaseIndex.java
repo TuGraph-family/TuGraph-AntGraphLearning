@@ -1,11 +1,11 @@
 package com.alipay.alps.flatv3.index;
 
 import com.alipay.alps.flatv3.filter_exp.CmpExpWrapper;
+import com.alipay.alps.flatv3.index.result.IndexResult;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

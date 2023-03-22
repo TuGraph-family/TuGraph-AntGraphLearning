@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.IndexResult;
-import com.alipay.alps.flatv3.index.Range;
+import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.RangeIndex;
-import com.alipay.alps.flatv3.index.RangeIndexResult;
+import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +37,6 @@ public class WeightedSamplerTest {
         rangeIndex.addAttributes("WEIGHT", weight);
         rangeIndex.addAttributes("TIME", time);
         rangeIndex.buildIndex();
-        // String method, String key, int limit, boolean replacement, boolean reverse
         String sampleMeta = "weighted_sampler(by=index.WEIGHT, limit=5, replacement=false)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         sampler = new WeightedSampler(sampleCondition, rangeIndex);
@@ -54,7 +53,6 @@ public class WeightedSamplerTest {
         rangeIndex.addAttributes("WEIGHT", weight);
         rangeIndex.addAttributes("TIME", time);
         rangeIndex.buildIndex();
-        // String method, String key, int limit, boolean replacement, boolean reverse
         String sampleMeta = "weighted_sampler(by=index.WEIGHT, limit=2, replacement=true)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         sampler = new WeightedSampler(sampleCondition, rangeIndex);
@@ -73,8 +71,6 @@ public class WeightedSamplerTest {
             double empiricalProb = freqWithReplacement[i] / (double) numSamples;
             assertEquals(1.0 * i / 45, empiricalProb, 0.01);
         }
-        System.out.println("-----AliasMethod freqWithReplacement:" + Arrays.toString(freqWithReplacement));
-
 
         sampleMeta = "weighted_sampler(by=index.WEIGHT, limit=2, replacement=false)";
         sampleCondition = new SampleCondition(sampleMeta);
@@ -92,7 +88,6 @@ public class WeightedSamplerTest {
             double empiricalProb = freqWithoutReplacement[i] / (double) numSamples;
             assertEquals(1.0 * i / 45, empiricalProb, 0.01);
         }
-        System.out.println("-----AliasMethod freqWithoutReplacement:" + Arrays.toString(freqWithoutReplacement));
     }
 
     @Test
@@ -102,7 +97,6 @@ public class WeightedSamplerTest {
         rangeIndex.addAttributes("WEIGHT", weight);
         rangeIndex.addAttributes("TIME", time);
         rangeIndex.buildIndex();
-        // String method, String key, int limit, boolean replacement, boolean reverse
         String sampleMeta = "weighted_sampler(by=index.WEIGHT, limit=2, replacement=true)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         sampler = new WeightedSampler(sampleCondition, rangeIndex);
@@ -121,8 +115,6 @@ public class WeightedSamplerTest {
             double empiricalProb = freqWithReplacement[i] / (double) numSamples;
             assertEquals(1.0 * i / 45, empiricalProb, 0.01);
         }
-        System.out.println("-----PrefixSum freqWithReplacement:" + Arrays.toString(freqWithReplacement));
-
 
         sampleMeta = "weighted_sampler(by=index.WEIGHT, limit=2, replacement=false)";
         sampleCondition = new SampleCondition(sampleMeta);
@@ -140,7 +132,6 @@ public class WeightedSamplerTest {
             double empiricalProb = freqWithoutReplacement[i] / (double) numSamples;
             assertEquals(1.0 * i / 45, empiricalProb, 0.01);
         }
-        System.out.println("-----PrefixSum freqWithoutReplacement:" + Arrays.toString(freqWithoutReplacement));
     }
 
     @Test
@@ -150,7 +141,6 @@ public class WeightedSamplerTest {
         rangeIndex.addAttributes("WEIGHT", weight);
         rangeIndex.addAttributes("TIME", time);
         rangeIndex.buildIndex();
-        // String method, String key, int limit, boolean replacement, boolean reverse
         String sampleMeta = "weighted_sampler(by=index.WEIGHT, limit=5, replacement=false)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         sampler = new WeightedSampler(sampleCondition, rangeIndex);
@@ -174,6 +164,5 @@ public class WeightedSamplerTest {
             double empiricalProb = freqWithoutReplacement[i] / (double) numSamples;
             assertEquals(1.0 * i / 45, empiricalProb, 0.01);
         }
-        System.out.println("-----OrderStatisticTree freqWithoutReplacement:" + Arrays.toString(freqWithoutReplacement));
     }
 }

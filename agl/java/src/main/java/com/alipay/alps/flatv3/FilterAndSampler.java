@@ -5,7 +5,7 @@ import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.CmpExpWrapper;
 import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.IndexResult;
+import com.alipay.alps.flatv3.index.result.IndexResult;
 import com.alipay.alps.flatv3.sampler.SampleCondition;
 import com.alipay.alps.flatv3.sampler.Sampler;
 import com.alipay.alps.flatv3.sampler.SamplerFactory;
@@ -17,7 +17,6 @@ import com.antfin.agl.proto.sampler.LogicOp;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,9 +90,7 @@ public class FilterAndSampler {
         for (int i = 0; i < seeds.size(); i++) {
             String seedId = seeds.get(i);
             IndexResult indexResult = search(logicExps, indexesMap, seedAttrs.get(i));
-            System.out.println("---seedId:" + seedId + " indexResult:" + Arrays.toString(indexResult.getIndices().toArray()));
             List<Integer> neighborIndices = sampler.sample(indexResult);
-            System.out.println("---seedId:" + seedId + " neighborIndices:" + Arrays.toString(neighborIndices.toArray()));
             neighborList.add(neighborIndices);
         }
         return neighborList;

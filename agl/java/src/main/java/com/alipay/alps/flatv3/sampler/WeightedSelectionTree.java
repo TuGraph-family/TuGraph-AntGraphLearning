@@ -24,12 +24,12 @@ class WeightedSelectionTree {
      * A class that represents a single node in the Weighted Selection Tree.
      */
     public static class Node {
-        int element; // The element associated with this node.
-        float elementWeight; // The weight of this Node.
-        float leftBranchWeight; // The weight of the left branch of the tree.
-        float rightBranchWeight; // The weight of the right branch of the tree.
-        Node left; // The left child of this node.
-        Node right; // The right child of this node.
+        int element;
+        float elementWeight;
+        float leftBranchWeight;
+        float rightBranchWeight;
+        Node left;
+        Node right;
     }
 
     public WeightedSelectionTree(List<Integer> elementIndices, List<Float> weights) {

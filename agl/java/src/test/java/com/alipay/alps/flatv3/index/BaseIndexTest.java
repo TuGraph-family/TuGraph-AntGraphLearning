@@ -14,7 +14,7 @@ public class BaseIndexTest {
     @Before
     public void setUp() {
         String indexMeta = "range_index:column_name:double,random:column_name:double";
-        baseIndex = new RangeIndex("index", indexMeta);
+        baseIndex = new RangeIndex(indexMeta);
     }
 
     @Test

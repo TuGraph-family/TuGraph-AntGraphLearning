@@ -1,16 +1,15 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.CommonIndexResult;
-import com.alipay.alps.flatv3.index.IndexResult;
-import com.alipay.alps.flatv3.index.Range;
-import com.alipay.alps.flatv3.index.RangeIndexResult;
+import com.alipay.alps.flatv3.index.result.CommonIndexResult;
+import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.index.result.Range;
+import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 public class WeightedSampler extends Sampler {
     private boolean hasInitializePrefixSum = false;
@@ -20,9 +19,6 @@ public class WeightedSampler extends Sampler {
     private float getSummationBetween(int l, int r) {
         return prefixSum.get(r) - (l > 0 ? prefixSum.get(l - 1) : 0);
     }
-
-    private Random random = new Random(34);
-
 
     public WeightedSampler(SampleCondition sampleCondition, BaseIndex index) {
         super(sampleCondition, index);
@@ -35,7 +31,6 @@ public class WeightedSampler extends Sampler {
     public WeightedSampler(SampleCondition sampleCondition, HashMap<String, BaseIndex> indexes) {
         super(sampleCondition, indexes);
     }
-
 
     /**
      * Finds a random sample from the probability distribution according to the IndexResult.
@@ -82,25 +77,6 @@ public class WeightedSampler extends Sampler {
     }
 
     /**
-     * Finds the lower bound of the index result.
-     * @param prefixSum the prefixSum array
-     * @param l the left bound
-     * @param r the right bound
-     * @param weight the weight to find the lower bound
-     * @return An integer representing the lower bound of the index result.
-     */
-    private int lowerBound(List<Float> prefixSum, int l, int r, Float weight) {
-        while (l <= r) {
-            int mid = l + (r - l) / 2;
-            if (prefixSum.get(mid) >= weight) {
-                r = mid - 1;
-            } else {
-                l = mid + 1;
-            }
-        }
-        return l;
-    }
-    /**
      * Initializes the prefixSum array.
      * @param weights the weights array
      */
@@ -143,10 +119,10 @@ public class WeightedSampler extends Sampler {
 
         ArrayList<Integer> sampledIndex = new ArrayList<>();
         for (int i = 0; i < this.getSampleCondition().limit; i++) {
-            int rangeIndex = lowerBound(intervalPrefixSum, 0, intervalPrefixSum.size() - 1, random.nextFloat() * maxIntervalPrefixSum);
+            int rangeIndex = lowerBound(intervalPrefixSum, 0, intervalPrefixSum.size() - 1, getNextFloat() * maxIntervalPrefixSum);
             Range range = sortedIntervals.get(rangeIndex);
             int neighborIndex = lowerBound(prefixSum, range.getLow(), range.getHigh(),
-                    random.nextFloat() * getSummationBetween(range.getLow(), range.getHigh()) + (range.getLow() > 1 ? prefixSum.get(range.getLow() - 1) : 0));
+                    getNextFloat() * getSummationBetween(range.getLow(), range.getHigh()) + (range.getLow() > 1 ? prefixSum.get(range.getLow() - 1) : 0));
             sampledIndex.add(neighborIndex);
         }
         return sampledIndex;
@@ -156,7 +132,7 @@ public class WeightedSampler extends Sampler {
         initializePrefixSum(weights, indexResult.getIndices());
         ArrayList<Integer> sampledIndex = new ArrayList<>();
         for (int i = 0; i < this.getSampleCondition().limit; i++) {
-            int neighborIndex = lowerBound(prefixSum, 0, prefixSum.size(), random.nextFloat() * prefixSum.get(prefixSum.size() - 1));
+            int neighborIndex = lowerBound(prefixSum, 0, prefixSum.size(), getNextFloat() * prefixSum.get(prefixSum.size() - 1));
             sampledIndex.add(neighborIndex);
         }
         return sampledIndex;
@@ -173,9 +149,29 @@ public class WeightedSampler extends Sampler {
         for (int i = 0; i < this.getSampleCondition().limit; i++) {
             WeightedSelectionTree.Node root = tree.getRoot();
             Float totalWeight = root.elementWeight + root.rightBranchWeight + root.leftBranchWeight;
-            int removedNode = tree.selectNode(totalWeight * random.nextFloat());
+            int removedNode = tree.selectNode(totalWeight * getNextFloat());
             sampledIndex.add(removedNode);
         }
         return sampledIndex;
+    }
+
+    /**
+     * Finds the lower bound of the index result.
+     * @param prefixSum the prefixSum array
+     * @param l the left bound
+     * @param r the right bound
+     * @param weight the weight to find the lower bound
+     * @return An integer representing the lower bound of the index result.
+     */
+    private int lowerBound(List<Float> prefixSum, int l, int r, Float weight) {
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (prefixSum.get(mid) >= weight) {
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        return l;
     }
 }

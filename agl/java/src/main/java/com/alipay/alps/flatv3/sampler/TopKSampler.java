@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.IndexResult;
-import com.alipay.alps.flatv3.index.Range;
-import com.alipay.alps.flatv3.index.RangeIndexResult;
+import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.index.result.Range;
+import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -58,6 +58,7 @@ public class TopKSampler<T> extends Sampler {
             break;
         }
     }
+
     @Override
     public List<Integer> sampleImpl(IndexResult indexResult) {
         int sampleCount = this.getSampleCondition().limit;

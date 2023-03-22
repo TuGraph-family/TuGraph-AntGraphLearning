@@ -34,7 +34,6 @@ public class SampleCondition {
      * Constructs a SampleCondition object from a string representation.
      * @param sampleMeta The string representation of the SampleCondition object.
      */
-    // "weighted_sample(by=index.$1.weight, limit=5, replace=False)"
     public SampleCondition(String sampleMeta) {
         // Remove all whitespace characters from the string representation.
         sampleMeta = sampleMeta.replaceAll("\\s", "");

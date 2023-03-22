@@ -42,7 +42,7 @@ public class FilterAndSamplerTest {
             seedAttrs.add(Arrays.asList((i+1) * 1L));
         }
         List<List<Integer>> result = filterAndSampler.process(seedIds, seedAttrs, indexList, null, null);
-        System.out.println("----result:" + result);
+        // assert
     }
 
     @Test
@@ -85,13 +85,12 @@ public class FilterAndSamplerTest {
         indexList.add(timeIndex);
         indexList.add(typeIndex);
 
-//        List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
-        List<String> seedIds = Arrays.asList("1");
+        List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
         for (int i = 0; i < seedIds.size(); i++) {
             seedAttrs.add(Arrays.asList((i+1) * 1L));
         }
         List<List<Integer>> result = filterAndSampler.process(seedIds, seedAttrs, indexList, null, null);
-        System.out.println("----result:" + result);
+        // assert
     }
 }

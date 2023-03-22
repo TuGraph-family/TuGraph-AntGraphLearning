@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.index;
+package com.alipay.alps.flatv3.index.result;
 
 public class Range
 {

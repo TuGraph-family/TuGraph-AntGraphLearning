@@ -1,6 +1,6 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.IndexResult;
+import com.alipay.alps.flatv3.index.result.IndexResult;
 import com.alipay.alps.flatv3.index.BaseIndex;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class RandomSampler extends Sampler {
         if (sampleCount < candidateCount / 4) {
             HashSet<Integer> sampledIndex = new HashSet<>();
             while (sampledIndex.size() < sampleCount) {
-                int rnd = getRand().nextInt(candidateCount);
+                int rnd = getNextInt(candidateCount);
                 if (!sampledIndex.contains(rnd)) {
                     sampledIndex.add(rnd);
                 }
@@ -59,7 +59,7 @@ public class RandomSampler extends Sampler {
             sampleRemain = false;
         }
         for (int i = 0; i < sampleCount; i++) {
-            int rnd = getRand().nextInt(candidateCount - i);
+            int rnd = getNextInt(candidateCount - i);
             if (rnd != i) {
                 int temp = sampledIndex.get(i);
                 sampledIndex.set(i, sampledIndex.get(rnd));

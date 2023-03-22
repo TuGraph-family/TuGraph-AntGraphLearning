@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.CommonIndexResult;
-import com.alipay.alps.flatv3.index.IndexResult;
+import com.alipay.alps.flatv3.index.result.CommonIndexResult;
+import com.alipay.alps.flatv3.index.result.IndexResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,7 +69,10 @@ public abstract class Sampler {
     }
 
     // Getter for Random object
-    public Random getRand() {
-        return rand;
+    public float getNextFloat() {
+        return rand.nextFloat();
+    }
+    public int getNextInt(int bound) {
+        return rand.nextInt(bound);
     }
 }

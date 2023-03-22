@@ -1,4 +1,6 @@
-package com.alipay.alps.flatv3.index;
+package com.alipay.alps.flatv3.index.result;
+
+import com.alipay.alps.flatv3.index.BaseIndex;
 
 import java.util.Arrays;
 import java.util.HashMap;
