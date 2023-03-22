@@ -123,7 +123,6 @@ public abstract class BaseIndex<ID> implements Serializable {
         return null;
     }
 
-
     public void setNode2IDs(List<ID> node2IDs) {
         this.node2IDs = node2IDs;
     }
@@ -132,14 +131,6 @@ public abstract class BaseIndex<ID> implements Serializable {
         this.edgeIDs = edgeIDs;
     }
 
-
-//    public void addIndexedString(String key, List<String> values) {
-//        if (indexedString == null) {
-//            indexedString = new HashMap<>();
-//        }
-//        indexedString.put(key, values);
-//    }
-
     public ID getNode2ID(int neigborIdx) {
         return node2IDs.get(originIndex[neigborIdx]);
     }
@@ -147,8 +138,6 @@ public abstract class BaseIndex<ID> implements Serializable {
     public ID getEdgeID(int neigborIdx) {
         return edgeIDs.get(originIndex[neigborIdx]);
     }
-
-
 
     public abstract void buildIndex();
 

@@ -49,6 +49,13 @@ public class HashIndex<ID> extends BaseIndex<ID> {
         }
     }
 
+    @Override
+    public IndexResult search(CmpExpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
+        List<Range> ranges = searchType((CategoryCmpWrapper)cmpExpWrapper, inputVariables);
+        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
+        return rangeIndexResult;
+    }
+
     private List<Range> searchType(CategoryCmpWrapper cateCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
         String indexColumn = getIndexColumn();
         List<Range> ansList = new ArrayList<>();
@@ -64,45 +71,23 @@ public class HashIndex<ID> extends BaseIndex<ID> {
         return ansList;
     }
 
-    @Override
-    public IndexResult search(CmpExpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
-        List<Range> ranges = searchType((CategoryCmpWrapper)cmpExpWrapper, inputVariables);
-        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
-        return rangeIndexResult;
+    public static void main(String[] args) throws Exception {
+        List<Integer> ids = new ArrayList<>();
+        List<String> timestamp = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            ids.add(i);
+            timestamp.add("node_" + String.valueOf(i%3));
+        }
+        HashIndex<Integer> rangeIndex = new HashIndex<>("hash_index:node_type:string");
+        rangeIndex.setNode2IDs(ids);
+        rangeIndex.addAttributes("node_type", timestamp);
+        rangeIndex.buildIndex();
+        Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
+        String filterCond = "index.node_type in (node_1, node_2)";
+        FilterConditionParser filterConditionParser = new FilterConditionParser();
+        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
+        System.out.println("----cmpExp: " + cmpExp);
+        System.out.println(rangeIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables));
     }
-
-//    public <String> IndexResult search(FilterConditionSingleton filterConditionSingleton, String seedValue) throws Exception {
-//        ArrayList<ArrayList<Expression>> unionJoinFilters = filterConditionSingleton.unionJoinFilters;
-//        List<Range> unionRanges = new ArrayList<>();
-//        for (int i = 0; i < unionJoinFilters.size(); i++) {
-//            List<Range> joinRanges = new ArrayList<>();
-//            for (int j = 0; j < unionJoinFilters.get(i).size(); j++) {
-//                List<Range> ranges = searchType((TypeExp) unionJoinFilters.get(i).get(j), (java.lang.String) seedValue);
-//                joinRanges = joinRanges(joinRanges, ranges);
-//            }
-//            unionRanges = unionRanges(unionRanges, joinRanges);
-//        }
-//        System.out.println("---unionRanges:" + Arrays.toString(unionRanges.toArray()));
-//        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, unionRanges);
-//        return rangeIndexResult;
-//    }
-public static void main(String[] args) throws Exception {
-    List<Integer> ids = new ArrayList<>();
-    List<String> timestamp = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-        ids.add(i);
-        timestamp.add("node_" + String.valueOf(i%3));
-    }
-    HashIndex<Integer> rangeIndex = new HashIndex<>("hash_index:node_type:string");
-    rangeIndex.setNode2IDs(ids);
-    rangeIndex.addAttributes("node_type", timestamp);
-    rangeIndex.buildIndex();
-    Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
-    String filterCond = "index.node_type in (node_1, node_2)";
-    FilterConditionParser filterConditionParser = new FilterConditionParser();
-    LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
-    CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-    System.out.println("----cmpExp: " + cmpExp);
-    System.out.println(rangeIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables));
-}
 }

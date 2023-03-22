@@ -19,24 +19,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.lang.Double;
 
 public class RangeIndex<ID> extends BaseIndex<ID> {
     public RangeIndex(String indexMeta) {
         super(indexMeta);
-    }
-
-    private <T extends Comparable<T>> Integer[] sortBy(List<T> datas) {
-        Integer[] index = new Integer[datas.size()];
-        for (int i = 0; i < datas.size(); i++) {
-            index[i] = i;
-        }
-        Arrays.sort(index, new Comparator<Integer>() {
-            public int compare(Integer i1, Integer i2) {
-                return datas.get(i1).compareTo(datas.get(i2));
-            }
-        });
-        return index;
     }
 
     @Override
@@ -65,28 +51,32 @@ public class RangeIndex<ID> extends BaseIndex<ID> {
         }
     }
 
+    @Override
+    public IndexResult search(CmpExpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+        Range range = binarySearch((ArithmeticCmpWrapper)cmpExpWrapper, inputVariables);
+        List<Range> ranges = new ArrayList<>();
+        ranges.add(range);
+        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
+        return rangeIndexResult;
+    }
+
+    private <T extends Comparable<T>> Integer[] sortBy(List<T> datas) {
+        Integer[] index = new Integer[datas.size()];
+        for (int i = 0; i < datas.size(); i++) {
+            index[i] = i;
+        }
+        Arrays.sort(index, new Comparator<Integer>() {
+            public int compare(Integer i1, Integer i2) {
+                return datas.get(i1).compareTo(datas.get(i2));
+            }
+        });
+        return index;
+    }
+
     public Integer[] getOriginIndex() {
         return originIndex;
     }
 
-//    public HashMap<String, List<Double>> getIndexedData() {
-//        return indexedDouble;
-//    }
-
-    private int binarySearch(List<Double> nums, Double seed) {
-        int left = 0, right = nums.size() - 1;
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            if (nums.get(mid) == seed) {
-                return mid;
-            } else if (nums.get(mid) - seed > 0) {
-                right = mid - 1;
-            } else {
-                left = mid + 1;
-            }
-        }
-        return -1;
-    }
     private <T> int lowerBound(List<T> nums, Map<VariableSource, Map<String, Element.Number>> inputVariables, java.util.function.Function<T, Boolean> f) {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
@@ -138,7 +128,6 @@ public class RangeIndex<ID> extends BaseIndex<ID> {
         Range range = new Range(0, originIndex.length-1);
         boolean hasLowerBound = arithCmpWrapper.hasLowerBound();
         if (floatAttributes != null && floatAttributes.containsKey(indexColumn)) {
-            System.out.println("------------binarySearchInequation indexColumn:" + indexColumn + " vals:" + Arrays.toString(floatAttributes.get(indexColumn).toArray()));
             java.util.function.Function<Float, Boolean> comparison = (neighboringValue) -> {
                 inputVariables.get(VariableSource.INDEX).put(indexColumn, Element.Number.newBuilder().setF(neighboringValue).build());
                 return arithCmpWrapper.eval(inputVariables);
@@ -161,48 +150,6 @@ public class RangeIndex<ID> extends BaseIndex<ID> {
         }
         return range;
     }
-
-    @Override
-    public IndexResult search(CmpExpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
-        Range range = binarySearch((ArithmeticCmpWrapper)cmpExpWrapper, inputVariables);
-        List<Range> ranges = new ArrayList<>();
-        ranges.add(range);
-        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
-        return rangeIndexResult;
-    }
-
-//    public <Double> RangeIndexResult search(LogicExps logicExps, Double seedValue) throws Exception {
-//        ArrayList<ArrayList<Expression>> unionJoinFilters = logicExps.unionJoinFilters;
-//        ArrayList<Range> unionRanges = new ArrayList<>();
-//        for (int i = 0; i < unionJoinFilters.size(); i++) {
-//            Range joinRange = new Pair<>(0, Integer.MAX_VALUE);
-//            for (int j = 0; j < unionJoinFilters.get(i).size(); j++) {
-//                Range range = binarySearchInequation(unionJoinFilters.get(i).get(j), (java.lang.Double) seedValue);
-//                joinRange.join(range);
-//            }
-//            java.util.function.BiFunction<Range, Range, Boolean> lower = (e, t) -> e.key >= t.key;
-//            int leftIndex = lowerBound(unionRanges, joinRange, lower);
-//            int rightIndex = lowerBound(unionRanges, new Pair<>(joinRange.value, -1), lower);
-//            if (rightIndex == leftIndex) {
-//                if (unionRanges.size() > leftIndex && unionRanges.get(leftIndex).value >= joinRange.key) {
-//                    unionRanges.get(leftIndex).value = Math.max(unionRanges.get(leftIndex).value, joinRange.value);
-//                }
-//                unionRanges.add(leftIndex, joinRange);
-//            } else {
-//                if (unionRanges.get(leftIndex).value < joinRange.key) {
-//                    leftIndex++;
-//                }
-//                unionRanges.get(leftIndex).key = joinRange.key;
-//                unionRanges.get(leftIndex).value = Math.max(unionRanges.get(rightIndex).value, joinRange.value);
-//                while (unionRanges.size() > leftIndex + 1) {
-//                    unionRanges.remove(leftIndex + 1);
-//                }
-//            }
-//        }
-//        System.out.println("---unionRanges:" + Arrays.toString(unionRanges.toArray()));
-//        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, unionRanges);
-//        return rangeIndexResult;
-//    }
 
     public static void main(String[] args) throws Exception {
         List<String> ids = new ArrayList<>();
