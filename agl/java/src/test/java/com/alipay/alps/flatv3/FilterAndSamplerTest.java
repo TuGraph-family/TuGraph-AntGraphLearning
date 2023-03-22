@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-public class FilterSamplerTest {
+public class FilterAndSamplerTest {
     @Test
     public void test1() throws Exception {
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11";
