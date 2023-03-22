@@ -66,8 +66,8 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         arithmeticValOps = arithmeticValOpsRight;
 
         String op = ctx.getChild(1).getText();
-        if (op.compareToIgnoreCase("not") == 0) {
-            op += " " + ctx.getChild(2).getText();
+        if (op.compareToIgnoreCase("not") == 0 && ctx.getChild(2).getText().compareToIgnoreCase("in") == 0) {
+            op = "not in";
             visit(ctx.getChild(3));
         } else {
             visit(ctx.getChild(2));
@@ -75,7 +75,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder();
         cmpExpBuilder.addAllLhsRPN(arithmeticValOpsLeft);
         cmpExpBuilder.addAllRhsRPN(arithmeticValOpsRight);
-        cmpExpBuilder.setOp(CompareExpUtil.parseCmpOp(op));
+        cmpExpBuilder.setOp(CmpExpWrapper.parseCmpOp(op));
         // reverse polish representation
         logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setExp(cmpExpBuilder));
         return logicExpsBuilder;
@@ -136,10 +136,15 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         String exp = ctx.getChild(0).getText();
         Element.Builder elementBuilder = Element.newBuilder();
         Element.Number.Builder elementNumBuilder = Element.newBuilder().getNumBuilder();
-        if (exp.matches("\\d+(\\.\\d+)?")) {
+        if (exp.startsWith("'") && exp.endsWith("'") || exp.startsWith("\"") && exp.endsWith("\"")) {
+            System.out.println("--------exp is str: " + exp);
+            String val = exp.substring(1, exp.length() - 1);
+            System.out.println("--------exp is val: " + val);
+            elementNumBuilder.setS(val);
+        } else if (exp.matches("\\d+(\\.\\d+)?")) {
             elementNumBuilder.setF(Float.parseFloat(exp));
         } else {
-            elementNumBuilder.setF(Integer.parseInt(exp));
+            elementNumBuilder.setI(Long.parseLong(exp));
         }
         elementBuilder.setNum(elementNumBuilder);
         visitChildren(ctx);
