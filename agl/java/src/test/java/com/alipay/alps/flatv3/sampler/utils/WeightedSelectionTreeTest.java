@@ -1,13 +1,11 @@
-package com.alipay.alps.flatv3.sampler;
+package com.alipay.alps.flatv3.sampler.utils;
 
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class WeightedSelectionTreeTest {
@@ -17,20 +15,20 @@ public class WeightedSelectionTreeTest {
     public void testBuildTree() {
         WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights);
         WeightedSelectionTree.Node root = tree.getRoot();
-        assertEquals(2, root.element);
-        assertEquals(0.3, root.leftBranchWeight, 0.001);
-        assertEquals(0.4, root.rightBranchWeight, 0.001);
-        assertEquals(0.3, root.elementWeight, 0.001);
+        assertEquals(2, root.getElement());
+        assertEquals(0.3, root.getLeftBranchWeight(), 0.001);
+        assertEquals(0.4, root.getRightBranchWeight(), 0.001);
+        assertEquals(0.3, root.getElementWeight(), 0.001);
 
-        assertEquals(0, root.left.element);
-        assertEquals(0.0, root.left.leftBranchWeight, 0.001);
-        assertEquals(0.2, root.left.rightBranchWeight, 0.001);
-        assertEquals(0.1, root.left.elementWeight, 0.001);
+        assertEquals(0, root.getLeft().getElement());
+        assertEquals(0.0, root.getLeft().getLeftBranchWeight(), 0.001);
+        assertEquals(0.2, root.getLeft().getRightBranchWeight(), 0.001);
+        assertEquals(0.1, root.getLeft().getElementWeight(), 0.001);
 
-        assertEquals(3, root.right.element);
-        assertEquals(0.0, root.right.leftBranchWeight, 0.001);
-        assertEquals(0.3, root.right.rightBranchWeight, 0.001);
-        assertEquals(0.1, root.right.elementWeight, 0.001);
+        assertEquals(3, root.getRight().getElement());
+        assertEquals(0.0, root.getRight().getLeftBranchWeight(), 0.001);
+        assertEquals(0.3, root.getRight().getRightBranchWeight(), 0.001);
+        assertEquals(0.1, root.getRight().getElementWeight(), 0.001);
     }
 
     @Test
@@ -45,6 +43,12 @@ public class WeightedSelectionTreeTest {
         WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights);
         int removedNode = tree.selectNode(0.34);
         assertEquals(removedNode, 2);
+        // check the tree after remove a node
+        WeightedSelectionTree.Node root = tree.getRoot();
+        assertEquals(1, root.getElement());
+        assertEquals(0.1, root.getLeftBranchWeight(), 0.001);
+        assertEquals(0.4, root.getRightBranchWeight(), 0.001);
+        assertEquals(0.2, root.getElementWeight(), 0.001);
     }
 
     @Test
@@ -66,13 +70,6 @@ public class WeightedSelectionTreeTest {
         WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights);
         int removedNode = tree.selectNode(0.83);
         assertEquals(removedNode, 4);
-    }
-
-    @Test
-    public void testRemoveNode() {
-        // remove a leaf node
-        // remove a node having a left child
-        // remove a node having both children
     }
 }
 

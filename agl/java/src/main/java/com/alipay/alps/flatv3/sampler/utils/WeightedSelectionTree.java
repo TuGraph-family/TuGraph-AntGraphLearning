@@ -1,40 +1,73 @@
-package com.alipay.alps.flatv3.sampler;
+package com.alipay.alps.flatv3.sampler.utils;
 
 import java.util.List;
 
 /**
  * A class that implements a Weighted Selection Tree, used to select a random element from a given set of elements with different weights.
  */
-class WeightedSelectionTree {
+public class WeightedSelectionTree {
+     /**
+     * A class that represents a single node in the Weighted Selection Tree.
+     */
+    public static class Node {
+        private int element;
+        private float elementWeight;
+        private float leftBranchWeight;
+        private float rightBranchWeight;
+        private Node left;
+        private Node right;
+
+         public int getElement() {
+             return element;
+         }
+
+         public float getElementWeight() {
+             return elementWeight;
+         }
+
+         public float getLeftBranchWeight() {
+             return leftBranchWeight;
+         }
+
+         public float getRightBranchWeight() {
+             return rightBranchWeight;
+         }
+
+         public Node getLeft() {
+             return left;
+         }
+
+         public Node getRight() {
+             return right;
+         }
+     }
+
     private Node root = null;
     private Integer removedNode = null;
+
+    public WeightedSelectionTree(List<Integer> elementIndices, List<Float> weights) {
+        root = buildTree(elementIndices, 0, weights.size() - 1, weights);
+    }
+
+    public float getTotalWeight() {
+        return root.element + root.leftBranchWeight + root.rightBranchWeight;
+    }
 
     public Node getRoot() {
         return root;
     }
 
-    public Integer getRemovedNode() {
+    /**
+     * Selects a node from the Weighted Selection Tree using a random selection process.
+     *
+     * @param randomNum the selected node's leftBranchWeight is less than randomNum, it's leftBranchWeight + elementWeight is larger than randomNum.
+     * @return The selected node.
+     */
+    public Integer selectNode(double randomNum) {
+        root = this.selectNode(root, randomNum);
         return removedNode;
     }
 
-    /**
-     * Random object for generating random numbers.
-
-    /**
-     * A class that represents a single node in the Weighted Selection Tree.
-     */
-    public static class Node {
-        int element;
-        float elementWeight;
-        float leftBranchWeight;
-        float rightBranchWeight;
-        Node left;
-        Node right;
-    }
-
-    public WeightedSelectionTree(List<Integer> elementIndices, List<Float> weights) {
-        root = buildTree(elementIndices, 0, weights.size() - 1, weights);
-    }
     /**
      * Builds the Weighted Selection Tree from the given list of elements and weights.
      *
@@ -44,30 +77,21 @@ class WeightedSelectionTree {
      * @param weights The weights of the elements.
      * @return The root node of the Weighted Selection Tree.
      */
-    public Node buildTree(List<Integer> elementIndices, int left, int right, List<Float> weights) {
+    private Node buildTree(List<Integer> elementIndices, int left, int right, List<Float> weights) {
         if (left > right) {
             return null;
         }
         int mid = left + (right - left) / 2;
         Node node = new Node();
         node.element = elementIndices.get(mid);
-        node.elementWeight = weights.get(elementIndices.get(mid));
+        node.elementWeight = weights.get(mid);
         node.left = buildTree(elementIndices, left, mid-1, weights);
         node.right = buildTree(elementIndices, mid+1, right, weights);
         node.leftBranchWeight = node.left == null ? 0.0F : (node.left.leftBranchWeight +  node.left.rightBranchWeight + node.left.elementWeight);
         node.rightBranchWeight = node.right == null ? 0.0F : (node.right.leftBranchWeight +  node.right.rightBranchWeight + node.right.elementWeight);
         return node;
     }
-    /**
-     * Selects a node from the Weighted Selection Tree using a random selection process.
-     *
-     * @param randomNum the selected node's leftBranchWeight is less than randomNum, it's leftBranchWeight + elementWeight is larger than randomNum.
-     * @return The selected node.
-     */
-    public Integer selectNode(double randomNum) {
-        this.selectNode(root, randomNum);
-        return removedNode;
-    }
+
     private Node selectNode(Node node, double randomNum) {
         if (node == null) {
             return null;
@@ -85,12 +109,13 @@ class WeightedSelectionTree {
         }
         return node;
     }
+
     /**
      * Removes a node from the Weighted Selection Tree.
      *
      * @param node The node to be removed.
      */
-    public void removeNode(Node node) {
+    private void removeNode(Node node) {
         if (node.left == null && node.right == null) {
             node.elementWeight = 0;
             return;
@@ -117,6 +142,7 @@ class WeightedSelectionTree {
             Node predx = node.left;
             while (predx.right != null) {
                 predx.rightBranchWeight -= pred.elementWeight;
+                predx = predx.right;
             }
             node.element = pred.element;
             node.elementWeight = pred.elementWeight;

@@ -20,7 +20,6 @@ public abstract class Sampler {
     // Random object used to generate a random seed
     private Random rand = new Random();
 
-
     public Sampler(SampleCondition sampleCondition, BaseIndex index) {
         this.sampleCondition = sampleCondition;
         if (indexes == null) {
@@ -43,7 +42,7 @@ public abstract class Sampler {
      * @param indexResult IndexResult object used when sampling data
      * @return ArrayList of integers containing the sampled data
      */
-    public abstract List<Integer> sampleImpl(IndexResult indexResult);
+    protected abstract List<Integer> sampleImpl(IndexResult indexResult);
 
     public List<Integer> sample(IndexResult indexResult) {
         List<Integer> neighborIndices = sampleImpl(indexResult);
@@ -51,11 +50,14 @@ public abstract class Sampler {
             return neighborIndices;
         }
         Integer[] originIndex = indexResult.getOriginIndex();
-        List<Integer> originIndices = new ArrayList<>();
-        for (int idx : neighborIndices) {
-            originIndices.add(originIndex[idx]);
+        if (originIndex != null) {
+            List<Integer> originIndices = new ArrayList<>();
+            for (int idx : neighborIndices) {
+                originIndices.add(originIndex[idx]);
+            }
+            return originIndices;
         }
-        return originIndices;
+        return neighborIndices;
     }
 
     // Getter for SampleCondition object

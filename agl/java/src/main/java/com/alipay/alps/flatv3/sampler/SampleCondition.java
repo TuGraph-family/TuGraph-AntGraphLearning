@@ -7,11 +7,31 @@ import java.util.StringTokenizer;
  * It contains method name, key to sample by, sample limit, replacement flag, and reverse flag.
  */
 public class SampleCondition {
-    public String method;
-    public String key;
-    public int limit;
-    public boolean replacement = false;
-    public boolean reverse = false;
+    private String method;
+    private String key;
+    private int limit;
+    private boolean replacement = false;
+    private boolean reverse = false;
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public boolean isReplacement() {
+        return replacement;
+    }
+
+    public boolean isReverse() {
+        return reverse;
+    }
 
     /**
      * Constructs a SampleCondition object.
@@ -54,7 +74,7 @@ public class SampleCondition {
                         this.key = a2;
                     } else if (a1.compareToIgnoreCase("limit") == 0) {
                         this.limit = Integer.valueOf(a2);
-                    } else if (a1.compareToIgnoreCase("replace") == 0) {
+                    } else if (a1.compareToIgnoreCase("replacement") == 0) {
                         this.replacement = Boolean.valueOf(a2);
                     } else if (a1.compareToIgnoreCase("reverse") == 0) {
                         this.reverse = Boolean.valueOf(a2);
@@ -77,11 +97,5 @@ public class SampleCondition {
                 ", replacement=" + replacement +
                 ", reverse=" + reverse +
                 '}';
-    }
-
-    public static void main(String[] args) throws Exception {
-        String sampleMeta = "weighted_sample(by=index.$1.weight, limit=5, reverse=true, replace=False)";
-        SampleCondition sampleCondition = new SampleCondition(sampleMeta);
-        System.out.println(sampleCondition);
     }
 }

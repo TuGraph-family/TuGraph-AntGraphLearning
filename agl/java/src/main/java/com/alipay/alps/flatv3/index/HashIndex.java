@@ -16,16 +16,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-public class HashIndex<ID> extends BaseIndex<ID> {
-    Map<String, Range> typeRanges = null;
-    public HashIndex(String indexMeta) {
-        super(indexMeta);
+public class HashIndex extends BaseIndex {
+    private Map<String, Range> typeRanges;
+    public HashIndex(String indexMeta, NeighborDataset neighborDataset) {
+        super(indexMeta, neighborDataset);
     }
 
     @Override
-    public void buildIndex() {
+    protected void buildIndex() {
         Map<String, List<Integer>> typeIndexes = new HashMap<>();
-        List<String> types = this.stringAttributes.get(getIndexColumn());
+        List<String> types = neighborDataset.getAttributeList(getIndexColumn());
         for (int i = 0; i < types.size(); i++) {
             String type = types.get(i);
             if (!typeIndexes.containsKey(type)) {
@@ -33,19 +33,17 @@ public class HashIndex<ID> extends BaseIndex<ID> {
             }
             typeIndexes.get(type).add(i);
         }
-        if (this.originIndex == null) {
-            this.originIndex = new Integer[types.size()];
-        }
-        typeRanges = new HashMap<>();
+        originIndex = new Integer[types.size()];
+        this.typeRanges = new HashMap<>();
         int count = 0;
         for (String type : typeIndexes.keySet()) {
             List<Integer> indices = typeIndexes.get(type);
             Range range = new Range(count, -1);
             for (int index : indices) {
-                this.originIndex[count++] = index;
+                originIndex[count++] = index;
             }
             range.setHigh(count - 1);
-            typeRanges.put(type, range);
+            this.typeRanges.put(type, range);
         }
     }
 
@@ -73,15 +71,15 @@ public class HashIndex<ID> extends BaseIndex<ID> {
 
     public static void main(String[] args) throws Exception {
         List<Integer> ids = new ArrayList<>();
-        List<String> timestamp = new ArrayList<>();
+        List<String> type = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             ids.add(i);
-            timestamp.add("node_" + String.valueOf(i%3));
+            type.add("node_" + String.valueOf(i%3));
         }
-        HashIndex<Integer> rangeIndex = new HashIndex<>("hash_index:node_type:string");
-        rangeIndex.setNode2IDs(ids);
-        rangeIndex.addAttributes("node_type", timestamp);
-        rangeIndex.buildIndex();
+        NeighborDataset<Integer> neighborDataset = new NeighborDataset<>(ids, null);
+        neighborDataset.addAttributes("node_type", type);
+        HashIndex rangeIndex = new HashIndex("hash_index:node_type:string", neighborDataset);
+
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         String filterCond = "index.node_type in (node_1, node_2)";
         FilterConditionParser filterConditionParser = new FilterConditionParser();

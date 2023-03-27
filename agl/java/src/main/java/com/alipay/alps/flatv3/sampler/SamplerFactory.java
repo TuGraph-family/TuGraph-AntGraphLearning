@@ -14,10 +14,10 @@ public class SamplerFactory {
      @return An instance of the Sampler class
      */
     public static Sampler createSampler(SampleCondition sampleCondition, BaseIndex index) {
-        if (sampleCondition.method.compareToIgnoreCase("weighted_sampler") == 0) {
+        if (sampleCondition.getMethod().compareToIgnoreCase("weighted_sampler") == 0) {
             return new WeightedSampler(sampleCondition, index);
-        } else if (sampleCondition.method.compareToIgnoreCase("topk") == 0) {
-            String dtype = (index.getIndexColumn().compareToIgnoreCase(sampleCondition.key) == 0) ? index.getIndexDtype() : index.getSamplingDtype();
+        } else if (sampleCondition.getMethod().compareToIgnoreCase("topk") == 0) {
+            String dtype = index.getNeighborDataset().getDtype(sampleCondition.getKey());
             if (dtype.compareToIgnoreCase("float") == 0) {
                 return new TopKSampler<Float>(sampleCondition, index);
             } else if (dtype.compareToIgnoreCase("long") == 0) {
@@ -25,7 +25,7 @@ public class SamplerFactory {
             } else if (dtype.compareToIgnoreCase("string") == 0) {
                 return new TopKSampler<String>(sampleCondition, index);
             }
-        } else if (sampleCondition.method.compareToIgnoreCase("random_sampler") == 0) {
+        } else if (sampleCondition.getMethod().compareToIgnoreCase("random_sampler") == 0) {
             return new RandomSampler(sampleCondition, index);
         }
         return null;

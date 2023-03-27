@@ -29,9 +29,9 @@ public class RandomSampler extends Sampler {
      @return An ArrayList<Integer> object containing the indices of the selected elements
      */
     @Override
-    public List<Integer> sampleImpl(IndexResult indexResult) {
+    protected List<Integer> sampleImpl(IndexResult indexResult) {
         int candidateCount = indexResult.getSize();
-        int sampleCount = this.getSampleCondition().limit;
+        int sampleCount = this.getSampleCondition().getLimit();
         // If the number of samples requested is less than 1/4 of the input size,
         // simply select samples at random without replacement using a HashSet.
         if (sampleCount < candidateCount / 4) {

@@ -20,35 +20,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RangeIndex<ID> extends BaseIndex<ID> {
-    public RangeIndex(String indexMeta) {
-        super(indexMeta);
+public class RangeIndex extends BaseIndex {
+    public RangeIndex(String indexMeta, NeighborDataset neighborDataset) {
+        super(indexMeta, neighborDataset);
     }
 
     @Override
     public void buildIndex() {
         String indexColumn = getIndexColumn();
-        if (floatAttributes != null && floatAttributes.containsKey(indexColumn)) {
-            this.originIndex = sortBy(floatAttributes.get(indexColumn));
-        } else {
-            this.originIndex = sortBy(longAttributes.get(indexColumn));
-        }
-        ArrayList<Integer> shuffleIndex = new ArrayList<Integer>(Collections.nCopies(this.originIndex.length, 0));
-        int candidateCount = this.node2IDs.size();
-        for (int i = 0; i < candidateCount; i++) {
-            shuffleIndex.set(this.originIndex[i], i);
-        }
-        for (int i = 0; i < candidateCount; i++) {
-            while (shuffleIndex.get(i) != i) {
-                for (String key : this.floatAttributes.keySet()) {
-                    Collections.swap(this.floatAttributes.get(key), i, shuffleIndex.get(i));
-                }
-                for (String key : this.longAttributes.keySet()) {
-                    Collections.swap(this.longAttributes.get(key), i, shuffleIndex.get(i));
-                }
-                Collections.swap(shuffleIndex, i, shuffleIndex.get(i));
-            }
-        }
+        originIndex = sortBy(neighborDataset.getAttributeList(indexColumn));
+        neighborDataset.shuffle(originIndex);
     }
 
     @Override
@@ -127,15 +108,15 @@ public class RangeIndex<ID> extends BaseIndex<ID> {
 
         Range range = new Range(0, originIndex.length-1);
         boolean hasLowerBound = arithCmpWrapper.hasLowerBound();
-        if (floatAttributes != null && floatAttributes.containsKey(indexColumn)) {
+        if (neighborDataset.getFloatAttributes(indexColumn) != null) {
             java.util.function.Function<Float, Boolean> comparison = (neighboringValue) -> {
                 inputVariables.get(VariableSource.INDEX).put(indexColumn, Element.Number.newBuilder().setF(neighboringValue).build());
                 return arithCmpWrapper.eval(inputVariables);
             };
             if (hasLowerBound) {
-                range.setLow(lowerBound(floatAttributes.get(indexColumn), inputVariables, comparison));
+                range.setLow(lowerBound(neighborDataset.getFloatAttributes(indexColumn), inputVariables, comparison));
             } else {
-                range.setHigh(upperBound(floatAttributes.get(indexColumn), inputVariables, comparison));
+                range.setHigh(upperBound(neighborDataset.getFloatAttributes(indexColumn), inputVariables, comparison));
             }
         } else {
             java.util.function.Function<Long, Boolean> comparison = (neighboringValue) -> {
@@ -143,35 +124,11 @@ public class RangeIndex<ID> extends BaseIndex<ID> {
                 return arithCmpWrapper.eval(inputVariables);
             };
             if (hasLowerBound) {
-                range.setLow(lowerBound(longAttributes.get(indexColumn), inputVariables, comparison));
+                range.setLow(lowerBound(neighborDataset.getLongAttributes(indexColumn), inputVariables, comparison));
             } else {
-                range.setHigh(upperBound(longAttributes.get(indexColumn), inputVariables, comparison));
+                range.setHigh(upperBound(neighborDataset.getLongAttributes(indexColumn), inputVariables, comparison));
             }
         }
         return range;
-    }
-
-    public static void main(String[] args) throws Exception {
-        List<String> ids = new ArrayList<>();
-        List<Long> timestamp = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            ids.add(String.valueOf(i));
-            timestamp.add(2L * i);
-        }
-        RangeIndex<String> rangeIndex = new RangeIndex<>("range_index:time:int,");
-        rangeIndex.setNode2IDs(ids);
-        rangeIndex.addAttributes("time", timestamp);
-        rangeIndex.buildIndex();
-        Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
-        Map<String, Element.Number> seedVariableMap = new HashMap<>();
-        seedVariableMap.put("1", Element.Number.newBuilder().setI(15L).build());
-        inputVariables.put(VariableSource.SEED, seedVariableMap);
-
-        String filterCond = "index.time - seed.1 <= 0 && seed.1 - index.time <= 10";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
-        CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-        System.out.println("----cmpExp: " + cmpExp);
-        System.out.println(rangeIndex.search(new ArithmeticCmpWrapper(cmpExp), inputVariables));
     }
 }

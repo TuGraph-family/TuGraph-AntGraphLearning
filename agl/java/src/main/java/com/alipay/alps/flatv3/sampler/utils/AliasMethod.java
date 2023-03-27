@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.sampler;
+package com.alipay.alps.flatv3.sampler.utils;
 
 import java.util.List;
 import java.util.Random;
@@ -36,7 +36,6 @@ public class AliasMethod {
     public void initAlias() {
         int n = probabilityTable.length;
         float average = 1.0F / n;
-        System.out.println("------initAlias n:" + n + " average:" + average);
         // Set up the probability and alias tables
         int[] small = new int[n];
         int[] large = new int[n];
@@ -55,7 +54,6 @@ public class AliasMethod {
             int l = small[--smallSize];
             int g = large[--largeSize];
             float gLeft = probabilityTable[l] + probabilityTable[g] - average;
-            probabilityTable[l] = average;
             aliasTable[l] = g;
 
             probabilityTable[g] = gLeft;
@@ -66,14 +64,10 @@ public class AliasMethod {
             }
         }
 
-        System.out.println("-----initAlias left largeSize:" + largeSize);
         while (largeSize > 0) {
-            System.out.println("-----initAlias left p:" + probabilityTable[large[largeSize-1]]);
             probabilityTable[large[--largeSize]] = average;
         }
-        System.out.println("-----initAlias left smallSize:" + smallSize);
         while (smallSize > 0) {
-            System.out.println("-----initAlias left p:" + probabilityTable[small[smallSize-1]]);
             probabilityTable[small[--smallSize]] = average;
         }
     }
@@ -87,7 +81,7 @@ public class AliasMethod {
         Random rand = new Random();
         int i = rand.nextInt(n);
 
-        double x = rand.nextDouble();
+        float x = rand.nextFloat() / n;
         if (x < probabilityTable[i]) {
             return i;
         } else {

@@ -137,9 +137,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         Element.Builder elementBuilder = Element.newBuilder();
         Element.Number.Builder elementNumBuilder = Element.newBuilder().getNumBuilder();
         if (exp.startsWith("'") && exp.endsWith("'") || exp.startsWith("\"") && exp.endsWith("\"")) {
-            System.out.println("--------exp is str: " + exp);
             String val = exp.substring(1, exp.length() - 1);
-            System.out.println("--------exp is val: " + val);
             elementNumBuilder.setS(val);
         } else if (exp.matches("\\d+(\\.\\d+)?")) {
             elementNumBuilder.setF(Float.parseFloat(exp));

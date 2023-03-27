@@ -5,29 +5,31 @@ import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.IndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.sampler.utils.AliasMethod;
+import com.alipay.alps.flatv3.sampler.utils.WeightedSelectionTree;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class WeightedSampler extends Sampler {
     private boolean hasInitializePrefixSum = false;
     private List<Float> prefixSum = null;
     private List<Float> weights = null;
     private AliasMethod aliasMethod = null;
-    private float getSummationBetween(int l, int r) {
-        return prefixSum.get(r) - (l > 0 ? prefixSum.get(l - 1) : 0);
-    }
-
-    public WeightedSampler(SampleCondition sampleCondition, BaseIndex index) {
-        super(sampleCondition, index);
-    }
     /**
      * Constructor of the WeighedSampler class.
      * @param sampleCondition the sample condition
-     * @param indexes the index of the data
+     * @param index the index of the data
      */
+    public WeightedSampler(SampleCondition sampleCondition, BaseIndex index) {
+        super(sampleCondition, index);
+    }
+
     public WeightedSampler(SampleCondition sampleCondition, HashMap<String, BaseIndex> indexes) {
         super(sampleCondition, indexes);
     }
@@ -38,26 +40,26 @@ public class WeightedSampler extends Sampler {
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
     @Override
-    public List<Integer> sampleImpl(IndexResult indexResult) {
+    protected List<Integer> sampleImpl(IndexResult indexResult) {
         weights = new ArrayList<>(indexResult.getSize());
-        indexResult.copyNumberAttributes(getSampleCondition().key, weights);
+        indexResult.copyNumberAttributes(getSampleCondition().getKey(), weights);
         int candidateCount = indexResult.getSize();
-        if (candidateCount <= this.getSampleCondition().limit) {
+        if (candidateCount <= getSampleCondition().getLimit()) {
             return indexResult.getIndices();
         }
-        if (this.getSampleCondition().replacement == false && this.getSampleCondition().limit * 5 > candidateCount) {
+        // alias method
+        if (!indexResult.hasFilterCondition() && (getSampleCondition().isReplacement() || getSampleCondition().getLimit() * 4 <= candidateCount)) {
+            return sampleByAliasMethod(getSampleCondition().isReplacement());
+        }
+        // search in order statistic tree
+        if (getSampleCondition().isReplacement() == false && getSampleCondition().getLimit() * 4 > candidateCount) {
             return sampleByOrderStatisticTree(indexResult);
         }
-        if (!indexResult.hasFilterCondition() && indexResult instanceof RangeIndexResult) {
-            // alias
-            return sampleByAliasMethod(indexResult);
+        // binary search on prefix sum array
+        if (indexResult instanceof RangeIndexResult) {
+            return sampleByPrefixSum((RangeIndexResult) indexResult, getSampleCondition().isReplacement());
         } else {
-            // prefix sum
-            if (indexResult instanceof RangeIndexResult) {
-                return sampleByPrefixSum((RangeIndexResult) indexResult);
-            } else {
-                return sampleByPrefixSum((CommonIndexResult) indexResult);
-            }
+            return sampleByPrefixSum((CommonIndexResult) indexResult, getSampleCondition().isReplacement());
         }
     }
 
@@ -65,15 +67,23 @@ public class WeightedSampler extends Sampler {
      * Generates a random sample from the probability distribution using the Alias method.
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
-    private List<Integer> sampleByAliasMethod(IndexResult indexResult) {
+    private List<Integer> sampleByAliasMethod(boolean replacement) {
         if (aliasMethod == null) {
             aliasMethod = new AliasMethod(weights);
         }
-        ArrayList<Integer> sampledIndex = new ArrayList<>();
-        for (int i = 0; i < this.getSampleCondition().limit; i++) {
-            sampledIndex.add(aliasMethod.nextRandom());
+        if (replacement) {
+            ArrayList<Integer> sampledIndex = new ArrayList<>();
+            for (int i = 0; i < getSampleCondition().getLimit(); i++) {
+                sampledIndex.add(aliasMethod.nextRandom());
+            }
+            return sampledIndex;
+        } else {
+            Set<Integer> sampledDistinctIndex = new HashSet<>();
+            while (sampledDistinctIndex.size() < getSampleCondition().getLimit()) {
+                sampledDistinctIndex.add(aliasMethod.nextRandom());
+            }
+            return new ArrayList<>(sampledDistinctIndex);
         }
-        return null;
     }
 
     /**
@@ -82,31 +92,23 @@ public class WeightedSampler extends Sampler {
      */
     private void initializePrefixSum(List<Float> weights) {
         hasInitializePrefixSum = true;
-        prefixSum = Collections.nCopies(weights.size(), weights.get(0));
+        prefixSum = new ArrayList<>(Collections.nCopies(weights.size(), weights.get(0)));
         for (int i = 1; i < weights.size(); i++) {
             prefixSum.set(i, prefixSum.get(i-1) + weights.get(i));
         }
     }
 
-    private void initializePrefixSum(List<Float> weights, List<Integer> validIndices) {
-        hasInitializePrefixSum = true;
-        prefixSum = Collections.nCopies(validIndices.size(), 0.0F);
-        prefixSum.set(0, weights.get(validIndices.get(0)));
-        for (int i = 1; i < validIndices.size(); i++) {
-            prefixSum.set(i, prefixSum.get(i-1) + weights.get(validIndices.get(i)));
-        }
-    }
     /**
      * Generates a random sample from the probability distribution using the Prefix Sum method.
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
-    private List<Integer> sampleByPrefixSum(RangeIndexResult indexResult) {
+    private List<Integer> sampleByPrefixSum(RangeIndexResult indexResult, boolean replacement) {
         if (!hasInitializePrefixSum) {
            initializePrefixSum(weights);
         }
 
-        List<Range> sortedIntervals = indexResult.sortedIntervals;
-        List<Float> intervalPrefixSum = Collections.nCopies(sortedIntervals.size(), 0.0F);
+        List<Range> sortedIntervals = indexResult.getRangeList();
+        List<Float> intervalPrefixSum = new ArrayList<>(Collections.nCopies(sortedIntervals.size(), 0.0F));
         for (int i = 0; i < sortedIntervals.size(); i++) {
             if (i > 0) {
                 intervalPrefixSum.set(i, intervalPrefixSum.get(i-1));
@@ -117,38 +119,65 @@ public class WeightedSampler extends Sampler {
         }
         Float maxIntervalPrefixSum = intervalPrefixSum.get(intervalPrefixSum.size() - 1);
 
-        ArrayList<Integer> sampledIndex = new ArrayList<>();
-        for (int i = 0; i < this.getSampleCondition().limit; i++) {
-            int rangeIndex = lowerBound(intervalPrefixSum, 0, intervalPrefixSum.size() - 1, getNextFloat() * maxIntervalPrefixSum);
-            Range range = sortedIntervals.get(rangeIndex);
-            int neighborIndex = lowerBound(prefixSum, range.getLow(), range.getHigh(),
-                    getNextFloat() * getSummationBetween(range.getLow(), range.getHigh()) + (range.getLow() > 1 ? prefixSum.get(range.getLow() - 1) : 0));
-            sampledIndex.add(neighborIndex);
+        if (replacement) {
+            ArrayList<Integer> sampledIndex = new ArrayList<>();
+            for (int i = 0; i < this.getSampleCondition().getLimit(); i++) {
+                int rangeIndex = lowerBound(intervalPrefixSum, 0, intervalPrefixSum.size() - 1, getNextFloat() * maxIntervalPrefixSum);
+                Range range = sortedIntervals.get(rangeIndex);
+                int neighborIndex = lowerBound(prefixSum, range.getLow(), range.getHigh(),
+                        getNextFloat() * getSummationBetween(range.getLow(), range.getHigh()) + (range.getLow() > 1 ? prefixSum.get(range.getLow() - 1) : 0));
+                sampledIndex.add(neighborIndex);
+            }
+            return sampledIndex;
+        } else {
+            Set<Integer> sampledIndex = new HashSet<>();
+            while (sampledIndex.size() < this.getSampleCondition().getLimit()) {
+                int rangeIndex = lowerBound(intervalPrefixSum, 0, intervalPrefixSum.size() - 1, getNextFloat() * maxIntervalPrefixSum);
+                Range range = sortedIntervals.get(rangeIndex);
+                int neighborIndex = lowerBound(prefixSum, range.getLow(), range.getHigh(),
+                        getNextFloat() * getSummationBetween(range.getLow(), range.getHigh()) + (range.getLow() > 1 ? prefixSum.get(range.getLow() - 1) : 0));
+                sampledIndex.add(neighborIndex);
+            }
+            return new ArrayList<>(sampledIndex);
         }
-        return sampledIndex;
     }
 
-    private List<Integer> sampleByPrefixSum(CommonIndexResult indexResult) {
-        initializePrefixSum(weights, indexResult.getIndices());
-        ArrayList<Integer> sampledIndex = new ArrayList<>();
-        for (int i = 0; i < this.getSampleCondition().limit; i++) {
-            int neighborIndex = lowerBound(prefixSum, 0, prefixSum.size(), getNextFloat() * prefixSum.get(prefixSum.size() - 1));
-            sampledIndex.add(neighborIndex);
+    private void initializePrefixSum(List<Float> weights, List<Integer> validIndices) {
+        prefixSum = new ArrayList<>(Collections.nCopies(validIndices.size(), 0.0F));
+        prefixSum.set(0, weights.get(validIndices.get(0)));
+        for (int i = 1; i < validIndices.size(); i++) {
+            prefixSum.set(i, prefixSum.get(i-1) + weights.get(validIndices.get(i)));
         }
-        return sampledIndex;
+    }
+    private List<Integer> sampleByPrefixSum(CommonIndexResult indexResult, boolean replacement) {
+        initializePrefixSum(weights, indexResult.getIndices());
+        if (!replacement) {
+            ArrayList<Integer> sampledIndex = new ArrayList<>();
+            for (int i = 0; i < this.getSampleCondition().getLimit(); i++) {
+                int neighborIndex = lowerBound(prefixSum, 0, prefixSum.size(), getNextFloat() * prefixSum.get(prefixSum.size() - 1));
+                sampledIndex.add(neighborIndex);
+            }
+            return sampledIndex;
+        } else {
+            Set<Integer> sampledIndex = new HashSet<>();
+            while (sampledIndex.size() < this.getSampleCondition().getLimit()) {
+                int neighborIndex = lowerBound(prefixSum, 0, prefixSum.size(), getNextFloat() * prefixSum.get(prefixSum.size() - 1));
+                sampledIndex.add(neighborIndex);
+            }
+            return new ArrayList<>(sampledIndex);
+        }
     }
 
     private List<Integer> sampleByOrderStatisticTree(IndexResult indexResult) {
         List<Integer> indices = indexResult.getIndices();
-        List<Float> weights = new ArrayList<Float>(indices.size());
+        List<Float> tmpWeights = new ArrayList<Float>(indices.size());
         for (int i = 0; i < indices.size(); i++) {
-            weights.set(i, weights.get(indices.get(i)));
+            tmpWeights.add(this.weights.get(indices.get(i)));
         }
-        WeightedSelectionTree tree = new WeightedSelectionTree(indices, weights);
+        WeightedSelectionTree tree = new WeightedSelectionTree(indices, tmpWeights);
         ArrayList<Integer> sampledIndex = new ArrayList<>();
-        for (int i = 0; i < this.getSampleCondition().limit; i++) {
-            WeightedSelectionTree.Node root = tree.getRoot();
-            Float totalWeight = root.elementWeight + root.rightBranchWeight + root.leftBranchWeight;
+        for (int i = 0; i < this.getSampleCondition().getLimit(); i++) {
+            Float totalWeight = tree.getTotalWeight();
             int removedNode = tree.selectNode(totalWeight * getNextFloat());
             sampledIndex.add(removedNode);
         }
@@ -173,5 +202,9 @@ public class WeightedSampler extends Sampler {
             }
         }
         return l;
+    }
+
+    private float getSummationBetween(int l, int r) {
+        return prefixSum.get(r) - (l > 0 ? prefixSum.get(l - 1) : 0);
     }
 }

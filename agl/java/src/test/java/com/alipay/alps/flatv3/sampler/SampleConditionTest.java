@@ -7,13 +7,13 @@ public class SampleConditionTest {
 
     @Test
     public void testConstructor() {
-        String sampleMeta = "weighted_sample(by=index.$1.weight, limit=5, reverse=true, replace=False)";
+        String sampleMeta = "weighted_sample(by=index.$1.weight, limit=5, reverse=true, replacement=False)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
-        assertEquals("weighted_sample", sampleCondition.method);
-        assertEquals("index.$1.weight", sampleCondition.key);
-        assertEquals(5, sampleCondition.limit);
-        assertFalse(sampleCondition.replacement);
-        assertTrue(sampleCondition.reverse);
+        assertEquals("weighted_sample", sampleCondition.getMethod());
+        assertEquals("index.$1.weight", sampleCondition.getKey());
+        assertEquals(5, sampleCondition.getLimit());
+        assertFalse(sampleCondition.isReplacement());
+        assertTrue(sampleCondition.isReverse());
     }
 
     @Test

@@ -60,7 +60,7 @@ public class FilterAndSampler {
                 IndexResult indexResult1 = indexResultStack.pop();
                 IndexResult indexResult2 = indexResultStack.pop();
                 if (logicOp == LogicOp.AND) {
-                    indexResult = indexResult1.intersection(indexResult2);
+                    indexResult = indexResult1.join(indexResult2);
                 } else if (logicOp == LogicOp.OR) {
                     indexResult = indexResult1.union(indexResult2);
                 }
@@ -85,7 +85,7 @@ public class FilterAndSampler {
         }
         List<List<Integer>> neighborList = new ArrayList<>();
         SampleCondition sampleCondition = new SampleCondition(sampleCond);
-        BaseIndex sampleIndex = indexesMap.get(sampleCondition.key);
+        BaseIndex sampleIndex = indexesMap.get(sampleCondition.getKey());
         Sampler sampler = SamplerFactory.createSampler(sampleCondition, sampleIndex);
         for (int i = 0; i < seeds.size(); i++) {
             String seedId = seeds.get(i);

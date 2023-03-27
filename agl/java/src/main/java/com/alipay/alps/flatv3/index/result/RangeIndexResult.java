@@ -2,7 +2,6 @@ package com.alipay.alps.flatv3.index.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -10,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RangeIndexResult extends IndexResult {
-    public List<Range> sortedIntervals = null;
+    private List<Range> sortedIntervals = null;
 
     public RangeIndexResult(BaseIndex index, List<Range> sortedIntervals) {
         super(index);
@@ -75,43 +74,55 @@ public class RangeIndexResult extends IndexResult {
     }
 
     @Override
-    public IndexResult intersection(IndexResult right) {
-        if (right instanceof RangeIndexResult && right.indexes.keySet().containsAll(indexes.keySet())) {
+    public IndexResult join(IndexResult right) {
+        if (right instanceof RangeIndexResult && right.getIndexes().keySet().containsAll(getIndexes().keySet())) {
             List<Range> joinedIntervals = joinRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
-            return new RangeIndexResult(indexes, joinedIntervals);
+            return new RangeIndexResult(getIndexes(), joinedIntervals);
         } else {
             List<Integer> joinedList = CommonIndexResult.joinList(getIndices(), right.getIndices());
             HashMap<String, BaseIndex> newIndexes = new HashMap<>();
-            newIndexes.putAll(this.indexes);
-            newIndexes.putAll(right.indexes);
+            newIndexes.putAll(this.getIndexes());
+            newIndexes.putAll(right.getIndexes());
             return new CommonIndexResult(newIndexes, joinedList);
         }
     }
 
     @Override
     public IndexResult union(IndexResult right) {
-        if (right instanceof RangeIndexResult && right.indexes.keySet().containsAll(indexes.keySet())) {
+        if (right instanceof RangeIndexResult && right.getIndexes().keySet().containsAll(getIndexes().keySet())) {
             List<Range> unionedIntervals = unionRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
-            return new RangeIndexResult(indexes, unionedIntervals);
+            return new RangeIndexResult(getIndexes(), unionedIntervals);
         } else {
             List<Integer> unionedList = CommonIndexResult.unionList(getIndices(), right.getIndices());
             HashMap<String, BaseIndex> newIndexes = new HashMap<>();
-            newIndexes.putAll(this.indexes);
-            newIndexes.putAll(right.indexes);
+            newIndexes.putAll(this.getIndexes());
+            newIndexes.putAll(right.getIndexes());
             return new CommonIndexResult(newIndexes, unionedList);
         }
     }
 
-
+    @Override
     public List<Integer> getIndices() {
-        Integer[] originIndex = getOriginIndex();
         List<Integer> ans = new ArrayList<>();
-        for (Range p : sortedIntervals) {
-            for (int i = p.getLow(); i <= p.getHigh(); i++) {
-                ans.add(originIndex[i]);
+        Integer[] originIndex = getOriginIndex();
+        if (originIndex != null) {
+            for (Range p : sortedIntervals) {
+                for (int i = p.getLow(); i <= p.getHigh(); i++) {
+                    ans.add(originIndex[i]);
+                }
+            }
+        } else {
+            for (Range p : sortedIntervals) {
+                for (int i = p.getLow(); i <= p.getHigh(); i++) {
+                    ans.add(i);
+                }
             }
         }
         return ans;
+    }
+
+    public List<Range> getRangeList() {
+        return sortedIntervals;
     }
 
     @Override
@@ -128,21 +139,5 @@ public class RangeIndexResult extends IndexResult {
         return "RangeIndexResult{" +
                 "sortedIntervals=" + sortedIntervals +
                 '}';
-    }
-
-    public static void main(String[] args) throws Exception {
-        List<Range> range1 = new ArrayList<>();
-        range1.add(new Range(1, 5));
-        range1.add(new Range(10, 15));
-        range1.add(new Range(30, 35));
-
-        List<Range> range2 = new ArrayList<>();
-        range2.add(new Range(4, 11));
-        range2.add(new Range(20, 25));
-        range2.add(new Range(31, 55));
-        RangeIndexResult leftRange = new RangeIndexResult((BaseIndex) null, range1);
-        RangeIndexResult rightRange = new RangeIndexResult((BaseIndex) null, range2);
-        System.out.println("----unionRange:" + Arrays.toString(((RangeIndexResult) leftRange.union(rightRange)).sortedIntervals.toArray()));
-        System.out.println("----joinRange:" + Arrays.toString(((RangeIndexResult) leftRange.intersection(rightRange)).sortedIntervals.toArray()));
     }
 }

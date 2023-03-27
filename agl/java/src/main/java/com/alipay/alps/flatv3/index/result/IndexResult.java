@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class IndexResult {
-    public Map<String, BaseIndex> indexes = null;
+    private Map<String, BaseIndex> indexes = null;
     public IndexResult(BaseIndex index) {
-        if (indexes == null) {
-            indexes = new HashMap<>();
+        if (this.indexes == null) {
+            this.indexes = new HashMap<>();
         }
         this.indexes.put(index.getIndexColumn(), index);
     }
@@ -20,31 +20,36 @@ public abstract class IndexResult {
         }
         this.indexes.putAll(indexes);
     }
-    public abstract IndexResult intersection(IndexResult right);
+
+    public Map<String, BaseIndex> getIndexes() {
+        return indexes;
+    }
+
+    public abstract IndexResult join(IndexResult right);
     public abstract IndexResult union(IndexResult right);
     public abstract int getSize();
     public abstract List<Integer> getIndices();
 
     public boolean hasFilterCondition() {
         if (indexes == null) {
-            return true;
+            return false;
         }
         for (String indexName : indexes.keySet()) {
             if (indexes.get(indexName).getIndexColumn() != null) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public void copyNumberAttributes(String column, List<Float> destination) {
         for (String indexName : indexes.keySet()) {
-            List<Float> floatValues = indexes.get(indexName).getFloatAttributes(column);
+            List<Float> floatValues = indexes.get(indexName).getNeighborDataset().getFloatAttributes(column);
             if (floatValues != null) {
                 destination.addAll(floatValues);
                 break;
             }
-            List<Long> longValues = indexes.get(indexName).getLongAttributes(column);
+            List<Long> longValues = indexes.get(indexName).getNeighborDataset().getLongAttributes(column);
             if (longValues != null) {
                 for (long l : longValues) {
                     destination.add((float) l);
