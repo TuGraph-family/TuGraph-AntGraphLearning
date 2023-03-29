@@ -1,0 +1,3 @@
+[submodule "third_party/protobuf"]
+	path = third_party/protobuf
+	url = https://git:6a3926ae977c47768c859457b1627d2a@code.alipay.com/Alps/protobuf.git

@@ -1,12 +1,12 @@
 syntax = "proto3";
 
+// package(not affect python)
+package agl.proto.graph_feature;
+
 // java
 option java_package = "com.antfin.agl.proto.graph_feature";
 option java_outer_classname = "GraphFeature";
 option java_multiple_files = true;
-
-// python/cpp
-package agl.proto.graph_feature;
 
 // cpp
 option cc_enable_arenas = true;
@@ -28,17 +28,19 @@ enum DType {
   FP16 = 13;
 }
 
-message BytesList {
+message BytesList {// string List
   repeated bytes value = 1;
 }
+// message FP16
+// message BF16
 message FloatList {
   repeated float value = 1 [packed = true];
 }
 message Float64List {
   repeated double value = 1 [packed = true];
 }
-message Int64List {
-  repeated int64 value = 1 [packed = true];   // varints
+message Int64List {// support varint compress
+  repeated int64 value = 1 [packed = true];
 }
 
 message IDs {
@@ -48,63 +50,65 @@ message IDs {
   }
 }
 
-message DenseFeatures {
-  int32 dim = 1;
-  oneof df {
-    FloatList f32s = 2;
-    Float64List f64s = 3;
-    Int64List i64s = 4;
-    BytesList raws = 5;
+message Features {
+  message DenseFeatures {
+    int32 dim = 1;
+    oneof df {
+      FloatList f32s = 2;
+      Float64List f64s = 3;
+      Int64List i64s = 4;
+      BytesList raws = 5;
+    }
   }
-}
 
-message SparseKvFeatures {
-  Int64List lens = 1;
-  Int64List keys = 2;
-  oneof values {
-    FloatList f32s = 3;
-    Float64List f64s = 4;
-    Int64List i64s = 5;
+  message SparseKFeatures {
+    Int64List lens = 1;
+    oneof keys {
+      Int64List i64s = 2;
+      BytesList raws = 3; // ragged tensor
+    }
   }
-}
 
-message VariantLenFeatures {
-  Int64List lens = 1;
-  oneof keys {
-    Int64List i64s = 2;
-    BytesList raws = 3;
+  message SparseKVFeatures {
+    Int64List lens = 1;
+    Int64List keys = 2;
+    oneof values {
+      FloatList f32s = 3;
+      Float64List f64s = 4;
+      Int64List i64s = 5;
+    }
   }
+
+  map<string, DenseFeatures> dfs = 1;
+  map<string, SparseKVFeatures> sp_kvs = 2;
+  map<string, SparseKFeatures> sp_ks = 3;
 }
 
 message Nodes {
   IDs nids = 1;
-  map<string, DenseFeatures> dfs = 2;
-  map<string, SparseKvFeatures> spkvs = 3;
-  map<string, VariantLenFeatures> vars = 4;
-}
-
-message CSR {
-  Int64List indptr = 1;
-  Int64List nbrs_indices = 2;
-}
-
-message COO {
-  Int64List n1_indices = 2;
-  Int64List n2_indices = 3;
+  Features features = 2;
 }
 
 message Edges {
-  IDs eids = 1;
+  message CSR {
+    Int64List indptr = 1;
+    Int64List nbrs_indices = 2;
+  }
+
+  message COO {
+    Int64List n1_indices = 2;
+    Int64List n2_indices = 3;
+  }
+
+  IDs eids = 1; // optional
   oneof nbrs {
     CSR csr = 2;
     COO coo = 3;
   }
+  string n1_name = 4;
+  string n2_name = 5;
 
-  map<string, DenseFeatures> dfs = 4;
-  map<string, SparseKvFeatures> spkvs = 5;
-  map<string, VariantLenFeatures> vars = 6;
-  string n1_name = 7;
-  string n2_name = 8;
+  Features features = 6;
 }
 
 message GraphFeature {
@@ -114,17 +118,19 @@ message GraphFeature {
       string name = 2;  // name
     }
     message MultiItems {
-      map<string, Int64List> indices = 1; // node/edge indices
+      bool is_node = 1; // node or edge?
+      map<string, Int64List> indices = 2; // node/edge indices
     }
     oneof root {
-      OneItem nidx = 1;
-      OneItem eidx = 2;
-      MultiItems subgraph = 3;
+      OneItem nidx = 1;   // one node
+      OneItem eidx = 2;   // one edge
+      MultiItems subgraph = 3;  // multi-nodes/edges
     }
   }
 
-  map<string, Nodes> nodes = 1;
-  map<string, Edges> edges = 2;
-  optional Root root = 3; // has(EgoGraph) or not(SubGraph)
+  map<string, Nodes> nodes = 1;   // node_name -> Nodes
+  map<string, Edges> edges = 2;   // edge_name -> Edges
+  Root root = 3; // optional: has->EgoGraph), empty->SubGraph
 }
+
 
