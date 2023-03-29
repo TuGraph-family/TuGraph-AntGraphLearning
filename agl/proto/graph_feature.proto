@@ -80,8 +80,8 @@ message Features {
   }
 
   map<string, DenseFeatures> dfs = 1;
-  map<string, SparseKVFeatures> spkvs = 2;
-  map<string, SparseKFeatures> spks = 3;
+  map<string, SparseKVFeatures> sp_kvs = 2;
+  map<string, SparseKFeatures> sp_ks = 3;
 }
 
 message Nodes {
@@ -108,7 +108,7 @@ message Edges {
   string n1_name = 4;
   string n2_name = 5;
 
-  Features feats = 6;
+  Features features = 6;
 }
 
 message GraphFeature {
@@ -118,18 +118,19 @@ message GraphFeature {
       string name = 2;  // name
     }
     message MultiItems {
-      map<string, Int64List> indices = 1; // node/edge indices
+      bool is_node = 1; // node or edge?
+      map<string, Int64List> indices = 2; // node/edge indices
     }
     oneof root {
-      OneItem nidx = 1;
-      OneItem eidx = 2;
-      MultiItems subgraph = 3;
+      OneItem nidx = 1;   // one node
+      OneItem eidx = 2;   // one edge
+      MultiItems subgraph = 3;  // multi-nodes/edges
     }
   }
 
-  map<string, Nodes> nodes = 1;
-  map<string, Edges> edges = 2;
-  Root root = 3; // has(EgoGraph) or not(SubGraph)
+  map<string, Nodes> nodes = 1;   // node_name -> Nodes
+  map<string, Edges> edges = 2;   // edge_name -> Edges
+  Root root = 3; // optional: has->EgoGraph), empty->SubGraph
 }
 
 
