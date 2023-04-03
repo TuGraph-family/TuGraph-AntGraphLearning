@@ -2,19 +2,16 @@ package com.alipay.alps.flatv3.index;
 
 import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.CmpExpWrapper;
-import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
 import com.alipay.alps.flatv3.index.result.IndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.CmpOp;
 import com.antfin.agl.proto.sampler.Element;
-import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +54,7 @@ public class RangeIndex extends BaseIndex {
     public Integer[] getOriginIndex() {
         return originIndex;
     }
-
+    
     private <T> int lowerBound(List<T> nums, Map<VariableSource, Map<String, Element.Number>> inputVariables, java.util.function.Function<T, Boolean> f) {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {

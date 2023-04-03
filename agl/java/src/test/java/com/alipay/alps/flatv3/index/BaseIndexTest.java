@@ -5,8 +5,16 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
+import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
+import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.antfin.agl.proto.sampler.Element;
+import com.antfin.agl.proto.sampler.LogicExps;
+import com.antfin.agl.proto.sampler.VariableSource;
+
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BaseIndexTest {
 
@@ -44,6 +52,15 @@ public class BaseIndexTest {
         assertEquals("float", baseIndex.getDtype("attr2"));
         assertEquals("long", baseIndex.getDtype("attr3"));
         assertNull(baseIndex.getDtype("attr1"));
+    }
+    
+    // test for a case with empty indexMeta and no filter conditions
+    @Test
+    public void testGetIndexResultWithEmptyIndexMetaAndNOFilter() throws Exception {
+        BaseIndex baseIndex = new RangeIndex("", neighborDataset);
+        IndexResult indexResult = baseIndex.search(null, null);
+        assertEquals(4, indexResult.getSize());
+        assertArrayEquals(originIndex, indexResult.getIndices().toArray());
     }
 }
 

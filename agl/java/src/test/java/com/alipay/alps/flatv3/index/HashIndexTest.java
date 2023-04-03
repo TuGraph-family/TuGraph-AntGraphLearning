@@ -41,6 +41,5 @@ public class HashIndexTest {
         IndexResult indexResult = hashIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables);
         assertArrayEquals(Arrays.asList(1, 2, 4).toArray(), indexResult.getIndices().toArray());
     }
-
 }
 

@@ -2,7 +2,6 @@ package com.alipay.alps.flatv3.index.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.RangeIndex;
 import org.junit.Test;
 import org.junit.Before;
 import static org.junit.Assert.*;

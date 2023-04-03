@@ -1,7 +1,6 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.IndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
@@ -21,9 +20,6 @@ import java.util.PriorityQueue;
  The factor attribute is used to determine the order of the elements in the PriorityQueue.
  */
 public class TopKSampler<T> extends Sampler {
-    private PriorityQueue<Node> priorityQueue;
-    private Comparator<Node> comparator;
-    private ArrayList<Integer> cachedIndex = null;
     public static class Node<T extends Comparable<T>> {
         int index;
         T weight;
@@ -33,6 +29,9 @@ public class TopKSampler<T> extends Sampler {
             this.weight = weight;
         }
     }
+    private PriorityQueue<Node> priorityQueue;
+    private Comparator<Node> comparator;
+    private ArrayList<Integer> cachedIndex = null;
 
     public TopKSampler(SampleCondition sampleCondition, Map<String, BaseIndex> indexes) {
         super(sampleCondition, indexes);
@@ -117,8 +116,9 @@ public class TopKSampler<T> extends Sampler {
                     break;
                 }
             }
+            // if there is no filter condition, the selected samples are always the same, we can cache the result
             if (baseIndex.getIndexColumn() == null && cachedIndex != null) {
-                return new ArrayList<>(sampledIndex);
+                return new ArrayList<>(cachedIndex);
             }
             priorityQueue.clear();
             List<Range> sortedIntervals = ((RangeIndexResult) indexResult).getRangeList();

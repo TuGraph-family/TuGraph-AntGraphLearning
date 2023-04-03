@@ -13,8 +13,10 @@ public class AliasMethod {
     // Pre-computed probability and alias tables
     public float[] probabilityTable;
     private int[] aliasTable;
+    private Random rand;
 
-    public AliasMethod(List<Float> weights) {
+    public AliasMethod(List<Float> weights, Random rand) {
+        this.rand = rand;
         int n = weights.size();
         probabilityTable = new float[n];
         aliasTable = new int[n];
@@ -76,9 +78,8 @@ public class AliasMethod {
      * Generates a random sample from the probability distribution using the Alias method.
      * @return An integer representing the index of the sampled element.
      */
-    public int nextRandom() {
+    public int nextSample() {
         int n = probabilityTable.length;
-        Random rand = new Random();
         int i = rand.nextInt(n);
 
         float x = rand.nextFloat() / n;

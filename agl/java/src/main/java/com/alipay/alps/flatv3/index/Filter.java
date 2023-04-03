@@ -1,42 +1,32 @@
-package com.alipay.alps.flatv3;
+package com.alipay.alps.flatv3.index;
 
+import com.antfin.agl.proto.sampler.LogicExps;
 import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.CmpExpWrapper;
 import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
-import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.result.IndexResult;
-import com.alipay.alps.flatv3.sampler.SampleCondition;
-import com.alipay.alps.flatv3.sampler.Sampler;
-import com.alipay.alps.flatv3.sampler.SamplerFactory;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.CmpOp;
 import com.antfin.agl.proto.sampler.Element;
-import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.LogicOp;
 import com.antfin.agl.proto.sampler.VariableSource;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-public class FilterAndSampler {
-    public String filterCond = null;
-    public LogicExps logicExps = null;
-    public String sampleCond = null;
-    public String otherOutputSchema;
+public class Filter {
+    private LogicExps logicExps = null;
+    private Map<String, BaseIndex> indexesMap = null;
 
-    public FilterAndSampler(String otherOutputSchema, String filterCond, String sampleCond) {
-        this.otherOutputSchema = otherOutputSchema.replaceAll("\\s", "");
-        this.filterCond = filterCond;
+    public Filter(Map<String, BaseIndex> indexesMap, String filterCond) {
+        this.indexesMap = indexesMap;
         logicExps = new FilterConditionParser().parseFilterCondition(filterCond);
-        this.sampleCond = sampleCond;
     }
 
-
-    private IndexResult search(LogicExps logicExps, Map<String, BaseIndex> indexesMap, List<Object> seedValues) throws Exception {
+    public IndexResult filter(List<Object> seedValues) throws Exception {
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         Map<String, Element.Number> seedVariableMap = new HashMap<>();
         for (int i = 0; i < seedValues.size(); i++) {
@@ -51,6 +41,9 @@ public class FilterAndSampler {
         }
         inputVariables.put(VariableSource.SEED, seedVariableMap);
 
+        if (logicExps.getExpRPNCount() == 0) {
+            return indexesMap.get("").search(null, inputVariables);
+        }
         Stack<IndexResult> indexResultStack = new Stack<>();
         for (int i = 0; i < logicExps.getExpRPNCount(); i++) {
             LogicExps.ExpOrOp expOrOp = logicExps.getExpRPN(i);
@@ -75,24 +68,5 @@ public class FilterAndSampler {
             indexResultStack.add(indexResult);
         }
         return indexResultStack.pop();
-    }
-
-    public List<List<Integer>> process(List<String> seeds, List<List<Object>> seedAttrs, List<BaseIndex> indexList,
-                                       Map<String, Object> frontierValues, List<Object> neigborAttrs) throws Exception {
-        Map<String, BaseIndex> indexesMap = new HashMap<>();
-        for (int i = 0; i < indexList.size(); i++) {
-            indexesMap.put(indexList.get(i).getIndexColumn(), indexList.get(i));
-        }
-        List<List<Integer>> neighborList = new ArrayList<>();
-        SampleCondition sampleCondition = new SampleCondition(sampleCond);
-        BaseIndex sampleIndex = indexesMap.get(sampleCondition.getKey());
-        Sampler sampler = SamplerFactory.createSampler(sampleCondition, sampleIndex);
-        for (int i = 0; i < seeds.size(); i++) {
-            String seedId = seeds.get(i);
-            IndexResult indexResult = search(logicExps, indexesMap, seedAttrs.get(i));
-            List<Integer> neighborIndices = sampler.sample(indexResult);
-            neighborList.add(neighborIndices);
-        }
-        return neighborList;
     }
 }

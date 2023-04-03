@@ -1,6 +1,7 @@
 package com.alipay.alps.flatv3.sampler.utils;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * A class that implements a Weighted Selection Tree, used to select a random element from a given set of elements with different weights.
@@ -44,30 +45,44 @@ public class WeightedSelectionTree {
 
     private Node root = null;
     private Integer removedNode = null;
+    private Random rand;
 
-    public WeightedSelectionTree(List<Integer> elementIndices, List<Float> weights) {
-        root = buildTree(elementIndices, 0, weights.size() - 1, weights);
+    public WeightedSelectionTree(List<Integer> elementIndices, List<Float> weights, Random rand) {
+        this.rand = rand;
+        root = buildTree(elementIndices, 0, elementIndices.size() - 1, weights);
     }
 
-    public float getTotalWeight() {
+    private float getTotalWeight() {
         return root.element + root.leftBranchWeight + root.rightBranchWeight;
-    }
-
-    public Node getRoot() {
-        return root;
     }
 
     /**
      * Selects a node from the Weighted Selection Tree using a random selection process.
      *
-     * @param randomNum the selected node's leftBranchWeight is less than randomNum, it's leftBranchWeight + elementWeight is larger than randomNum.
      * @return The selected node.
      */
-    public Integer selectNode(double randomNum) {
+    public int nextSample() {
+        // the selected node's leftBranchWeight is less than randomNum, it's leftBranchWeight + elementWeight is larger than randomNum.
+        double randomNum = rand.nextDouble() * getTotalWeight();
         root = this.selectNode(root, randomNum);
         return removedNode;
     }
 
+    /**
+     * Selects a node from the Weighted Selection Tree using a random selection process.
+     *
+     * @param randomNum The random number used to select the node.
+     * @return The selected node.
+     */
+    public int getSampleByRandomNum(float randomNum) {
+        root = this.selectNode(root, randomNum);
+        return removedNode;
+    }
+
+    public WeightedSelectionTree.Node getRoot() {
+        return root;
+    }
+    
     /**
      * Builds the Weighted Selection Tree from the given list of elements and weights.
      *
@@ -84,7 +99,7 @@ public class WeightedSelectionTree {
         int mid = left + (right - left) / 2;
         Node node = new Node();
         node.element = elementIndices.get(mid);
-        node.elementWeight = weights.get(mid);
+        node.elementWeight = weights.get(node.element);
         node.left = buildTree(elementIndices, left, mid-1, weights);
         node.right = buildTree(elementIndices, mid+1, right, weights);
         node.leftBranchWeight = node.left == null ? 0.0F : (node.left.leftBranchWeight +  node.left.rightBranchWeight + node.left.elementWeight);

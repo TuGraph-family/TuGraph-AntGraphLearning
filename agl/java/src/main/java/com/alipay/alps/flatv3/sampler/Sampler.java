@@ -20,6 +20,11 @@ public abstract class Sampler {
     // Random object used to generate a random seed
     private Random rand = new Random();
 
+    // If it is larger than this threshold, we will delete the sampled node from the candidate set physically
+    // If sample ratio is less than this threshold, 
+    // we will maintain a distinct set of samples to perform sampling with replacement without deleting the sampled node physically.
+    protected final Float sampleCountToCandidateCountRatio = 0.25f;
+
     public Sampler(SampleCondition sampleCondition, BaseIndex index) {
         this.sampleCondition = sampleCondition;
         if (indexes == null) {
@@ -70,7 +75,11 @@ public abstract class Sampler {
         return indexes;
     }
 
-    // Getter for Random object
+    // Getter for random object
+    public Random getRand() {
+        return rand;
+    }
+
     public float getNextFloat() {
         return rand.nextFloat();
     }

@@ -8,20 +8,20 @@ import com.alipay.alps.flatv3.index.RangeIndex;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-public class FilterAndSamplerTest {
+public class PropagateSeedTest {
     @Test
     public void test1() throws Exception {
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11";
         String indexMeta = "range_index:time:long";
         String sampleCond = "topk(by=time, limit=2)";
-
-        FilterAndSampler filterAndSampler = new FilterAndSampler("", filterCond, sampleCond);
 
         List<String> ids = new ArrayList<>();
         List<Long> timestamp = new ArrayList<>();
@@ -32,15 +32,19 @@ public class FilterAndSamplerTest {
         NeighborDataset<String> neighborDataset = new NeighborDataset<>(ids, null);
         neighborDataset.addAttributes("time", timestamp);
         RangeIndex weightIndex = new RangeIndex(indexMeta, neighborDataset);
-        List<BaseIndex> indexList = new ArrayList<>();
-        indexList.add(weightIndex);
+
+        Map<String, BaseIndex> indexes = new HashMap<>();
+        indexes.put(weightIndex.getIndexColumn(), weightIndex);
 
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
         for (int i = 0; i < seedIds.size(); i++) {
             seedAttrs.add(Arrays.asList((i+1) * 1L));
         }
-        List<List<Integer>> result = filterAndSampler.process(seedIds, seedAttrs, indexList, null, null);
+
+
+        PropagateSeed propagateSeed = new PropagateSeed("", indexes, filterCond, sampleCond);
+        List<List<Integer>> result = propagateSeed.process(seedIds, seedAttrs, null, null);
         List<List<Integer>> expected = new ArrayList<>(seedIds.size());
         expected.add(Arrays.asList(1, 2));
         expected.add(Arrays.asList(2, 3));
@@ -54,7 +58,6 @@ public class FilterAndSamplerTest {
     public void test2() throws Exception {
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11 OR index.type in ('item', 'user')";
         String sampleCond = "topk(by=time, limit=3)";
-        FilterAndSampler filterAndSampler = new FilterAndSampler("", filterCond, sampleCond);
 
         List<String> ids = new ArrayList<>();
         List<Long> timestamp = new ArrayList<>();
@@ -72,16 +75,17 @@ public class FilterAndSamplerTest {
         BaseIndex timeIndex = new RangeIndex("range_index:time:long", neighborDataset);
         BaseIndex typeIndex = new HashIndex("hash_index:type:string", neighborDataset);
 
-        List<BaseIndex> indexList = new ArrayList<>();
-        indexList.add(timeIndex);
-        indexList.add(typeIndex);
+        Map<String, BaseIndex> indexes = new HashMap<>();
+        indexes.put(timeIndex.getIndexColumn(), timeIndex);
+        indexes.put(typeIndex.getIndexColumn(), typeIndex);
 
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
         for (int i = 0; i < seedIds.size(); i++) {
             seedAttrs.add(Arrays.asList((i+1) * 1L));
         }
-        List<List<Integer>> result = filterAndSampler.process(seedIds, seedAttrs, indexList, null, null);
+        PropagateSeed propagateSeed = new PropagateSeed("", indexes, filterCond, sampleCond);
+        List<List<Integer>> result = propagateSeed.process(seedIds, seedAttrs, null, null);
 
         Collections.shuffle(indices);
         for (int i = 0; i < 10; i++) {
@@ -98,10 +102,11 @@ public class FilterAndSamplerTest {
         newNeighborDataset.addAttributes("type", types);
         BaseIndex newTimeIndex = new RangeIndex("range_index:time:long", newNeighborDataset);
         BaseIndex newTypeIndex = new HashIndex("hash_index:type:string", newNeighborDataset);
-        List<BaseIndex> newIndexList = new ArrayList<>();
-        newIndexList.add(newTimeIndex);
-        newIndexList.add(newTypeIndex);
-        List<List<Integer>> newResult = filterAndSampler.process(seedIds, seedAttrs, indexList, null, null);
+        Map<String, BaseIndex> newIndexes = new HashMap<>();
+        newIndexes.put(newTimeIndex.getIndexColumn(), newTimeIndex);
+        newIndexes.put(newTypeIndex.getIndexColumn(), newTypeIndex);
+        PropagateSeed newPropagateSeed = new PropagateSeed("", newIndexes, filterCond, sampleCond);
+        List<List<Integer>> newResult = newPropagateSeed.process(seedIds, seedAttrs, null, null);
         assertEquals(result, newResult);
     }
 }

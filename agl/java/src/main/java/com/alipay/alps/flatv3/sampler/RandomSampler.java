@@ -4,6 +4,7 @@ import com.alipay.alps.flatv3.index.result.IndexResult;
 import com.alipay.alps.flatv3.index.BaseIndex;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.List;
 import java.util.HashSet;
 /**
@@ -20,7 +21,9 @@ public class RandomSampler extends Sampler {
     public RandomSampler(SampleCondition sampleCondition, BaseIndex index) {
         super(sampleCondition, index);
     }
-
+    public RandomSampler(SampleCondition sampleCondition, Map<String, BaseIndex> indexes) {
+        super(sampleCondition, indexes);
+    }
     /**
      Perform random sampling on an input IndexResult object.
      If the sample size is smaller than a quarter of the candidate count, it selects elements randomly without replacement.
@@ -32,9 +35,10 @@ public class RandomSampler extends Sampler {
     protected List<Integer> sampleImpl(IndexResult indexResult) {
         int candidateCount = indexResult.getSize();
         int sampleCount = this.getSampleCondition().getLimit();
-        // If the number of samples requested is less than 1/4 of the input size,
+        // If the number of samples requested is less than 1/sampleCountToCandidateCountRatio of the input size,
         // simply select samples at random without replacement using a HashSet.
-        if (sampleCount < candidateCount / 4) {
+
+        if (sampleCount < candidateCount * sampleCountToCandidateCountRatio) {
             HashSet<Integer> sampledIndex = new HashSet<>();
             while (sampledIndex.size() < sampleCount) {
                 int rnd = getNextInt(candidateCount);
@@ -45,7 +49,7 @@ public class RandomSampler extends Sampler {
             return new ArrayList<>(sampledIndex);
         }
 
-        // Otherwise, if the number of samples requested is more than 1/2 of the input size,
+        // Otherwise, if the number of samples requested is more than 1/sampleCountToCandidateCountRatio of the input size,
         // select the complement set (i.e. non-selected samples) using an ArrayList and return it.
         ArrayList<Integer> sampledIndex = new ArrayList<>();
         for (int i = 0; i < candidateCount; i++) {
@@ -54,7 +58,7 @@ public class RandomSampler extends Sampler {
         boolean sampleRemain = true;
         if (sampleCount >= candidateCount) {
             return sampledIndex;
-        } else if (sampleCount > candidateCount / 2) {
+        } else if (sampleCount > candidateCount * sampleCountToCandidateCountRatio) {
             sampleCount = candidateCount - sampleCount;
             sampleRemain = false;
         }
