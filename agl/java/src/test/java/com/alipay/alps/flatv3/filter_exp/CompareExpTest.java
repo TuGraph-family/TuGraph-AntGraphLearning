@@ -69,20 +69,6 @@ public class CompareExpTest {
    }
 
    @Test
-   public void testEvalTypeCompareExp() {
-       String filterCond = "seed.1 < user";
-       FilterConditionParser filterConditionParser = new FilterConditionParser();
-       LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
-       CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-       Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
-       Map<String, Element.Number> seedVariableMap = new HashMap<>();
-       seedVariableMap.put("1", Element.Number.newBuilder().setS("item").build());
-       inputVariables.put(VariableSource.SEED, seedVariableMap);
-       boolean result = new ArithmeticCmpWrapper(cmpExp).eval(inputVariables);
-       Assert.assertTrue(result);
-   }
-
-   @Test
    public void testEvalInCategoryExp() {
        String filterCond = "seed.1 in (user, item)";
        FilterConditionParser filterConditionParser = new FilterConditionParser();

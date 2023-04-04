@@ -5,19 +5,15 @@ import com.alipay.alps.flatv3.index.BaseIndex;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-public class CommonIndexResult extends IndexResult {
-    public List<Integer> sortedIndices = null;
+public class CommonIndexResult extends AbstractIndexResult {
+    public List<Integer> indices = null;
     public CommonIndexResult(BaseIndex index, List<Integer> sortedIndices) {
         super(index);
-        this.sortedIndices = sortedIndices;
+        this.indices = sortedIndices;
     }
-    public CommonIndexResult(Map<String, BaseIndex> indexes, List<Integer> sortedIndices) {
-        super(indexes);
-        this.sortedIndices = sortedIndices;
-    }
+    
     public static List<Integer> joinList(List<Integer> sortedList1, List<Integer> sortedList2) {
         Set<Integer> joinedList = new HashSet<>(sortedList1);
         joinedList.retainAll(new HashSet<>(sortedList2));
@@ -31,24 +27,24 @@ public class CommonIndexResult extends IndexResult {
     }
 
     @Override
-    public IndexResult join(IndexResult right) {
-        List<Integer> joinedList = joinList(sortedIndices, right.getIndices());
-        return new CommonIndexResult(getIndexes(), joinedList);
+    public AbstractIndexResult join(AbstractIndexResult right) {
+        List<Integer> joinedList = joinList(indices, right.getIndices());
+        return new CommonIndexResult(updateIndex(right), joinedList);
     }
 
     @Override
-    public IndexResult union(IndexResult right) {
-        List<Integer> unionedList = unionList(sortedIndices, right.getIndices());
-        return new CommonIndexResult(getIndexes(), unionedList);
+    public AbstractIndexResult union(AbstractIndexResult right) {
+        List<Integer> unionedList = unionList(indices, right.getIndices());
+        return new CommonIndexResult(updateIndex(right), unionedList);
     }
 
     @Override
     public List<Integer> getIndices() {
-        return sortedIndices;
+        return indices;
     }
 
     @Override
     public int getSize() {
-        return sortedIndices.size();
+        return indices.size();
     }
 }

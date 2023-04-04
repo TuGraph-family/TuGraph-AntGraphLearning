@@ -2,50 +2,41 @@ package com.alipay.alps.flatv3.index;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class NeighborDataset<ID> implements Serializable {
-    public List<ID> node2IDs = null;
-    public List<ID> edgeIDs = null;
-    public HashMap<String, List<String>> stringAttributes = null;
-    public HashMap<String, List<Float>> floatAttributes = null;
-    public HashMap<String, List<Long>> longAttributes = null;
+public class NeighborDataset implements Serializable {
+    private int neighborCount;
+    private HashMap<String, List<String>> stringAttributes = null;
+    private HashMap<String, List<Float>> floatAttributes = null;
+    private HashMap<String, List<Long>> longAttributes = null;
 
-    public NeighborDataset(List<ID> node2IDs, List<ID> edgeIDs) {
-        this.node2IDs = node2IDs;
-        this.edgeIDs = edgeIDs;
+    public NeighborDataset(int neigiborCount) {
+        this.neighborCount = neigiborCount;
     }
 
     public int getNeighborCount() {
-        return this.node2IDs.size();
+        return this.neighborCount;
     }
-    public void shuffle(Integer[] originIndex) {
+    public <T extends Comparable<T>> List<T> copyAndShuffle(Integer[] originIndex, String key) {
         int neighborCount = getNeighborCount();
         int shuffleIndex[] = new int[neighborCount];
         for (int i = 0; i < neighborCount; i++) {
             shuffleIndex[originIndex[i]] = i;
         }
+        List<T> ret = new ArrayList<>(getAttributeList(key));
         for (int i = 0; i < neighborCount; i++) {
             while (shuffleIndex[i] != i) {
                 int newIndex = shuffleIndex[i];
-                if (floatAttributes != null) {
-                    for (String key : this.floatAttributes.keySet()) {
-                        Collections.swap(this.floatAttributes.get(key), i, newIndex);
-                    }
-                }
-                if (longAttributes != null) {
-                    for (String key : this.longAttributes.keySet()) {
-                        Collections.swap(this.longAttributes.get(key), i, newIndex);
-                    }
-                }
+                Collections.swap(ret, i, newIndex);
                 int tmp = shuffleIndex[i];
                 shuffleIndex[i] = shuffleIndex[newIndex];
                 shuffleIndex[newIndex] = tmp;
             }
         }
+        return ret;
     }
 
     public String getDtype(String key) {
@@ -58,16 +49,16 @@ public class NeighborDataset<ID> implements Serializable {
         }
         return null;
     }
-    public List<Float> getFloatAttributes(String attrName) {
+    public List<Float> getFloatAttributeList(String attrName) {
         return floatAttributes != null ? floatAttributes.get(attrName) : null;
     }
-    public List<Long> getLongAttributes(String attrName) {
+    public List<Long> getLongAttributeList(String attrName) {
         return longAttributes != null ? longAttributes.get(attrName) : null;
     }
-    public List<String> getStringAttributes(String attrName) {
+    public List<String> getStringAttributeList(String attrName) {
         return stringAttributes != null ? stringAttributes.get(attrName) : null;
     }
-    public <T> List<T> getAttributeList(String key) {
+    public <T extends Comparable<T>> List<T> getAttributeList(String key) {
         if (floatAttributes != null && floatAttributes.containsKey(key)) {
             return (List<T>) floatAttributes.get(key);
         } else if (longAttributes != null && longAttributes.containsKey(key)) {
@@ -78,39 +69,42 @@ public class NeighborDataset<ID> implements Serializable {
         return null;
     }
 
-    public <T> void addAttributes(String key, List<T> values) {
+    public List<Float> getNumberAttributeList(String column) {
+        String dtype = getDtype(column);
+        if (dtype.compareToIgnoreCase("float") == 0) {
+            return getFloatAttributeList(column);
+        } else if (dtype.compareToIgnoreCase("long") == 0) {
+            List<Long> longWeights = getLongAttributeList(column);
+            return longWeights.stream().map(Long::floatValue).collect(Collectors.toList());
+        }
+        throw new RuntimeException("column " + column + " is not a number column");
+    }
+
+    public <T> void addAttributeList(String key, List<T> values) {
         if (values.get(0) instanceof Float) {
-            addFloatAttributes(key, (List<Float>) values);
+            addFloatAttributeList(key, (List<Float>) values);
         } else if (values.get(0) instanceof Long) {
-            addLongAttributes(key, (List<Long>) values);
+            addLongAttributeList(key, (List<Long>) values);
         } else if (values.get(0) instanceof String) {
-            addStringAttributes(key, (List<String>) values);
+            addStringAttributeList(key, (List<String>) values);
         }
     }
-    private void addFloatAttributes(String key, List<Float> values) {
+    private void addFloatAttributeList(String key, List<Float> values) {
         if (floatAttributes == null) {
             floatAttributes = new HashMap<>();
         }
         floatAttributes.put(key, values);
     }
-    private void addLongAttributes(String key, List<Long> values) {
+    private void addLongAttributeList(String key, List<Long> values) {
         if (longAttributes == null) {
             longAttributes = new HashMap<>();
         }
         longAttributes.put(key, values);
     }
-    private void addStringAttributes(String key, List<String> values) {
+    private void addStringAttributeList(String key, List<String> values) {
         if (stringAttributes == null) {
             stringAttributes = new HashMap<>();
         }
         stringAttributes.put(key, values);
-    }
-
-    public ID getNode2ID(int neigborIdx) {
-        return node2IDs.get(neigborIdx);
-    }
-
-    public ID getEdgeID(int neigborIdx) {
-        return edgeIDs.get(neigborIdx);
     }
 }

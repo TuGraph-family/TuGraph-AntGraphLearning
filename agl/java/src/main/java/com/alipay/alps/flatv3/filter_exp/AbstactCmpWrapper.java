@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
-public abstract class CmpExpWrapper {
-    private static final Logger LOG = LoggerFactory.getLogger(CmpExpWrapper.class);
+public abstract class AbstactCmpWrapper {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstactCmpWrapper.class);
     protected CmpExp cmpExp;
     protected String indexColumn;
     public static CmpOp parseCmpOp(String cmpOp) {
@@ -41,17 +41,17 @@ public abstract class CmpExpWrapper {
         return indexColumn;
     }
 
-    public CmpExpWrapper(CmpExp cmpExp) {
+    public AbstactCmpWrapper(CmpExp cmpExp) {
         this.cmpExp = cmpExp;
-        getIndexName(this.cmpExp.getLhsRPNList(), true);
-        getIndexName(this.cmpExp.getRhsRPNList(), false);
+        parseIndexName(this.cmpExp.getLhsRPNList());
+        parseIndexName(this.cmpExp.getRhsRPNList());
     }
 
     public CmpExp getCmpExp() {
         return cmpExp;
     }
 
-    private void getIndexName(List<Element> rpnList, boolean isLeft) {
+    private void parseIndexName(List<Element> rpnList) {
         boolean foundDIVorMODOperator = false;
         boolean foundIndex = false;
         for (Element element : rpnList) {
@@ -74,31 +74,28 @@ public abstract class CmpExpWrapper {
 
     protected <T extends Comparable<T>> boolean compare(T left, T right, CmpOp cmpOp) {
         if (left instanceof Double && right instanceof Double) {
-            Double d1 = (Double) left;
-            Double d2 = (Double) right;
-
-            if (cmpOp == CmpOp.LE || cmpOp == CmpOp.GE || cmpOp == CmpOp.EQ) {
-                if (Math.abs(d1 - d2) < 0.001) {
-                    return true;
-                }
-            } else if (cmpOp == CmpOp.NE) {
-                return Math.abs(d1 - d2) >= 0.001;
+            Double diff = (Double)left - (Double)right;
+            if (Math.abs(diff) < 0.001) {
+                return compareDiff((int) (diff*100000), cmpOp);
             }
         }
 
-        int compareResult = left.compareTo(right);
+        return compareDiff(left.compareTo(right), cmpOp);
+    }
+
+    private boolean compareDiff(int diff, CmpOp cmpOp) {
         if (cmpOp == CmpOp.LE) {
-            return compareResult <= 0;
+            return diff <= 0;
         } else if (cmpOp == CmpOp.LT) {
-            return compareResult < 0;
+            return diff < 0;
         } else if (cmpOp == CmpOp.GE) {
-            return compareResult >= 0;
+            return diff >= 0;
         } else if (cmpOp == CmpOp.GT) {
-            return compareResult > 0;
+            return diff > 0;
         } else if (cmpOp == CmpOp.EQ) {
-            return compareResult == 0;
+            return diff == 0;
         } else if (cmpOp == CmpOp.NE) {
-            return compareResult != 0;
+            return diff != 0;
         }
         return false;
     }

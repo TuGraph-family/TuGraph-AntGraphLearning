@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 
@@ -19,19 +19,19 @@ public class PrefixSumSelection {
     List<Range> sortedIntervals;
     private Random rand;
 
-    public PrefixSumSelection(List<Float> weights, boolean reusePrefixSum, Random rand) {
+    public PrefixSumSelection(Integer[] originIndices, List<Float> weights, boolean reusePrefixSum, Random rand) {
         this.weights = weights;
         this.rand = rand;
         prefixSum = new ArrayList<>(Collections.nCopies(weights.size(), weights.get(0)));
         if (reusePrefixSum) {
             // Initializes the prefixSum array.
             for (int i = 1; i < weights.size(); i++) {
-                prefixSum.set(i, prefixSum.get(i-1) + weights.get(i));
+                prefixSum.set(i, prefixSum.get(i-1) + weights.get(originIndices[i]));
             }
         }
     }
     
-    public void initializePrefixSum(IndexResult indexResult) {
+    public void initializePrefixSum(AbstractIndexResult indexResult) {
         if (indexResult instanceof RangeIndexResult) {
             initializePrefixSumOfRanges(((RangeIndexResult) indexResult).getRangeList());
         } else {

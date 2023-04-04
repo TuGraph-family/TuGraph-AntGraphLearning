@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.CmpExpWrapper;
-import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.filter_exp.AbstactCmpWrapper;
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import com.antfin.agl.proto.sampler.Element;
@@ -26,7 +26,7 @@ public class BaseIndex implements Serializable {
     }
     public Meta indexMeta;
     protected NeighborDataset neighborDataset = null;
-    public Integer[] originIndex = null;
+    public Integer[] originIndices = null;
 
     public BaseIndex(String indexAndSamplingMeta, NeighborDataset neighborDataset) {
         this.neighborDataset = neighborDataset;
@@ -62,7 +62,7 @@ public class BaseIndex implements Serializable {
     protected void buildIndex() {
     }
 
-    public IndexResult search(CmpExpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    public AbstractIndexResult search(AbstactCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
         List<Range> ranges = new ArrayList<>();
         ranges.add(new Range(0, neighborDataset.getNeighborCount() - 1));
         RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);

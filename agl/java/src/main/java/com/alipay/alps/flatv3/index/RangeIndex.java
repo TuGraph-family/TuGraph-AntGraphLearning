@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3.index;
 
 import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.CmpExpWrapper;
-import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.filter_exp.AbstactCmpWrapper;
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import com.antfin.agl.proto.sampler.CmpExp;
@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RangeIndex extends BaseIndex {
+    private List weights = null;
     public RangeIndex(String indexMeta, NeighborDataset neighborDataset) {
         super(indexMeta, neighborDataset);
     }
@@ -25,12 +26,13 @@ public class RangeIndex extends BaseIndex {
     @Override
     public void buildIndex() {
         String indexColumn = getIndexColumn();
-        originIndex = sortBy(neighborDataset.getAttributeList(indexColumn));
-        neighborDataset.shuffle(originIndex);
+        List<Comparable> attributes = neighborDataset.getAttributeList(indexColumn);
+        originIndices = sortBy(attributes);
+        weights = neighborDataset.copyAndShuffle(originIndices, indexColumn);
     }
 
     @Override
-    public IndexResult search(CmpExpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    public AbstractIndexResult search(AbstactCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
         Range range = binarySearch((ArithmeticCmpWrapper)cmpExpWrapper, inputVariables);
         List<Range> ranges = new ArrayList<>();
         ranges.add(range);
@@ -52,10 +54,10 @@ public class RangeIndex extends BaseIndex {
     }
 
     public Integer[] getOriginIndex() {
-        return originIndex;
+        return originIndices;
     }
     
-    private <T> int lowerBound(List<T> nums, Map<VariableSource, Map<String, Element.Number>> inputVariables, java.util.function.Function<T, Boolean> f) {
+    private <T> int lowerBound(List<T> nums, java.util.function.Function<T, Boolean> f) {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
             int mid = left + (right - left) / 2;
@@ -67,7 +69,7 @@ public class RangeIndex extends BaseIndex {
         }
         return left;
     }
-    private <T> int upperBound(List<T> nums, Map<VariableSource, Map<String, Element.Number>> inputVariables, java.util.function.Function<T, Boolean> f) {
+    private <T> int upperBound(List<T> nums, java.util.function.Function<T, Boolean> f) {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
             int mid = left + (right - left) / 2;
@@ -97,23 +99,26 @@ public class RangeIndex extends BaseIndex {
         return binarySearchInequation(arithCmpWrapper, inputVariables);
     }
 
-    private <T> Range binarySearchInequation(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
-        String indexColumn = arithCmpWrapper.getIndexColumn();
+    // arithCmpWrapper: index.time  < seed.1 + 2
+    // inputVariables: seed.1 = 2; index.time = list<float/xxx>
+    // 
+    private Range binarySearchInequation(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
+        String indexColumn = arithCmpWrapper.getIndexColumn(); // index.time
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
         indexVariableMap.put(indexColumn, null);
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
 
-        Range range = new Range(0, originIndex.length-1);
+        Range range = new Range(0, originIndices.length-1);
         boolean hasLowerBound = arithCmpWrapper.hasLowerBound();
-        if (neighborDataset.getFloatAttributes(indexColumn) != null) {
+        if (neighborDataset.getFloatAttributeList(indexColumn) != null) {
             java.util.function.Function<Float, Boolean> comparison = (neighboringValue) -> {
                 inputVariables.get(VariableSource.INDEX).put(indexColumn, Element.Number.newBuilder().setF(neighboringValue).build());
                 return arithCmpWrapper.eval(inputVariables);
             };
             if (hasLowerBound) {
-                range.setLow(lowerBound(neighborDataset.getFloatAttributes(indexColumn), inputVariables, comparison));
+                range.setLow(lowerBound(weights, comparison));
             } else {
-                range.setHigh(upperBound(neighborDataset.getFloatAttributes(indexColumn), inputVariables, comparison));
+                range.setHigh(upperBound(weights, comparison));
             }
         } else {
             java.util.function.Function<Long, Boolean> comparison = (neighboringValue) -> {
@@ -121,9 +126,9 @@ public class RangeIndex extends BaseIndex {
                 return arithCmpWrapper.eval(inputVariables);
             };
             if (hasLowerBound) {
-                range.setLow(lowerBound(neighborDataset.getLongAttributes(indexColumn), inputVariables, comparison));
+                range.setLow(lowerBound(weights, comparison));
             } else {
-                range.setHigh(upperBound(neighborDataset.getLongAttributes(indexColumn), inputVariables, comparison));
+                range.setHigh(upperBound(weights, comparison));
             }
         }
         return range;

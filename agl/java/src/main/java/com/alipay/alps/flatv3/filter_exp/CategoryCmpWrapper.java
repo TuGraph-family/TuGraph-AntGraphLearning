@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
 
-public class CategoryCmpWrapper extends CmpExpWrapper {
+public class CategoryCmpWrapper extends AbstactCmpWrapper {
     public CategoryCmpWrapper(CmpExp cmpExp) {
         super(cmpExp);
     }
@@ -17,7 +17,7 @@ public class CategoryCmpWrapper extends CmpExpWrapper {
     public boolean eval(Map<VariableSource, Map<String, Element.Number>> inputVariables) {
         String left = getStringValue(cmpExp.getLhsRPN(0), inputVariables);
         if (cmpExp.getOp() == CmpOp.IN || cmpExp.getOp() == CmpOp.NOT_IN) {
-            Set<String> rightTypes = new HashSet();
+            Set<String> rightTypes = new HashSet<>();
             for (int i = 0; i < cmpExp.getRhsRPNCount(); i++) {
                 rightTypes.add(getStringValue(cmpExp.getRhsRPN(i), inputVariables));
             }

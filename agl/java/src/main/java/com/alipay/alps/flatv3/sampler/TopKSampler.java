@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.index.NeighborDataset;
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 
@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
@@ -19,49 +18,38 @@ import java.util.PriorityQueue;
  The sample() method is overridden to find the top K elements from the given data.
  The factor attribute is used to determine the order of the elements in the PriorityQueue.
  */
-public class TopKSampler<T> extends Sampler {
-    public static class Node<T extends Comparable<T>> {
-        int index;
-        T weight;
+public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
+    // public static class Node<T extends Comparable<T>> {
+    //     int index;
+    //     T weight;
 
-        public Node(int index, T weight) {
-            this.index = index;
-            this.weight = weight;
-        }
-    }
-    private PriorityQueue<Node> priorityQueue;
-    private Comparator<Node> comparator;
+    //     public Node(int index, T weight) {
+    //         this.index = index;
+    //         this.weight = weight;
+    //     }
+    // }
+    private List<T> weights = null;
+    private PriorityQueue<Integer> priorityQueue = null;
+    private Comparator<Integer> comparator = null;
     private ArrayList<Integer> cachedIndex = null;
 
-    public TopKSampler(SampleCondition sampleCondition, Map<String, BaseIndex> indexes) {
-        super(sampleCondition, indexes);
-        setup(sampleCondition);
+    public TopKSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+        super(sampleCondition, neighborDataset);
     }
 
-    public TopKSampler(SampleCondition sampleCondition, BaseIndex index) {
-        super(sampleCondition, index);
-        setup(sampleCondition);
-    }
-
-    private void setup(SampleCondition sampleCondition) {
-        for (String indexName : this.getIndexes().keySet()) {
-            BaseIndex index = this.getIndexes().get(indexName);
-            if (sampleCondition.getKey().compareTo(index.getIndexColumn()) != 0) {
-                int factor = sampleCondition.isReverse() ? -1 : 1;
-                comparator = new Comparator<Node>() {
-                    @Override
-                    public int compare(Node o1, Node o2) {
-                        return o1.weight.compareTo(o2.weight) * factor;
-                    }
-                };
-                priorityQueue = new PriorityQueue<>(sampleCondition.getLimit(), comparator);
+    private void setupPriorityQueue(SampleCondition sampleCondition) {
+        int factor = sampleCondition.isReverse() ? -1 : 1;
+        comparator = new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return weights.get(o1).compareTo(weights.get(o2)) * factor;
             }
-            break;
-        }
+        };
+        priorityQueue = new PriorityQueue<>(sampleCondition.getLimit(), comparator);
     }
 
     @Override
-    protected List<Integer> sampleImpl(IndexResult indexResult) {
+    protected List<Integer> sampleImpl(AbstractIndexResult indexResult) {
         int sampleCount = this.getSampleCondition().getLimit();
         int candidateCount = indexResult.getSize();
         if (candidateCount <= sampleCount) {
@@ -69,7 +57,7 @@ public class TopKSampler<T> extends Sampler {
         }
 
         ArrayList<Integer> sampledIndex = new ArrayList<>();
-        if (indexResult.getIndexes().containsKey(getSampleCondition().getKey())) {
+        if (indexResult instanceof RangeIndexResult && indexResult.getIndex().getIndexColumn().compareTo(getSampleCondition().getKey()) == 0) {
             // reuse sorted neighbors in indexing stage
             if (indexResult instanceof RangeIndexResult) {
                 List<Range> sortedIntervals = ((RangeIndexResult) indexResult).getRangeList();
@@ -107,50 +95,29 @@ public class TopKSampler<T> extends Sampler {
             }
         } else {
             // sort neighbors by attribute at runtime
-            BaseIndex baseIndex = null;
-            String dtype = null;
-            for (String indexName : indexResult.getIndexes().keySet()) {
-                baseIndex = indexResult.getIndexes().get(indexName);
-                dtype = baseIndex.getNeighborDataset().getDtype(getSampleCondition().getKey());
-                if (dtype != null) {
-                    break;
-                }
-            }
+            String originIndexColumn = indexResult.getIndex().getIndexColumn();
             // if there is no filter condition, the selected samples are always the same, we can cache the result
-            if (baseIndex.getIndexColumn() == null && cachedIndex != null) {
+            if (originIndexColumn == null && cachedIndex != null) {
                 return new ArrayList<>(cachedIndex);
+            }
+            if (weights == null) {
+                weights = getNeighborDataset().getAttributeList(getSampleCondition().getKey());
+            }
+            if (priorityQueue == null) {
+                setupPriorityQueue(getSampleCondition());
             }
             priorityQueue.clear();
             List<Range> sortedIntervals = ((RangeIndexResult) indexResult).getRangeList();
-
-            if (dtype.compareToIgnoreCase("float") == 0) {
-                List<Float> weights = baseIndex.getNeighborDataset().getFloatAttributes(getSampleCondition().getKey());
-                for (Range range : sortedIntervals) {
-                    for (int i = range.getLow(); i < range.getHigh(); i++) {
-                        priorityQueue.add(new Node(i, weights.get(i)));
-                    }
-                }
-            } else if (dtype.compareToIgnoreCase("long") == 0) {
-                List<Long> weights = baseIndex.getNeighborDataset().getLongAttributes(getSampleCondition().getKey());
-                for (Range range : sortedIntervals) {
-                    for (int i = range.getLow(); i < range.getHigh(); i++) {
-                        priorityQueue.add(new Node(i, weights.get(i)));
-                    }
-                }
-            } else {
-                List<String> weights = baseIndex.getNeighborDataset().getStringAttributes(getSampleCondition().getKey());
-                for (Range range : sortedIntervals) {
-                    for (int i = range.getLow(); i < range.getHigh(); i++) {
-                        priorityQueue.add(new Node(i, weights.get(i)));
-                    }
+            Integer [] originIndices = indexResult.getOriginIndice();
+            for (Range range : sortedIntervals) {
+                for (int i = range.getLow(); i < range.getHigh(); i++) {
+                    priorityQueue.add(originIndices[i]);
                 }
             }
-
             for (int i = 0; i < sampleCount; i++) {
-                Node p = priorityQueue.poll();
-                sampledIndex.add(p.index);
+                sampledIndex.add(priorityQueue.poll());
             }
-            if (baseIndex.getIndexColumn() == null && cachedIndex == null) {
+            if (originIndexColumn == null && cachedIndex == null) {
                 cachedIndex = new ArrayList<>(sampledIndex);
             }
         }

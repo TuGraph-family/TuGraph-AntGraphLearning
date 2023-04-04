@@ -2,21 +2,14 @@ package com.alipay.alps.flatv3.index.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 
-import java.util.HashMap;
 import java.util.List;
-
 import java.util.ArrayList;
-import java.util.Map;
 
-public class RangeIndexResult extends IndexResult {
+public class RangeIndexResult extends AbstractIndexResult {
     private List<Range> sortedIntervals = null;
 
     public RangeIndexResult(BaseIndex index, List<Range> sortedIntervals) {
         super(index);
-        this.sortedIntervals = sortedIntervals;
-    }
-    public RangeIndexResult(Map<String, BaseIndex> indexes, List<Range> sortedIntervals) {
-        super(indexes);
         this.sortedIntervals = sortedIntervals;
     }
 
@@ -74,37 +67,31 @@ public class RangeIndexResult extends IndexResult {
     }
 
     @Override
-    public IndexResult join(IndexResult right) {
-        if (right instanceof RangeIndexResult && right.getIndexes().keySet().containsAll(getIndexes().keySet())) {
+    public AbstractIndexResult join(AbstractIndexResult right) {
+        if (getIndex() == right.getIndex()) {
             List<Range> joinedIntervals = joinRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
-            return new RangeIndexResult(getIndexes(), joinedIntervals);
+            return new RangeIndexResult(getIndex(), joinedIntervals);
         } else {
             List<Integer> joinedList = CommonIndexResult.joinList(getIndices(), right.getIndices());
-            HashMap<String, BaseIndex> newIndexes = new HashMap<>();
-            newIndexes.putAll(this.getIndexes());
-            newIndexes.putAll(right.getIndexes());
-            return new CommonIndexResult(newIndexes, joinedList);
+            return new CommonIndexResult(updateIndex(right), joinedList);
         }
     }
 
     @Override
-    public IndexResult union(IndexResult right) {
-        if (right instanceof RangeIndexResult && right.getIndexes().keySet().containsAll(getIndexes().keySet())) {
+    public AbstractIndexResult union(AbstractIndexResult right) {
+        if (getIndex() == right.getIndex()) {
             List<Range> unionedIntervals = unionRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
-            return new RangeIndexResult(getIndexes(), unionedIntervals);
+            return new RangeIndexResult(getIndex(), unionedIntervals);
         } else {
             List<Integer> unionedList = CommonIndexResult.unionList(getIndices(), right.getIndices());
-            HashMap<String, BaseIndex> newIndexes = new HashMap<>();
-            newIndexes.putAll(this.getIndexes());
-            newIndexes.putAll(right.getIndexes());
-            return new CommonIndexResult(newIndexes, unionedList);
+            return new CommonIndexResult(updateIndex(right), unionedList);
         }
     }
 
     @Override
     public List<Integer> getIndices() {
         List<Integer> ans = new ArrayList<>();
-        Integer[] originIndex = getOriginIndex();
+        Integer[] originIndex = getOriginIndice();
         if (originIndex != null) {
             for (Range p : sortedIntervals) {
                 for (int i = p.getLow(); i <= p.getHigh(); i++) {

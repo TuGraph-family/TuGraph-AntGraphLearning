@@ -14,11 +14,11 @@ import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.LogicOp;
 import com.antfin.agl.proto.sampler.VariableSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder> {
-    private static final Logger LOG = LoggerFactory.getLogger(FilterConditionParser.class);
+    private final static String NOT_IN = "not in";
+    private final static String IN = "in";
+    private final static String NOT = "not";
 
     private LogicExps.Builder logicExpsBuilder = LogicExps.newBuilder();
     private List<Element> arithmeticValOps = null;
@@ -66,8 +66,8 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         arithmeticValOps = arithmeticValOpsRight;
 
         String op = ctx.getChild(1).getText();
-        if (op.compareToIgnoreCase("not") == 0 && ctx.getChild(2).getText().compareToIgnoreCase("in") == 0) {
-            op = "not in";
+        if (op.compareToIgnoreCase(NOT) == 0 && ctx.getChild(2).getText().compareToIgnoreCase(IN) == 0) {
+            op = NOT_IN;
             visit(ctx.getChild(3));
         } else {
             visit(ctx.getChild(2));
@@ -75,7 +75,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder();
         cmpExpBuilder.addAllLhsRPN(arithmeticValOpsLeft);
         cmpExpBuilder.addAllRhsRPN(arithmeticValOpsRight);
-        cmpExpBuilder.setOp(CmpExpWrapper.parseCmpOp(op));
+        cmpExpBuilder.setOp(AbstactCmpWrapper.parseCmpOp(op));
         // reverse polish representation
         logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setExp(cmpExpBuilder));
         return logicExpsBuilder;
@@ -118,6 +118,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
     @Override public LogicExps.Builder visitColumnExp(FilterParser.ColumnExpContext ctx) {
         String exp = ctx.getChild(0).getText();
         Element.Builder elementBuilder = Element.newBuilder();
+        // split by dot
         String arrs[] = exp.split("\\.");
         if (sourceTypeSet.contains(arrs[0].toUpperCase())) {
             Element.Variable.Builder elementVarBuilder = Element.newBuilder().getVarBuilder().setSource(VariableSource.valueOf(arrs[0].toUpperCase()));
@@ -137,9 +138,11 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         Element.Builder elementBuilder = Element.newBuilder();
         Element.Number.Builder elementNumBuilder = Element.newBuilder().getNumBuilder();
         if (exp.startsWith("'") && exp.endsWith("'") || exp.startsWith("\"") && exp.endsWith("\"")) {
+            // this pattern matches a string in single quotes or double quotes.
             String val = exp.substring(1, exp.length() - 1);
             elementNumBuilder.setS(val);
         } else if (exp.matches("\\d+(\\.\\d+)?")) {
+            // this pattern matches a number with optional '-' and decimal.
             elementNumBuilder.setF(Float.parseFloat(exp));
         } else {
             elementNumBuilder.setI(Long.parseLong(exp));

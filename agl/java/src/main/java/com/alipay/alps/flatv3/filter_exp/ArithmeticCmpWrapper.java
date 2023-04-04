@@ -7,13 +7,12 @@ import com.antfin.agl.proto.sampler.VariableSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-public class ArithmeticCmpWrapper extends CmpExpWrapper {
+public class ArithmeticCmpWrapper extends AbstactCmpWrapper {
     private static final Logger LOG = LoggerFactory.getLogger(ArithmeticCmpWrapper.class);
     private Boolean hasLowerBound = null;
     public ArithmeticCmpWrapper(CmpExp cmpExp) {

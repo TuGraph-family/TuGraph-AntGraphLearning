@@ -1,30 +1,25 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.result.CommonIndexResult;
-import com.alipay.alps.flatv3.index.result.IndexResult;
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import com.alipay.alps.flatv3.sampler.utils.AliasMethod;
 import com.alipay.alps.flatv3.sampler.utils.PrefixSumSelection;
 import com.alipay.alps.flatv3.sampler.utils.WeightedSelectionTree;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class WeightedSampler extends Sampler {
+public class WeightedSampler extends AbstractSampler {
     private List<Float> weights = null;
     private AliasMethod aliasMethod = null;
     private PrefixSumSelection prefixSumSelection = null;
-    /**
-     * Constructor of the WeighedSampler class.
-     * @param sampleCondition the sample condition
-     * @param indexes the indexes of the data
-     */
-    public WeightedSampler(SampleCondition sampleCondition, Map<String, BaseIndex> indexes) {
-        super(sampleCondition, indexes);
+    
+    public WeightedSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+        super(sampleCondition, neighborDataset);
     }
 
     /**
@@ -33,10 +28,9 @@ public class WeightedSampler extends Sampler {
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
     @Override
-    protected List<Integer> sampleImpl(IndexResult indexResult) {
-        // Initialize weights
-        weights = new ArrayList<>(indexResult.getSize());
-        indexResult.copyNumberAttributes(getSampleCondition().getKey(), weights);
+    protected List<Integer> sampleImpl(AbstractIndexResult indexResult) {
+        // get weights from the neighborDataset by the key in the sampleCondition
+        weights = getNeighborDataset().getNumberAttributeList(getSampleCondition().getKey());
         int candidateCount = indexResult.getSize();
         // If there are fewer candidates than the limit, return all of them
         if (candidateCount <= getSampleCondition().getLimit()) {
@@ -85,13 +79,13 @@ public class WeightedSampler extends Sampler {
      * Generates a random sample from the probability distribution using the Prefix Sum method.
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
-    private List<Integer> sampleByPrefixSum(IndexResult indexResult, boolean replacement) {
+    private List<Integer> sampleByPrefixSum(AbstractIndexResult indexResult, boolean replacement) {
         if (indexResult instanceof RangeIndexResult) { 
             if (prefixSumSelection == null) {
-                prefixSumSelection = new PrefixSumSelection(weights, true, getRand());
+                prefixSumSelection = new PrefixSumSelection(indexResult.getOriginIndice(), weights, true, getRand());
             }
         } else {
-            prefixSumSelection = new PrefixSumSelection(weights, false, getRand());
+            prefixSumSelection = new PrefixSumSelection(indexResult.getOriginIndice(), weights, false, getRand());
         }
         prefixSumSelection.initializePrefixSum(indexResult);
         int sampleLimit = getSampleCondition().getLimit();
@@ -114,7 +108,7 @@ public class WeightedSampler extends Sampler {
      * Generates a random sample from the probability distribution using the Order Statistic Tree method.
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
-    private List<Integer> sampleByOrderStatisticTree(IndexResult indexResult) {
+    private List<Integer> sampleByOrderStatisticTree(AbstractIndexResult indexResult) {
         //create the tree
         WeightedSelectionTree tree = new WeightedSelectionTree(indexResult.getIndices(), weights, getRand());
         //sample the indices

@@ -4,16 +4,12 @@ import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.Filter;
 import com.alipay.alps.flatv3.index.HashIndex;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.IndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.RangeIndex;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,25 +26,24 @@ public class RandomSamplerTest {
             ids.add(String.valueOf(i));
             weight.add(1.0F * i);
         }
-        NeighborDataset<String> neighborDataset = new NeighborDataset<>(ids, null);
-        neighborDataset.addAttributes("weight", weight);
+        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
+        neighborDataset.addAttributeList("weight", weight);
         BaseIndex baseIndex = new BaseIndex("", neighborDataset);
         Map<String, BaseIndex> indexMap = new HashMap<>();
-        indexMap.put(baseIndex.getIndexType(), baseIndex);
+        indexMap.put(baseIndex.getIndexColumn(), baseIndex);
         Filter filter = new Filter(indexMap, "");
         List<Object> seedData = Arrays.asList(0.1);
-        IndexResult indexResult = filter.filter(seedData);
+        AbstractIndexResult indexResult = filter.filter(seedData);
         
         String sampleMeta = "random_sampler(limit=5, replacement=False)";
-        Sampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), indexMap);
+        AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 40000;
         int [] freqWithReplacement = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
-                String id = neighborDataset.getNode2ID(index);
-                freqWithReplacement[Integer.valueOf(id)]++;
+                freqWithReplacement[index]++;
             }
         }
         for (int i = 0; i < 10; i++) {
@@ -67,26 +62,25 @@ public class RandomSamplerTest {
             ids.add(String.valueOf(i));
             weight.add(0.1F * i);
         }
-        NeighborDataset<String> neighborDataset = new NeighborDataset<>(ids, null);
-        neighborDataset.addAttributes("weight", weight);
+        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
+        neighborDataset.addAttributeList("weight", weight);
         RangeIndex rangeIndex = new RangeIndex("range_index:weight:float", neighborDataset);
         Map<String, BaseIndex> indexMap = new HashMap<>();
-        indexMap.put(rangeIndex.getIndexType(), rangeIndex);
+        indexMap.put(rangeIndex.getIndexColumn(), rangeIndex);
         Filter filter = new Filter(indexMap, "index.weight - seed.1 >= 0.1 and index.weight < 0.9 + seed.1");
         List<Object> seedData = Arrays.asList(0.1);
-        IndexResult indexResult = filter.filter(seedData);
+        AbstractIndexResult indexResult = filter.filter(seedData);
 
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=2, replacement=False)";
-        Sampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), indexMap);
+        AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 40000;
         int [] freqWithReplacement = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
-                String id = neighborDataset.getNode2ID(index);
-                freqWithReplacement[Integer.valueOf(id)]++;
+                freqWithReplacement[index]++;
             }
         }
         for (int i = 0; i < 10; i++) {
@@ -109,26 +103,25 @@ public class RandomSamplerTest {
             ids.add(String.valueOf(i));
             weight.add(0.1F * i);
         }
-        NeighborDataset<String> neighborDataset = new NeighborDataset<>(ids, null);
-        neighborDataset.addAttributes("weight", weight);
+        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
+        neighborDataset.addAttributeList("weight", weight);
         RangeIndex rangeIndex = new RangeIndex("range_index:weight:float", neighborDataset);
         Map<String, BaseIndex> indexMap = new HashMap<>();
-        indexMap.put(rangeIndex.getIndexType(), rangeIndex);
+        indexMap.put(rangeIndex.getIndexColumn(), rangeIndex);
         Filter filter = new Filter(indexMap, "index.weight - seed.1 >= 0.1 and index.weight < 0.8 + seed.1");
         List<Object> seedData = Arrays.asList(0.1);
-        IndexResult indexResult = filter.filter(seedData);
+        AbstractIndexResult indexResult = filter.filter(seedData);
 
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=20, replacement=False)";
-        Sampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), indexMap);
+        AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 40000;
         int [] freqWithReplacement = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
-                String id = neighborDataset.getNode2ID(index);
-                freqWithReplacement[Integer.valueOf(id)]++;
+                freqWithReplacement[index]++;
             }
         }
         for (int i = 0; i < 10; i++) {
@@ -151,26 +144,25 @@ public class RandomSamplerTest {
             ids.add(String.valueOf(i));
             weight.add(0.1F * i);
         }
-        NeighborDataset<String> neighborDataset = new NeighborDataset<>(ids, null);
-        neighborDataset.addAttributes("weight", weight);
+        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
+        neighborDataset.addAttributeList("weight", weight);
         RangeIndex rangeIndex = new RangeIndex("range_index:weight:float", neighborDataset);
         Map<String, BaseIndex> indexMap = new HashMap<>();
-        indexMap.put(rangeIndex.getIndexType(), rangeIndex);
+        indexMap.put(rangeIndex.getIndexColumn(), rangeIndex);
         Filter filter = new Filter(indexMap, "index.weight - seed.1 >= 0.1 and index.weight < 0.8 + seed.1");
         List<Object> seedData = Arrays.asList(0.1);
-        IndexResult indexResult = filter.filter(seedData);
+        AbstractIndexResult indexResult = filter.filter(seedData);
 
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=6, replacement=False)";
-        Sampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), indexMap);
+        AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 40000;
         int [] freqWithReplacement = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
-                String id = neighborDataset.getNode2ID(index);
-                freqWithReplacement[Integer.valueOf(id)]++;
+                freqWithReplacement[index]++;
             }
         }
         for (int i = 0; i < 10; i++) {
@@ -193,29 +185,28 @@ public class RandomSamplerTest {
             weight.add(0.1F * i);
         }
         List<String> typeList = Arrays.asList("item", "shop", "user", "item", "user", "item", "shop", "user", "item", "user");
-        NeighborDataset<String> neighborDataset = new NeighborDataset<>(ids, null);
-        neighborDataset.addAttributes("node_type", typeList);
-        neighborDataset.addAttributes("weight", weight);
+        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
+        neighborDataset.addAttributeList("node_type", typeList);
+        neighborDataset.addAttributeList("weight", weight);
         Map<String, BaseIndex> indexMap = new HashMap<>();
         RangeIndex rangeIndex = new RangeIndex("range_index:weight:float", neighborDataset);
-        indexMap.put(rangeIndex.getIndexType(), rangeIndex);
+        indexMap.put(rangeIndex.getIndexColumn(), rangeIndex);
         BaseIndex typeIndex = new HashIndex("hash_index:node_type:string", neighborDataset);
-        indexMap.put(typeIndex.getIndexType(), typeIndex);
+        indexMap.put(typeIndex.getIndexColumn(), typeIndex);
         Filter filter = new Filter(indexMap, "index.weight - seed.1 >= 0.1 and index.node_type in (user, shop)");
         List<Object> seedData = Arrays.asList(0.1);
-        IndexResult indexResult = filter.filter(seedData);
+        AbstractIndexResult indexResult = filter.filter(seedData);
 
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=2, replacement=True)";
-        Sampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), indexMap);
+        AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 40000;
         int [] freqWithReplacement = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
-                String id = neighborDataset.getNode2ID(index);
-                freqWithReplacement[Integer.valueOf(id)]++;
+                freqWithReplacement[index]++;
             }
         }
         for (int i = 0; i < 10; i++) {

@@ -1,10 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.result.IndexResult;
-import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.index.NeighborDataset;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.List;
 import java.util.HashSet;
 /**
@@ -12,18 +11,12 @@ import java.util.HashSet;
  The class extends the Sampler abstract class.
  It uses a random number generator to select a subset of the IndexResult object based on the provided SampleCondition.
  */
-public class RandomSampler extends Sampler {
-    /**
-     Constructs a new RandomSampler object with the provided SampleCondition and IndexResult object.
-     @param sampleCondition A SampleCondition object containing the conditions for the sampling process
-     @param index An Index object containing the data to be sampled
-     */
-    public RandomSampler(SampleCondition sampleCondition, BaseIndex index) {
-        super(sampleCondition, index);
+public class RandomSampler extends AbstractSampler {
+    
+    public RandomSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+        super(sampleCondition, neighborDataset);
     }
-    public RandomSampler(SampleCondition sampleCondition, Map<String, BaseIndex> indexes) {
-        super(sampleCondition, indexes);
-    }
+
     /**
      Perform random sampling on an input IndexResult object.
      If the sample size is smaller than a quarter of the candidate count, it selects elements randomly without replacement.
@@ -32,7 +25,7 @@ public class RandomSampler extends Sampler {
      @return An ArrayList<Integer> object containing the indices of the selected elements
      */
     @Override
-    protected List<Integer> sampleImpl(IndexResult indexResult) {
+    protected List<Integer> sampleImpl(AbstractIndexResult indexResult) {
         int candidateCount = indexResult.getSize();
         int sampleCount = this.getSampleCondition().getLimit();
         // If the number of samples requested is less than 1/sampleCountToCandidateCountRatio of the input size,
@@ -41,7 +34,7 @@ public class RandomSampler extends Sampler {
         if (sampleCount < candidateCount * sampleCountToCandidateCountRatio) {
             HashSet<Integer> sampledIndex = new HashSet<>();
             while (sampledIndex.size() < sampleCount) {
-                int rnd = getNextInt(candidateCount);
+                int rnd = getNextRandomInt(candidateCount);
                 if (!sampledIndex.contains(rnd)) {
                     sampledIndex.add(rnd);
                 }
@@ -63,7 +56,7 @@ public class RandomSampler extends Sampler {
             sampleRemain = false;
         }
         for (int i = 0; i < sampleCount; i++) {
-            int rnd = getNextInt(candidateCount - i);
+            int rnd = getNextRandomInt(candidateCount - i);
             if (rnd != i) {
                 int temp = sampledIndex.get(i);
                 sampledIndex.set(i, sampledIndex.get(rnd));

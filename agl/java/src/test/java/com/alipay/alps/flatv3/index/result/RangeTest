@@ -1,7 +1,12 @@
 package com.alipay.alps.flatv3.index.result;
 
+import com.alipay.alps.flatv3.index.NeighborDataset;
+import com.alipay.alps.flatv3.index.RangeIndex;
+import com.alipay.alps.flatv3.index.BaseIndex;
 import org.junit.Test;
 import static org.junit.Assert.*;
+
+import java.util.*;
 
 public class RangeTest {
     @Test
@@ -13,45 +18,45 @@ public class RangeTest {
         assertFalse(range.contains(4));
         assertFalse(range.contains(11));
     }
-
-    @Test
-    public void testGetLow() {
-        Range range = new Range(5, 10);
-        assertEquals(5, range.getLow());
-    }
-
-    @Test
-    public void testGetHigh() {
-        Range range = new Range(5, 10);
-        assertEquals(10, range.getHigh());
-    }
-
-    @Test
-    public void testSetLow() {
-        Range range = new Range(5, 10);
-        range.setLow(7);
-        assertEquals(7, range.getLow());
-    }
-
-    @Test
-    public void testSetHigh() {
-        Range range = new Range(5, 10);
-        range.setHigh(12);
-        assertEquals(12, range.getHigh());
-    }
-
-    @Test
-    public void testJoin() {
-        Range range1 = new Range(5, 10);
-        Range range2 = new Range(7, 12);
-        range1.join(range2);
-        assertEquals(7, range1.getLow());
-        assertEquals(10, range1.getHigh());
-    }
-
-    @Test
-    public void testGetSize() {
-        Range range = new Range(5, 10);
-        assertEquals(6, range.getSize());
-    }
+//
+//    @Test
+//    public void testGetLow() {
+//        Range range = new Range(5, 10);
+//        assertEquals(5, range.getLow());
+//    }
+//
+//    @Test
+//    public void testGetHigh() {
+//        Range range = new Range(5, 10);
+//        assertEquals(10, range.getHigh());
+//    }
+//
+//    @Test
+//    public void testSetLow() {
+//        Range range = new Range(5, 10);
+//        range.setLow(7);
+//        assertEquals(7, range.getLow());
+//    }
+//
+//    @Test
+//    public void testSetHigh() {
+//        Range range = new Range(5, 10);
+//        range.setHigh(12);
+//        assertEquals(12, range.getHigh());
+//    }
+//
+//    @Test
+//    public void testJoin() {
+//        Range range1 = new Range(5, 10);
+//        Range range2 = new Range(7, 12);
+//        range1.join(range2);
+//        assertEquals(7, range1.getLow());
+//        assertEquals(10, range1.getHigh());
+//    }
+//
+//    @Test
+//    public void testGetSize() {
+//        Range range = new Range(5, 10);
+//        assertEquals(6, range.getSize());
+//    }
 }

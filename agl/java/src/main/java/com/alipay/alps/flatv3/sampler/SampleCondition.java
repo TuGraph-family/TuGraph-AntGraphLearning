@@ -7,6 +7,11 @@ import java.util.StringTokenizer;
  * It contains method name, key to sample by, sample limit, replacement flag, and reverse flag.
  */
 public class SampleCondition {
+    private final String EQ = "=";
+    private final String BY = "by";
+    private final String LIMIT = "limit";
+    private final String REPLACE = "replace";
+    private final String REVERSE = "reverse";
     private String method;
     private String key;
     private int limit;
@@ -57,6 +62,7 @@ public class SampleCondition {
     public SampleCondition(String sampleMeta) {
         // Remove all whitespace characters from the string representation.
         sampleMeta = sampleMeta.replaceAll("\\s", "");
+        // Tokenize the string representation.
         String delimitor = "(),";
         StringTokenizer x = new StringTokenizer(sampleMeta, delimitor, true);
 
@@ -64,19 +70,19 @@ public class SampleCondition {
         while (x.hasMoreTokens()) {
             String p = x.nextToken();
             if (!delimitor.contains(p)) {
-                int sepPos = p.indexOf('=');
+                int sepPos = p.indexOf(EQ);
                 if (sepPos == -1) {
                     this.method = p;
                 } else {
                     String a1 = p.substring(0, sepPos);
                     String a2 = p.substring(sepPos + 1);
-                    if (a1.compareToIgnoreCase("by") == 0) {
+                    if (a1.compareToIgnoreCase(BY) == 0) {
                         this.key = a2;
-                    } else if (a1.compareToIgnoreCase("limit") == 0) {
+                    } else if (a1.compareToIgnoreCase(LIMIT) == 0) {
                         this.limit = Integer.valueOf(a2);
-                    } else if (a1.compareToIgnoreCase("replacement") == 0) {
+                    } else if (a1.compareToIgnoreCase(REPLACE) == 0) {
                         this.replacement = Boolean.valueOf(a2);
-                    } else if (a1.compareToIgnoreCase("reverse") == 0) {
+                    } else if (a1.compareToIgnoreCase(REVERSE) == 0) {
                         this.reverse = Boolean.valueOf(a2);
                     }
                 }

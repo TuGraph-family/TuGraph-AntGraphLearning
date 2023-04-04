@@ -13,11 +13,11 @@ public class CommonIndexResultTest {
 
     @Before
     public void setup() {
-        List<String> ids = new ArrayList<>();
+        List<Integer> ids = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            ids.add(String.valueOf(i));
+            ids.add(i);
         }
-        NeighborDataset<String> neighborDataset = new NeighborDataset<>(ids, null);
+        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
         index = new BaseIndex("", neighborDataset);
         result = new CommonIndexResult(index, Arrays.asList(1, 2, 3, 4, 5));
     }
@@ -25,14 +25,14 @@ public class CommonIndexResultTest {
     @Test
     public void testJoin() {
         CommonIndexResult otherResult = new CommonIndexResult(index, Arrays.asList(3, 4, 5, 6, 7));
-        IndexResult joinedResult = result.join(otherResult);
+        AbstractIndexResult joinedResult = result.join(otherResult);
         assertArrayEquals(Arrays.asList(3, 4, 5).toArray(), joinedResult.getIndices().toArray());
     }
 
     @Test
     public void testUnion() {
         CommonIndexResult otherResult = new CommonIndexResult(index, Arrays.asList(3, 4, 5, 6, 7));
-        IndexResult unionResult = result.union(otherResult);
+        AbstractIndexResult unionResult = result.union(otherResult);
 
         assertArrayEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7).toArray(), unionResult.getIndices().toArray());
     }
