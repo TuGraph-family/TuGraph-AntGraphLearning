@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RangeIndex extends BaseIndex {
-    private List weights = null;
+    private List sortedWeights;
     public RangeIndex(String indexMeta, NeighborDataset neighborDataset) {
         super(indexMeta, neighborDataset);
     }
@@ -28,7 +28,11 @@ public class RangeIndex extends BaseIndex {
         String indexColumn = getIndexColumn();
         List<Comparable> attributes = neighborDataset.getAttributeList(indexColumn);
         originIndices = sortBy(attributes);
-        weights = neighborDataset.copyAndShuffle(originIndices, indexColumn);
+        sortedWeights = neighborDataset.copyAndShuffle(originIndices, indexColumn);
+    }
+
+    public List getSortedWeights() {
+        return sortedWeights;
     }
 
     @Override
@@ -116,9 +120,9 @@ public class RangeIndex extends BaseIndex {
                 return arithCmpWrapper.eval(inputVariables);
             };
             if (hasLowerBound) {
-                range.setLow(lowerBound(weights, comparison));
+                range.setLow(lowerBound(sortedWeights, comparison));
             } else {
-                range.setHigh(upperBound(weights, comparison));
+                range.setHigh(upperBound(sortedWeights, comparison));
             }
         } else {
             java.util.function.Function<Long, Boolean> comparison = (neighboringValue) -> {
@@ -126,9 +130,9 @@ public class RangeIndex extends BaseIndex {
                 return arithCmpWrapper.eval(inputVariables);
             };
             if (hasLowerBound) {
-                range.setLow(lowerBound(weights, comparison));
+                range.setLow(lowerBound(sortedWeights, comparison));
             } else {
-                range.setHigh(upperBound(weights, comparison));
+                range.setHigh(upperBound(sortedWeights, comparison));
             }
         }
         return range;

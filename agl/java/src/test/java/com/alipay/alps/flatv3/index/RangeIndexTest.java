@@ -32,7 +32,7 @@ public class RangeIndexTest {
         Integer[] actualOriginIndex = rangeIndex.getOriginIndex();
         assertArrayEquals(expectedOriginIndex, actualOriginIndex);
 
-        List<Float> expectedIndexedData = Arrays.asList(new Float[]{1.0F, 2.0F, 3.0F});
+        List<Float> expectedIndexedData = Arrays.asList(new Float[]{3.0F, 2.0F, 1.0F});
         List<Float> actualIndexedData = neighborDataset.getAttributeList("weight");
         assertEquals(expectedIndexedData, actualIndexedData);
 

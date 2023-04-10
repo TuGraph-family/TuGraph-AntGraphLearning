@@ -1,10 +1,8 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 /**
@@ -38,23 +36,7 @@ public abstract class AbstractSampler {
      * @param indexResult IndexResult object used when sampling data
      * @return ArrayList of integers containing the sampled data
      */
-    protected abstract List<Integer> sampleImpl(AbstractIndexResult indexResult);
-
-    public List<Integer> sample(AbstractIndexResult indexResult) {
-        List<Integer> neighborIndices = sampleImpl(indexResult);
-        if (indexResult instanceof CommonIndexResult) {
-            return neighborIndices;
-        }
-        Integer[] originIndex = indexResult.getOriginIndice();
-        if (originIndex != null) {
-            List<Integer> originIndices = new ArrayList<>();
-            for (int idx : neighborIndices) {
-                originIndices.add(originIndex[idx]);
-            }
-            return originIndices;
-        }
-        return neighborIndices;
-    }
+    public abstract List<Integer> sample(AbstractIndexResult indexResult);
 
     // Getter for SampleCondition object
     public SampleCondition getSampleCondition() {

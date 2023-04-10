@@ -49,7 +49,7 @@ public class Filter {
         }
         inputVariables.put(VariableSource.SEED, seedVariableMap);
         if (logicExps.getExpRPNCount() == 0) {
-            return indexesMap.get("").search(null, inputVariables);
+            return indexesMap.get(null).search(null, inputVariables);
         }
         Stack<AbstractIndexResult> indexResultStack = new Stack<>();
         for (int i = 0; i < logicExps.getExpRPNCount(); i++) {

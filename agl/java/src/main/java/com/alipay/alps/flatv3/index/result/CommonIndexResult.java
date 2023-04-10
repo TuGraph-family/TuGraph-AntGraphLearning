@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 public class CommonIndexResult extends AbstractIndexResult {
-    public List<Integer> indices = null;
+    private List<Integer> indices = null;
     public CommonIndexResult(BaseIndex index, List<Integer> sortedIndices) {
         super(index);
         this.indices = sortedIndices;
@@ -41,6 +41,11 @@ public class CommonIndexResult extends AbstractIndexResult {
     @Override
     public List<Integer> getIndices() {
         return indices;
+    }
+
+    @Override
+    public int getOriginIndex(int i) {
+        return i;
     }
 
     @Override

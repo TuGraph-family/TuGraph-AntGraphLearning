@@ -17,6 +17,7 @@ public abstract class AbstractIndexResult {
     public abstract AbstractIndexResult union(AbstractIndexResult right);
     public abstract int getSize();
     public abstract List<Integer> getIndices();
+    public abstract int getOriginIndex(int i);
 
     protected BaseIndex updateIndex(AbstractIndexResult right) {
         BaseIndex finalIndex;
@@ -33,7 +34,4 @@ public abstract class AbstractIndexResult {
         return index != null && index.getIndexColumn() != null;
     }
 
-    public Integer[] getOriginIndice() {
-        return index.originIndices;
-    }
 }

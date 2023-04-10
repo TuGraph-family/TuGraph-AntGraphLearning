@@ -41,13 +41,13 @@ public class TopKSamplerTest {
 
     @Test
     public void testSmallCandidateSize() {
-        AbstractIndexResult indexResult = new RangeIndexResult(typeIndex, Collections.singletonList(new Range(0, 2)));
+        AbstractIndexResult indexResult = new RangeIndexResult(typeIndex, Collections.singletonList(new Range(0, 3)));
 
         String sampleMeta = "topk(by=weight, limit=5, reverse=false, replacement=False)";
         TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
         List<Integer> actual = sampler.sample(indexResult);
-        List<Integer> expected = Arrays.asList(0, 1, 2);
+        List<Integer> expected = Arrays.asList(0, 3, 5, 8);
         assertEquals(expected, actual);
     }
 
@@ -59,7 +59,7 @@ public class TopKSamplerTest {
        TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
        List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(8, 7, 6, 5, 4);
+       List<Integer> expected = Arrays.asList(9, 8, 7, 6, 5);
        assertEquals(expected, actual);
    }
 
@@ -78,7 +78,7 @@ public class TopKSamplerTest {
 
    @Test
    public void testTimeFilterSampleByTimestamp() {
-       AbstractIndexResult indexResult = new RangeIndexResult(timeIndex, Collections.singletonList(new Range(1, 8)));
+       AbstractIndexResult indexResult = new RangeIndexResult(timeIndex, Collections.singletonList(new Range(1, 7)));
 
        String sampleMeta = "topk(by=time, limit=5, reverse=false, replacement=false)";
        TopKSampler<Long>  sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
@@ -89,6 +89,7 @@ public class TopKSamplerTest {
        assertEquals(expected, actual);
    }
 
+
    @Test
    public void testTypeTimeFilterSampleByWeight() {
        AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
@@ -97,7 +98,7 @@ public class TopKSamplerTest {
        TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
        List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(8, 7, 6);
+       List<Integer> expected = Arrays.asList(9, 6, 5);
        assertEquals(expected, actual);
    }
 
@@ -109,7 +110,7 @@ public class TopKSamplerTest {
        TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
        List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(8, 7, 6);
+       List<Integer> expected = Arrays.asList(0, 2, 4);
        assertEquals(expected, actual);
    }
 }

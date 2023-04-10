@@ -1,9 +1,12 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.index.result.CommonIndexResult;
+import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.HashSet;
 /**
@@ -12,7 +15,6 @@ import java.util.HashSet;
  It uses a random number generator to select a subset of the IndexResult object based on the provided SampleCondition.
  */
 public class RandomSampler extends AbstractSampler {
-    
     public RandomSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
         super(sampleCondition, neighborDataset);
     }
@@ -25,13 +27,45 @@ public class RandomSampler extends AbstractSampler {
      @return An ArrayList<Integer> object containing the indices of the selected elements
      */
     @Override
-    protected List<Integer> sampleImpl(AbstractIndexResult indexResult) {
+    public List<Integer> sample(AbstractIndexResult indexResult) {
         int candidateCount = indexResult.getSize();
         int sampleCount = this.getSampleCondition().getLimit();
         // If the number of samples requested is less than 1/sampleCountToCandidateCountRatio of the input size,
         // simply select samples at random without replacement using a HashSet.
+        List<Integer> sampled = sampleWithCount(candidateCount, sampleCount);
+        List<Integer> sampledIndex = new ArrayList<>(sampled.size());
+        if (indexResult instanceof CommonIndexResult) {
+            List<Integer> originIndices = indexResult.getIndices();
+            for (int i = 0; i < sampled.size(); i++) {
+                sampledIndex.add(originIndices.get(sampled.get(i)));
+            }
+        } else {
+            assert indexResult instanceof RangeIndexResult;
+            for (int i = 0; i < sampled.size(); i++) {
+                int idx = ((RangeIndexResult) indexResult).getRangeIndex(sampled.get(i));
+                sampledIndex.add(indexResult.getOriginIndex(idx));
+            }
 
-        if (sampleCount < candidateCount * sampleCountToCandidateCountRatio) {
+        }
+        return sampledIndex;
+    }
+
+    private List<Integer> sampleWithCount(int candidateCount, int sampleCount) {
+        if (getSampleCondition().isReplacement()) {
+            List<Integer> samples = new ArrayList<>(sampleCount);
+            for (int i = 0; i < sampleCount; i++) {
+                samples.add(getNextRandomInt(candidateCount));
+            }
+            return samples;
+        }
+        if (sampleCount >= candidateCount) {
+            List<Integer> samples = new ArrayList<>(candidateCount);
+            for (int i = 0; i < candidateCount; i++) {
+                samples.add(i);
+            }
+            return samples;
+        }
+        if (sampleCount <= candidateCount * sampleCountToCandidateCountRatio) {
             HashSet<Integer> sampledIndex = new HashSet<>();
             while (sampledIndex.size() < sampleCount) {
                 int rnd = getNextRandomInt(candidateCount);
@@ -42,28 +76,17 @@ public class RandomSampler extends AbstractSampler {
             return new ArrayList<>(sampledIndex);
         }
 
-        // Otherwise, if the number of samples requested is more than 1/sampleCountToCandidateCountRatio of the input size,
-        // select the complement set (i.e. non-selected samples) using an ArrayList and return it.
-        ArrayList<Integer> sampledIndex = new ArrayList<>();
-        for (int i = 0; i < candidateCount; i++) {
+        return sampleByShuffle(candidateCount, sampleCount);
+    }
+
+    // implement random sampling k elements without replacement out of n elements
+    private List<Integer> sampleByShuffle(int n, int k) {
+        List<Integer> sampledIndex = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
             sampledIndex.add(i);
         }
-        boolean sampleRemain = true;
-        if (sampleCount >= candidateCount) {
-            return sampledIndex;
-        } else if (sampleCount > candidateCount * sampleCountToCandidateCountRatio) {
-            sampleCount = candidateCount - sampleCount;
-            sampleRemain = false;
-        }
-        for (int i = 0; i < sampleCount; i++) {
-            int rnd = getNextRandomInt(candidateCount - i);
-            if (rnd != i) {
-                int temp = sampledIndex.get(i);
-                sampledIndex.set(i, sampledIndex.get(rnd));
-                sampledIndex.set(rnd, temp);
-            }
-        }
-        sampleCount = Math.max(sampleCount, 0);
-        return new ArrayList<Integer>(sampleRemain ? sampledIndex.subList(0, sampleCount) : sampledIndex.subList(sampleCount, sampledIndex.size()));
+        Collections.shuffle(sampledIndex);
+        return sampledIndex.subList(0, k);
     }
 }
+

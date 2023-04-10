@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class RangeIndexResult extends AbstractIndexResult {
     private List<Range> sortedIntervals = null;
+    private List<Integer> prefixCounts = null;
 
     public RangeIndexResult(BaseIndex index, List<Range> sortedIntervals) {
         super(index);
@@ -68,7 +69,7 @@ public class RangeIndexResult extends AbstractIndexResult {
 
     @Override
     public AbstractIndexResult join(AbstractIndexResult right) {
-        if (getIndex() == right.getIndex()) {
+        if (getIndex() == right.getIndex() && right instanceof RangeIndexResult) {
             List<Range> joinedIntervals = joinRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
             return new RangeIndexResult(getIndex(), joinedIntervals);
         } else {
@@ -79,7 +80,7 @@ public class RangeIndexResult extends AbstractIndexResult {
 
     @Override
     public AbstractIndexResult union(AbstractIndexResult right) {
-        if (getIndex() == right.getIndex()) {
+        if (getIndex() == right.getIndex() && right instanceof RangeIndexResult) {
             List<Range> unionedIntervals = unionRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
             return new RangeIndexResult(getIndex(), unionedIntervals);
         } else {
@@ -91,21 +92,43 @@ public class RangeIndexResult extends AbstractIndexResult {
     @Override
     public List<Integer> getIndices() {
         List<Integer> ans = new ArrayList<>();
-        Integer[] originIndex = getOriginIndice();
-        if (originIndex != null) {
-            for (Range p : sortedIntervals) {
-                for (int i = p.getLow(); i <= p.getHigh(); i++) {
-                    ans.add(originIndex[i]);
-                }
-            }
-        } else {
-            for (Range p : sortedIntervals) {
-                for (int i = p.getLow(); i <= p.getHigh(); i++) {
-                    ans.add(i);
-                }
+        Integer[] originIndex = getIndex().getOriginIndices();
+        for (Range p : sortedIntervals) {
+            for (int i = p.getLow(); i <= p.getHigh(); i++) {
+                ans.add(originIndex[i]);
             }
         }
         return ans;
+    }
+
+    @Override
+    public int getOriginIndex(int i) {
+        Integer[] originIndex = getIndex().getOriginIndices();
+        return originIndex[i];
+    }
+
+    public int getRangeIndex(int rank) {
+        if (prefixCounts == null) {
+            prefixCounts = new ArrayList<>(sortedIntervals.size());
+            int currentCount = 0;
+            for (Range range : sortedIntervals) {
+                prefixCounts.add(range.getSize() + currentCount);
+                currentCount += range.getSize();
+            }
+        }
+        // binary search sortedIntervals, find the range that contains rank
+        int low = 0, high = prefixCounts.size() - 1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            if (rank < prefixCounts.get(mid)) {
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        int preCount = low > 0 ? prefixCounts.get(low - 1) : 0;
+        return rank - preCount + sortedIntervals.get(low).getLow();
     }
 
     public List<Range> getRangeList() {

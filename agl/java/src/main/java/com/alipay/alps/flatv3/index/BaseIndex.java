@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BaseIndex implements Serializable {
-    public String indexAndSamplingMeta;
+    private String indexAndSamplingMeta;
     public static class Meta {
         public String type;
         public String column;
@@ -24,9 +24,9 @@ public class BaseIndex implements Serializable {
             this.dtype = t[2];
         }
     }
-    public Meta indexMeta;
+    private Meta indexMeta;
     protected NeighborDataset neighborDataset = null;
-    public Integer[] originIndices = null;
+    protected Integer[] originIndices = null;
 
     public BaseIndex(String indexAndSamplingMeta, NeighborDataset neighborDataset) {
         this.neighborDataset = neighborDataset;
@@ -39,6 +39,10 @@ public class BaseIndex implements Serializable {
             }
         }
         buildIndex();
+    }
+
+    public Integer[] getOriginIndices() {
+        return originIndices;
     }
 
     public String getIndexType() {
@@ -60,6 +64,10 @@ public class BaseIndex implements Serializable {
     }
 
     protected void buildIndex() {
+        originIndices = new Integer[neighborDataset.getNeighborCount()];
+        for (int i = 0; i < neighborDataset.getNeighborCount(); i++) {
+            originIndices[i] = i;
+        }
     }
 
     public AbstractIndexResult search(AbstactCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {

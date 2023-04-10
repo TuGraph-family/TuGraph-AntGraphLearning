@@ -1,13 +1,10 @@
 package com.alipay.alps.flatv3.sampler.utils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 
 // this class maintains a prefix sum of the weights of the elements in an array,
 // and allows for random selection with replacement of an element based on its weight.
@@ -15,57 +12,59 @@ import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 public class PrefixSumSelection {
     private List<Float> weights;
     private List<Float> prefixSum;
-    List<Float> intervalPrefixSum;
-    List<Range> sortedIntervals;
+    private List<Float> intervalPrefixSum;
+    private List<Range> sortedIntervals;
+    private Integer[] originIndices;
+    private List<Integer> validIndices;
     private Random rand;
 
-    public PrefixSumSelection(Integer[] originIndices, List<Float> weights, boolean reusePrefixSum, Random rand) {
+    public PrefixSumSelection(List<Range> sortedIntervals, Integer[] originIndices, List<Float> prefixSum, Random rand) {
+        this.sortedIntervals = sortedIntervals;
+        this.originIndices = originIndices;
+        this.prefixSum = prefixSum;
+        this.rand = rand;
+        initializePrefixSumOfRanges(sortedIntervals);
+    }
+
+    public PrefixSumSelection(List<Integer> validIndices, List<Float> weights, Random rand) {
+        this.validIndices = validIndices;
         this.weights = weights;
         this.rand = rand;
-        prefixSum = new ArrayList<>(Collections.nCopies(weights.size(), weights.get(0)));
-        if (reusePrefixSum) {
-            // Initializes the prefixSum array.
-            for (int i = 1; i < weights.size(); i++) {
-                prefixSum.set(i, prefixSum.get(i-1) + weights.get(originIndices[i]));
-            }
-        }
-    }
-    
-    public void initializePrefixSum(AbstractIndexResult indexResult) {
-        if (indexResult instanceof RangeIndexResult) {
-            initializePrefixSumOfRanges(((RangeIndexResult) indexResult).getRangeList());
-        } else {
-            initializePrefixSumOfValidIndices(indexResult.getIndices());
-        }
+        initializePrefixSumOfValidIndices(validIndices);
     }
 
     private void initializePrefixSumOfRanges(List<Range> sortedIntervals) {
-        this.sortedIntervals = sortedIntervals;
-        intervalPrefixSum = new ArrayList<>(Collections.nCopies(sortedIntervals.size(), 0.0F));
-        intervalPrefixSum.set(0, getSummationBetween(sortedIntervals.get(0).getLow(), sortedIntervals.get(0).getHigh()));
+        intervalPrefixSum = new ArrayList<>(sortedIntervals.size());
+        intervalPrefixSum.add(getSummationBetween(sortedIntervals.get(0).getLow(), sortedIntervals.get(0).getHigh()));
         for (int i = 1; i < sortedIntervals.size(); i++) {
             Range range = sortedIntervals.get(i);
-            intervalPrefixSum.set(i, intervalPrefixSum.get(i-1) + getSummationBetween(range.getLow(), range.getHigh()));
+            intervalPrefixSum.add(intervalPrefixSum.get(i-1) + getSummationBetween(range.getLow(), range.getHigh()));
         }
     }
 
     private void initializePrefixSumOfValidIndices(List<Integer> validIndices) {
         sortedIntervals = new ArrayList<>();
         sortedIntervals.add(new Range(0, validIndices.size() - 1));
-        prefixSum.set(0, weights.get(validIndices.get(0)));
+        prefixSum = new ArrayList<>(validIndices.size());
+        prefixSum.add(weights.get(validIndices.get(0)));
         for (int i = 1; i < validIndices.size(); i++) {
-            prefixSum.set(i, prefixSum.get(i-1) + weights.get(validIndices.get(i)));
+            prefixSum.add(prefixSum.get(i-1) + weights.get(validIndices.get(i)));
         }
+        intervalPrefixSum = new ArrayList<>(sortedIntervals.size());
+        intervalPrefixSum.add(prefixSum.get(validIndices.size() - 1));
     }
 
     public int nextSample() {
+        float randWeight = rand.nextFloat() * intervalPrefixSum.get(intervalPrefixSum.size() - 1);
         int rangeIndex = 0;
         if (sortedIntervals != null && sortedIntervals.size() > 1) {
-            rangeIndex = lowerBound(intervalPrefixSum, 0, intervalPrefixSum.size() - 1, rand.nextFloat() * intervalPrefixSum.get(intervalPrefixSum.size() - 1));
+            rangeIndex = lowerBound(intervalPrefixSum, 0, intervalPrefixSum.size() - 1, randWeight);
         }
         Range range = this.sortedIntervals.get(rangeIndex);
-        return lowerBound(prefixSum, range.getLow(), range.getHigh(),
-            rand.nextFloat() * getSummationBetween(range.getLow(), range.getHigh()) + (range.getLow() > 1 ? prefixSum.get(range.getLow() - 1) : 0));
+        float leftWeight = randWeight - (rangeIndex >= 1 ? intervalPrefixSum.get(rangeIndex - 1) : 0);
+        int chosenIndex = lowerBound(prefixSum, range.getLow(), range.getHigh(),
+                leftWeight + (range.getLow() >= 1 ? prefixSum.get(range.getLow() - 1) : 0));
+        return originIndices != null ? originIndices[chosenIndex] : validIndices.get(chosenIndex);
     }
 
     /**

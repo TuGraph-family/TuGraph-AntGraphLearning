@@ -10,7 +10,7 @@ public class SampleCondition {
     private final String EQ = "=";
     private final String BY = "by";
     private final String LIMIT = "limit";
-    private final String REPLACE = "replace";
+    private final String REPLACE = "replacement";
     private final String REVERSE = "reverse";
     private String method;
     private String key;

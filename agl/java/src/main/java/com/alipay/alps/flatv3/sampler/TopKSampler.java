@@ -49,7 +49,7 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     }
 
     @Override
-    protected List<Integer> sampleImpl(AbstractIndexResult indexResult) {
+    public List<Integer> sample(AbstractIndexResult indexResult) {
         int sampleCount = this.getSampleCondition().getLimit();
         int candidateCount = indexResult.getSize();
         if (candidateCount <= sampleCount) {
@@ -57,7 +57,8 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
         }
 
         ArrayList<Integer> sampledIndex = new ArrayList<>();
-        if (indexResult instanceof RangeIndexResult && indexResult.getIndex().getIndexColumn().compareTo(getSampleCondition().getKey()) == 0) {
+        String originIndexColumn = indexResult.getIndex().getIndexColumn();
+        if (indexResult instanceof RangeIndexResult && originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {
             // reuse sorted neighbors in indexing stage
             if (indexResult instanceof RangeIndexResult) {
                 List<Range> sortedIntervals = ((RangeIndexResult) indexResult).getRangeList();
@@ -65,13 +66,13 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
                     for (int i = sortedIntervals.size() - 1; i >= 0; i--) {
                         Range range = sortedIntervals.get(i);
                         for (int j = range.getHigh(); j >= range.getLow() && sampledIndex.size() < sampleCount; j--) {
-                            sampledIndex.add(j);
+                            sampledIndex.add(indexResult.getOriginIndex(j));
                         }
                     }
                 } else {
                     for (Range range : sortedIntervals) {
                         for (int i = range.getLow(); i <= range.getHigh() && sampledIndex.size() < sampleCount; i++) {
-                            sampledIndex.add(i);
+                            sampledIndex.add(indexResult.getOriginIndex(i));
                         }
                     }
                 }
@@ -95,7 +96,6 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
             }
         } else {
             // sort neighbors by attribute at runtime
-            String originIndexColumn = indexResult.getIndex().getIndexColumn();
             // if there is no filter condition, the selected samples are always the same, we can cache the result
             if (originIndexColumn == null && cachedIndex != null) {
                 return new ArrayList<>(cachedIndex);
@@ -107,12 +107,9 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
                 setupPriorityQueue(getSampleCondition());
             }
             priorityQueue.clear();
-            List<Range> sortedIntervals = ((RangeIndexResult) indexResult).getRangeList();
-            Integer [] originIndices = indexResult.getOriginIndice();
-            for (Range range : sortedIntervals) {
-                for (int i = range.getLow(); i < range.getHigh(); i++) {
-                    priorityQueue.add(originIndices[i]);
-                }
+
+            for (int idx : indexResult.getIndices()) {
+                priorityQueue.add(idx);
             }
             for (int i = 0; i < sampleCount; i++) {
                 sampledIndex.add(priorityQueue.poll());
