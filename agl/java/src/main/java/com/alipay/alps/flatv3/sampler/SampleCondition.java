@@ -57,6 +57,7 @@ public class SampleCondition {
 
     /**
      * Constructs a SampleCondition object from a string representation.
+     *
      * @param sampleMeta The string representation of the SampleCondition object.
      */
     public SampleCondition(String sampleMeta) {
@@ -92,6 +93,7 @@ public class SampleCondition {
 
     /**
      * Returns a string representation of the SampleCondition object.
+     *
      * @return A string representation of the SampleCondition object.
      */
     @Override

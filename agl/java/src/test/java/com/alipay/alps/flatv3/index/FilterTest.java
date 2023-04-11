@@ -4,11 +4,12 @@ package com.alipay.alps.flatv3.index;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
 
 public class FilterTest {
     private NeighborDataset neighborDataset;
@@ -69,9 +70,9 @@ public class FilterTest {
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:score:float");
         indexMetas.add("hash_index:node_type:string");
-        Filter filter = new Filter(indexMetas, 
-                            "index.score - seed.1 >= 0.2 and index.score < 0.4  + seed.1 and index.node_type in (user, shop)",
-                            neighborDataset);
+        Filter filter = new Filter(indexMetas,
+                "index.score - seed.1 >= 0.2 and index.score < 0.4  + seed.1 and index.node_type in (user, shop)",
+                neighborDataset);
         AbstractIndexResult indexResult = filter.filter(seedScore);
         assertArrayEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
     }
@@ -84,9 +85,9 @@ public class FilterTest {
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:score:float");
         indexMetas.add("range_index:price:float");
-        Filter filter = new Filter(indexMetas, 
-                            "index.score - seed.1 >= 0.2 and index.score < 0.4 + seed.1 and index.price - seed.2 >= 0.2 and index.price < 0.4  + seed.2",
-                            neighborDataset);
+        Filter filter = new Filter(indexMetas,
+                "index.score - seed.1 >= 0.2 and index.score < 0.4 + seed.1 and index.price - seed.2 >= 0.2 and index.price < 0.4  + seed.2",
+                neighborDataset);
         AbstractIndexResult indexResult = filter.filter(seedData);
         assertArrayEquals(Arrays.asList(3).toArray(), indexResult.getIndices().toArray());
     }

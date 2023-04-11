@@ -2,8 +2,8 @@ package com.alipay.alps.flatv3.index.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class RangeIndexResult extends AbstractIndexResult {
     private List<Range> sortedIntervals = null;

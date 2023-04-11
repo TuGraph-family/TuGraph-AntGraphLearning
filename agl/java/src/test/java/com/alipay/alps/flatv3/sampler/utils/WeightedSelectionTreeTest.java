@@ -1,18 +1,19 @@
 package com.alipay.alps.flatv3.sampler.utils;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class WeightedSelectionTreeTest {
     private List<Integer> elementIndices = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 3, 4));
     private List<Float> weights = new ArrayList<Float>(Arrays.asList(0.1F, 0.2F, 0.3F, 0.1F, 0.3F));
     private Random random = new Random();
+
     @Test
     public void testBuildTree() {
         WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights, new Random());

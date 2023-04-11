@@ -1,12 +1,12 @@
 package com.alipay.alps.flatv3;
 
-import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.Filter;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.sampler.SampleCondition;
 import com.alipay.alps.flatv3.sampler.AbstractSampler;
+import com.alipay.alps.flatv3.sampler.SampleCondition;
 import com.alipay.alps.flatv3.sampler.SamplerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class PropagateSeed {
 
     }
 
-    /* 
+    /*
      * This method will select a list of neighbor indices for each seed.
      * @param seeds:       a list of seeds, e.g. ["1", "2", "3"]
      * @param seedAttrs:   a list of seed attributes, e.g. ["1,18", "2,20", "3,25"]

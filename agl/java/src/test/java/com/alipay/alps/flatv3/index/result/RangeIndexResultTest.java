@@ -1,13 +1,14 @@
 package com.alipay.alps.flatv3.index.result;
 
+import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.RangeIndex;
-import com.alipay.alps.flatv3.index.BaseIndex;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class RangeIndexResultTest {
     @Test
@@ -48,7 +49,7 @@ public class RangeIndexResultTest {
         assertEquals(expectedResult.getIndex().getIndexColumn(), joinedResult.getIndex().getIndexColumn());
         assertEquals(expectedResult.getIndices(), joinedResult.getIndices());
         List<Range> expectedRangeList = expectedResult.getRangeList();
-        List<Range> resultRangeList = ((RangeIndexResult)joinedResult).getRangeList();
+        List<Range> resultRangeList = ((RangeIndexResult) joinedResult).getRangeList();
         for (int i = 0; i < expectedRangeList.size(); i++) {
             assertEquals(expectedRangeList.get(i).getLow(), resultRangeList.get(i).getLow());
             assertEquals(expectedRangeList.get(i).getHigh(), resultRangeList.get(i).getHigh());

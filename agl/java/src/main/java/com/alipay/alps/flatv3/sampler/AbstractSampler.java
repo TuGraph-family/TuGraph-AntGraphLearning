@@ -5,8 +5,9 @@ import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 
 import java.util.List;
 import java.util.Random;
+
 /**
- Sampler is an abstract class that provides a template for sampling data from an AbstractIndexResult
+ * Sampler is an abstract class that provides a template for sampling data from an AbstractIndexResult
  */
 public abstract class AbstractSampler {
     // SampleCondition object that stores the properties used for sampling
@@ -23,6 +24,7 @@ public abstract class AbstractSampler {
 
     /**
      * Constructor for Sampler class with two parameters
+     *
      * @param sampleCondition SampleCondition object for storing the properties used for sampling
      * @param neighborDataset NeighborDataset object for storing the data used for sampling
      */
@@ -33,6 +35,7 @@ public abstract class AbstractSampler {
 
     /**
      * Abstract method used to sample data from an indexResult
+     *
      * @param indexResult IndexResult object used when sampling data
      * @return ArrayList of integers containing the sampled data
      */

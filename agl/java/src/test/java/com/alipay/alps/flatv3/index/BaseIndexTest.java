@@ -1,13 +1,14 @@
 package com.alipay.alps.flatv3.index;
 
+import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class BaseIndexTest {
 
@@ -47,7 +48,7 @@ public class BaseIndexTest {
         assertEquals("float", baseIndex.getDtype("attr2"));
         assertEquals("long", baseIndex.getDtype("attr3"));
     }
-    
+
     // test for a case with empty indexMeta and no filter conditions
     @Test
     public void testGetIndexResultWithEmptyIndexMetaAndNOFilter() throws Exception {

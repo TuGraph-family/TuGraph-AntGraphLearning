@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- TopKSampler is a class extending Sampler class.
- It is used to get the top K elements from a given set of data that meets a given condition.
- It has a PriorityQueue to store the top K elements and a Comparator to compare two pairs of keys and values.
- The sample() method is overridden to find the top K elements from the given data.
- The factor attribute is used to determine the order of the elements in the PriorityQueue.
+ * TopKSampler is a class extending Sampler class.
+ * It is used to get the top K elements from a given set of data that meets a given condition.
+ * It has a PriorityQueue to store the top K elements and a Comparator to compare two pairs of keys and values.
+ * The sample() method is overridden to find the top K elements from the given data.
+ * The factor attribute is used to determine the order of the elements in the PriorityQueue.
  */
 public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     private List<T> weights = null;

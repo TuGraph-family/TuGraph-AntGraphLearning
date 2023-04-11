@@ -18,13 +18,14 @@ public class WeightedSampler extends AbstractSampler {
     private List<Float> prefixSum;
     private AliasMethod aliasMethod = null;
     private PrefixSumSelection prefixSumSelection = null;
-    
+
     public WeightedSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
         super(sampleCondition, neighborDataset);
     }
 
     /**
      * Finds a random sample from the probability distribution according to the IndexResult.
+     *
      * @param indexResult the IndexResult of the data
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
@@ -53,6 +54,7 @@ public class WeightedSampler extends AbstractSampler {
 
     /**
      * Generates a random sample from the probability distribution using the Alias method.
+     *
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
     private List<Integer> sampleByAliasMethod(boolean replacement) {
@@ -77,6 +79,7 @@ public class WeightedSampler extends AbstractSampler {
 
     /**
      * Generates a random sample from the probability distribution using the Order Statistic Tree method.
+     *
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
     private List<Integer> sampleByOrderStatisticTree(AbstractIndexResult indexResult) {
@@ -101,8 +104,10 @@ public class WeightedSampler extends AbstractSampler {
         }
         return prefixSum;
     }
+
     /**
      * Generates a random sample from the probability distribution using the Prefix Sum method.
+     *
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
     private List<Integer> sampleByPrefixSum(AbstractIndexResult indexResult, boolean replacement) {
@@ -111,7 +116,7 @@ public class WeightedSampler extends AbstractSampler {
             String originIndexColumn = indexResult.getIndex().getIndexColumn();
             List<Float> sortedWeights = null;
             if (originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {
-                sortedWeights = ((RangeIndex)(indexResult.getIndex())).getSortedWeights();
+                sortedWeights = ((RangeIndex) (indexResult.getIndex())).getSortedWeights();
             } else {
                 sortedWeights = getNeighborDataset().copyAndShuffle(originIndices, getSampleCondition().getKey());
             }

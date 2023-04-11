@@ -3,10 +3,15 @@ package com.alipay.alps.flatv3.index.result;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import org.junit.Test;
 import org.junit.Before;
-import static org.junit.Assert.*;
-import java.util.*;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class CommonIndexResultTest {
     private BaseIndex index;

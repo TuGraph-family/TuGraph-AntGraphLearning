@@ -1,13 +1,11 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.HashIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.RangeIndex;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +13,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 public class TopKSamplerTest {
@@ -52,66 +51,66 @@ public class TopKSamplerTest {
         assertEquals(expected, actual);
     }
 
-   @Test
-   public void testNoFilterSampleByTimestampReverse() {
-       AbstractIndexResult indexResult = new RangeIndexResult(baseIndex, Collections.singletonList(new Range(0, 9)));
+    @Test
+    public void testNoFilterSampleByTimestampReverse() {
+        AbstractIndexResult indexResult = new RangeIndexResult(baseIndex, Collections.singletonList(new Range(0, 9)));
 
-       String sampleMeta = "topk(by=weight, limit=5, reverse=true, replacement=false)";
-       TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
+        String sampleMeta = "topk(by=weight, limit=5, reverse=true, replacement=false)";
+        TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
-       List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(9, 8, 7, 6, 5);
-       assertEquals(expected, actual);
-   }
+        List<Integer> actual = sampler.sample(indexResult);
+        List<Integer> expected = Arrays.asList(9, 8, 7, 6, 5);
+        assertEquals(expected, actual);
+    }
 
-   @Test
-   public void testWeightFilterSampleByTimestamp() {
-       AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Collections.singletonList(new Range(1, 8)));
+    @Test
+    public void testWeightFilterSampleByTimestamp() {
+        AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Collections.singletonList(new Range(1, 8)));
 
-       String sampleMeta = "topk(by=time, limit=5, reverse=false, replacement=false)";
-       TopKSampler<Long> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
+        String sampleMeta = "topk(by=time, limit=5, reverse=false, replacement=false)";
+        TopKSampler<Long> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
-       List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(8, 7, 6, 5, 4);
+        List<Integer> actual = sampler.sample(indexResult);
+        List<Integer> expected = Arrays.asList(8, 7, 6, 5, 4);
 
-       assertEquals(expected, actual);
-   }
+        assertEquals(expected, actual);
+    }
 
-   @Test
-   public void testTimeFilterSampleByTimestamp() {
-       AbstractIndexResult indexResult = new RangeIndexResult(timeIndex, Collections.singletonList(new Range(1, 7)));
+    @Test
+    public void testTimeFilterSampleByTimestamp() {
+        AbstractIndexResult indexResult = new RangeIndexResult(timeIndex, Collections.singletonList(new Range(1, 7)));
 
-       String sampleMeta = "topk(by=time, limit=5, reverse=false, replacement=false)";
-       TopKSampler<Long>  sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
+        String sampleMeta = "topk(by=time, limit=5, reverse=false, replacement=false)";
+        TopKSampler<Long> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
-       List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(8, 7, 6, 5, 4);
+        List<Integer> actual = sampler.sample(indexResult);
+        List<Integer> expected = Arrays.asList(8, 7, 6, 5, 4);
 
-       assertEquals(expected, actual);
-   }
+        assertEquals(expected, actual);
+    }
 
 
-   @Test
-   public void testTypeTimeFilterSampleByWeight() {
-       AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
+    @Test
+    public void testTypeTimeFilterSampleByWeight() {
+        AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
 
-       String sampleMeta = "topk(by=weight, limit=3, reverse=true, replacement=false)";
-       TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
+        String sampleMeta = "topk(by=weight, limit=3, reverse=true, replacement=false)";
+        TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
-       List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(9, 6, 5);
-       assertEquals(expected, actual);
-   }
+        List<Integer> actual = sampler.sample(indexResult);
+        List<Integer> expected = Arrays.asList(9, 6, 5);
+        assertEquals(expected, actual);
+    }
 
-   @Test
-   public void testTypeWeightFilterSampleByWeight() {
-       AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
+    @Test
+    public void testTypeWeightFilterSampleByWeight() {
+        AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
 
-       String sampleMeta = "topk(by=weight, limit=3, reverse=false, replacement=false)";
-       TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
+        String sampleMeta = "topk(by=weight, limit=3, reverse=false, replacement=false)";
+        TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
 
-       List<Integer> actual = sampler.sample(indexResult);
-       List<Integer> expected = Arrays.asList(0, 2, 4);
-       assertEquals(expected, actual);
-   }
+        List<Integer> actual = sampler.sample(indexResult);
+        List<Integer> expected = Arrays.asList(0, 2, 4);
+        assertEquals(expected, actual);
+    }
 }

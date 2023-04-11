@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
+import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
@@ -11,15 +11,14 @@ import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RangeIndex extends BaseIndex {
     private List sortedWeights;
+
     public RangeIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
         super(indexType, indexColumn, indexDtype, neighborDataset);
     }
@@ -39,7 +38,7 @@ public class RangeIndex extends BaseIndex {
 
     @Override
     public AbstractIndexResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
-        Range range = binarySearch((ArithmeticCmpWrapper)cmpExpWrapper, inputVariables);
+        Range range = binarySearch((ArithmeticCmpWrapper) cmpExpWrapper, inputVariables);
         List<Range> ranges = new ArrayList<>();
         if (range.getSize() > 0) {
             ranges.add(range);
@@ -76,7 +75,7 @@ public class RangeIndex extends BaseIndex {
         array[i] = array[j];
         array[j] = temp;
     }
-    
+
     private <T> int lowerBound(List<T> nums, java.util.function.Function<T, Boolean> f) {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
@@ -89,6 +88,7 @@ public class RangeIndex extends BaseIndex {
         }
         return left;
     }
+
     private <T> int upperBound(List<T> nums, java.util.function.Function<T, Boolean> f) {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
@@ -128,7 +128,7 @@ public class RangeIndex extends BaseIndex {
         indexVariableMap.put(indexColumn, null);
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
 
-        Range range = new Range(0, originIndices.length-1);
+        Range range = new Range(0, originIndices.length - 1);
         boolean hasLowerBound = arithCmpWrapper.hasLowerBound();
         if (neighborDataset.getFloatAttributeList(indexColumn) != null) {
             java.util.function.Function<Float, Boolean> comparison = (neighboringValue) -> {

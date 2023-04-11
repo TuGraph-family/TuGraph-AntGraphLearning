@@ -1,18 +1,19 @@
 package com.alipay.alps.flatv3.sampler;
 
+import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
-import com.alipay.alps.flatv3.index.NeighborDataset;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
+
 /**
- This class represents a random sampler that performs random sampling on an input IndexResult object.
- The class extends the Sampler abstract class.
- It uses a random number generator to select a subset of the IndexResult object based on the provided SampleCondition.
+ * This class represents a random sampler that performs random sampling on an input IndexResult object.
+ * The class extends the Sampler abstract class.
+ * It uses a random number generator to select a subset of the IndexResult object based on the provided SampleCondition.
  */
 public class RandomSampler extends AbstractSampler {
     public RandomSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
@@ -20,11 +21,12 @@ public class RandomSampler extends AbstractSampler {
     }
 
     /**
-     Perform random sampling on an input IndexResult object.
-     If the sample size is smaller than a quarter of the candidate count, it selects elements randomly without replacement.
-     Otherwise, it performs Fisher-Yates shuffle to randomly select a subset of elements.
-     @param indexResult An IndexResult object containing the data to be sampled
-     @return An ArrayList<Integer> object containing the indices of the selected elements
+     * Perform random sampling on an input IndexResult object.
+     * If the sample size is smaller than a quarter of the candidate count, it selects elements randomly without replacement.
+     * Otherwise, it performs Fisher-Yates shuffle to randomly select a subset of elements.
+     *
+     * @param indexResult An IndexResult object containing the data to be sampled
+     * @return An ArrayList<Integer> object containing the indices of the selected elements
      */
     @Override
     public List<Integer> sample(AbstractIndexResult indexResult) {

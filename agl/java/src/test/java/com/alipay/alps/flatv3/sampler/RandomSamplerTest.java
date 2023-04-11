@@ -1,11 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.HashIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.RangeIndex;
 import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
@@ -16,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 public class RandomSamplerTest {
@@ -23,7 +22,7 @@ public class RandomSamplerTest {
     private BaseIndex baseIndex;
     private BaseIndex weightIndex;
     private BaseIndex typeIndex;
-    
+
     @Before
     public void setUp() {
         List<String> ids = new ArrayList<>();
@@ -48,7 +47,7 @@ public class RandomSamplerTest {
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 100000;
-        int [] frequence = new int[10];
+        int[] frequence = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
@@ -71,7 +70,7 @@ public class RandomSamplerTest {
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 100000;
-        int [] frequence = new int[10];
+        int[] frequence = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
@@ -96,7 +95,7 @@ public class RandomSamplerTest {
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 100000;
-        int [] frequence = new int[10];
+        int[] frequence = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
@@ -123,7 +122,7 @@ public class RandomSamplerTest {
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 100000;
-        int [] frequence = new int[10];
+        int[] frequence = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
@@ -133,7 +132,7 @@ public class RandomSamplerTest {
         for (int i = 0; i < 10; i++) {
             double empiricalProb = frequence[i] / (float) numSamples;
             if (i != 0 && i != 5) {
-                assertEquals(3.0F/8, empiricalProb, 0.01);
+                assertEquals(3.0F / 8, empiricalProb, 0.01);
             } else {
                 assertEquals(0, empiricalProb, 0.01);
             }
@@ -150,7 +149,7 @@ public class RandomSamplerTest {
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 100000;
-        int [] frequence = new int[10];
+        int[] frequence = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {
@@ -160,7 +159,7 @@ public class RandomSamplerTest {
         for (int i = 0; i < 10; i++) {
             double empiricalProb = frequence[i] / (float) numSamples;
             if (i != 0 && i != 5) {
-                assertEquals(3.0F/8, empiricalProb, 0.01);
+                assertEquals(3.0F / 8, empiricalProb, 0.01);
             } else {
                 assertEquals(0, empiricalProb, 0.01);
             }
@@ -177,7 +176,7 @@ public class RandomSamplerTest {
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
         int numSamples = 100000;
-        int [] frequence = new int[10];
+        int[] frequence = new int[10];
         for (int i = 0; i < numSamples; i++) {
             List<Integer> neighborIndex = sampler.sample(indexResult);
             for (int index : neighborIndex) {

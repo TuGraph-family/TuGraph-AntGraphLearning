@@ -15,6 +15,7 @@ import java.util.Stack;
 public class ArithmeticCmpWrapper extends AbstractCmpWrapper {
     private static final Logger LOG = LoggerFactory.getLogger(ArithmeticCmpWrapper.class);
     private Boolean hasLowerBound = null;
+
     public ArithmeticCmpWrapper(CmpExp cmpExp) {
         super(cmpExp);
     }
@@ -83,7 +84,7 @@ public class ArithmeticCmpWrapper extends AbstractCmpWrapper {
         boolean resultWithMinIndexVal = eval(fakeVariablesWithMinIndexVal);
         Map<VariableSource, Map<String, Element.Number>> fakeVariablesWithMaxIndexVal = new HashMap<>();
         fakeVariables(this.cmpExp.getLhsRPNList(), Float.MAX_VALUE / 2.0F, fakeVariablesWithMaxIndexVal);
-        fakeVariables(this.cmpExp.getRhsRPNList(), Float.MAX_VALUE/2.0F, fakeVariablesWithMaxIndexVal);
+        fakeVariables(this.cmpExp.getRhsRPNList(), Float.MAX_VALUE / 2.0F, fakeVariablesWithMaxIndexVal);
         boolean resultWithMaxIndexVal = eval(fakeVariablesWithMaxIndexVal);
         if (resultWithMinIndexVal && resultWithMaxIndexVal || (!resultWithMinIndexVal && !resultWithMaxIndexVal)) {
             LOG.error("Absolutely impossible, both values cannot be {}, exp:{}", resultWithMinIndexVal, cmpExp);

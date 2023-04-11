@@ -1,21 +1,16 @@
 package com.alipay.alps.flatv3;
 
-import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.HashIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.RangeIndex;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class PropagateSeedTest {
     private NeighborDataset neighborDataset;
@@ -41,7 +36,7 @@ public class PropagateSeedTest {
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
         for (int i = 0; i < seedIds.size(); i++) {
-            seedAttrs.add(Arrays.asList((i+1) * 1L));
+            seedAttrs.add(Arrays.asList((i + 1) * 1L));
         }
 
         String filterCond = "";
@@ -65,7 +60,7 @@ public class PropagateSeedTest {
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
         for (int i = 0; i < seedIds.size(); i++) {
-            seedAttrs.add(Arrays.asList((i+1) * 1L));
+            seedAttrs.add(Arrays.asList((i + 1) * 1L));
         }
 
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11";
@@ -90,7 +85,7 @@ public class PropagateSeedTest {
         List<List<Object>> seedAttrs = new ArrayList<>();
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         for (int i = 0; i < seedIds.size(); i++) {
-            seedAttrs.add(Arrays.asList((i+1) * 1L));
+            seedAttrs.add(Arrays.asList((i + 1) * 1L));
         }
 
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11 OR index.type in ('item', 'user')";

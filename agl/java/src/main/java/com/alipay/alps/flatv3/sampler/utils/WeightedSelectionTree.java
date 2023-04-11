@@ -7,7 +7,7 @@ import java.util.Random;
  * A class that implements a Weighted Selection Tree, used to select a random element from a given set of elements with different weights.
  */
 public class WeightedSelectionTree {
-     /**
+    /**
      * A class that represents a single node in the Weighted Selection Tree.
      */
     public static class Node {
@@ -18,30 +18,30 @@ public class WeightedSelectionTree {
         private Node left;
         private Node right;
 
-         public int getElement() {
-             return element;
-         }
+        public int getElement() {
+            return element;
+        }
 
-         public float getElementWeight() {
-             return elementWeight;
-         }
+        public float getElementWeight() {
+            return elementWeight;
+        }
 
-         public float getLeftBranchWeight() {
-             return leftBranchWeight;
-         }
+        public float getLeftBranchWeight() {
+            return leftBranchWeight;
+        }
 
-         public float getRightBranchWeight() {
-             return rightBranchWeight;
-         }
+        public float getRightBranchWeight() {
+            return rightBranchWeight;
+        }
 
-         public Node getLeft() {
-             return left;
-         }
+        public Node getLeft() {
+            return left;
+        }
 
-         public Node getRight() {
-             return right;
-         }
-     }
+        public Node getRight() {
+            return right;
+        }
+    }
 
     private Node root = null;
     private Integer removedNode = null;
@@ -82,14 +82,14 @@ public class WeightedSelectionTree {
     public WeightedSelectionTree.Node getRoot() {
         return root;
     }
-    
+
     /**
      * Builds the Weighted Selection Tree from the given list of elements and weights.
      *
      * @param elementIndices The indices of the elements to be included in the tree.
-     * @param left The left index of the element indices.
-     * @param right The right index of the element indices.
-     * @param weights The weights of the elements.
+     * @param left           The left index of the element indices.
+     * @param right          The right index of the element indices.
+     * @param weights        The weights of the elements.
      * @return The root node of the Weighted Selection Tree.
      */
     private Node buildTree(List<Integer> elementIndices, int left, int right, List<Float> weights) {
@@ -100,10 +100,10 @@ public class WeightedSelectionTree {
         Node node = new Node();
         node.element = elementIndices.get(mid);
         node.elementWeight = weights.get(node.element);
-        node.left = buildTree(elementIndices, left, mid-1, weights);
-        node.right = buildTree(elementIndices, mid+1, right, weights);
-        node.leftBranchWeight = node.left == null ? 0.0F : (node.left.leftBranchWeight +  node.left.rightBranchWeight + node.left.elementWeight);
-        node.rightBranchWeight = node.right == null ? 0.0F : (node.right.leftBranchWeight +  node.right.rightBranchWeight + node.right.elementWeight);
+        node.left = buildTree(elementIndices, left, mid - 1, weights);
+        node.right = buildTree(elementIndices, mid + 1, right, weights);
+        node.leftBranchWeight = node.left == null ? 0.0F : (node.left.leftBranchWeight + node.left.rightBranchWeight + node.left.elementWeight);
+        node.rightBranchWeight = node.right == null ? 0.0F : (node.right.leftBranchWeight + node.right.rightBranchWeight + node.right.elementWeight);
         return node;
     }
 

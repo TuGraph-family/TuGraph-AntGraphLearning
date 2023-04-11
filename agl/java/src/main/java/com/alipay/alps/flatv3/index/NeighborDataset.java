@@ -50,12 +50,15 @@ public class NeighborDataset implements Serializable {
         }
         return null;
     }
+
     public List<Float> getFloatAttributeList(String attrName) {
         return floatAttributes != null ? floatAttributes.get(attrName) : null;
     }
+
     public List<Long> getLongAttributeList(String attrName) {
         return longAttributes != null ? longAttributes.get(attrName) : null;
     }
+
     public List<String> getStringAttributeList(String attrName) {
         return stringAttributes != null ? stringAttributes.get(attrName) : null;
     }
@@ -102,18 +105,21 @@ public class NeighborDataset implements Serializable {
             addStringAttributeList(key, (List<String>) values);
         }
     }
+
     private void addFloatAttributeList(String key, List<Float> values) {
         if (floatAttributes == null) {
             floatAttributes = new HashMap<>();
         }
         floatAttributes.put(key, values);
     }
+
     private void addLongAttributeList(String key, List<Long> values) {
         if (longAttributes == null) {
             longAttributes = new HashMap<>();
         }
         longAttributes.put(key, values);
     }
+
     private void addStringAttributeList(String key, List<String> values) {
         if (stringAttributes == null) {
             stringAttributes = new HashMap<>();

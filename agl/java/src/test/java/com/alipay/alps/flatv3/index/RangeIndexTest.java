@@ -1,7 +1,6 @@
 package com.alipay.alps.flatv3.index;
 
 import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
-
 import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.antfin.agl.proto.sampler.CmpExp;
@@ -11,11 +10,12 @@ import com.antfin.agl.proto.sampler.VariableSource;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class RangeIndexTest {
 
@@ -59,6 +59,6 @@ public class RangeIndexTest {
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
         AbstractIndexResult indexResult = rangeIndex.search(new ArithmeticCmpWrapper(cmpExp), inputVariables);
         System.out.println("------indexResult:" + Arrays.toString(indexResult.getIndices().toArray()));
-        assertArrayEquals(Arrays.asList(1,4).toArray(), indexResult.getIndices().toArray());
+        assertArrayEquals(Arrays.asList(1, 4).toArray(), indexResult.getIndices().toArray());
     }
 }

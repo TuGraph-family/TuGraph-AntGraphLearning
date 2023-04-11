@@ -19,10 +19,10 @@ public class BaseIndex implements Serializable {
     private String indexType;
     private String indexColumn;
     private String indexDtype;
+
     /*
-     * indexMeta: index_type:column_name:index_dtype
-     * index_type: hash_index, range_index, hash_range_index
-     * index_dtype: long, float, string
+     * indexType: can be any of [hash_index, range_index]
+     * indexDtype: can be any of [long, float, string]
      */
     public BaseIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
         this.indexType = indexType;
@@ -39,9 +39,11 @@ public class BaseIndex implements Serializable {
     public String getIndexType() {
         return indexType;
     }
+
     public String getIndexColumn() {
         return indexColumn;
     }
+
     public String getIndexDtype() {
         return indexDtype;
     }

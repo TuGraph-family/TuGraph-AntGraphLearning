@@ -1,14 +1,14 @@
 package com.alipay.alps.flatv3.index;
 
-import com.antfin.agl.proto.sampler.LogicExps;
+import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.CmpOp;
 import com.antfin.agl.proto.sampler.Element;
+import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.LogicOp;
 import com.antfin.agl.proto.sampler.VariableSource;
 
@@ -42,7 +42,7 @@ public class Filter {
         return IndexFactory.indexesMap.get(indexColumn);
     }
 
-    /* 
+    /*
      * @param seedValues: values of one seed
      * @return: neighbor indices conforming to the filter condition
      */

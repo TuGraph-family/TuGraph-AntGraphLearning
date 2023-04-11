@@ -1,10 +1,10 @@
 package com.alipay.alps.flatv3.sampler.utils;
 
+import com.alipay.alps.flatv3.index.result.Range;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import com.alipay.alps.flatv3.index.result.Range;
 
 // this class maintains a prefix sum of the weights of the elements in an array,
 // and allows for random selection with replacement of an element based on its weight.
@@ -38,7 +38,7 @@ public class PrefixSumSelection {
         intervalPrefixSum.add(getSummationBetween(sortedIntervals.get(0).getLow(), sortedIntervals.get(0).getHigh()));
         for (int i = 1; i < sortedIntervals.size(); i++) {
             Range range = sortedIntervals.get(i);
-            intervalPrefixSum.add(intervalPrefixSum.get(i-1) + getSummationBetween(range.getLow(), range.getHigh()));
+            intervalPrefixSum.add(intervalPrefixSum.get(i - 1) + getSummationBetween(range.getLow(), range.getHigh()));
         }
     }
 
@@ -48,7 +48,7 @@ public class PrefixSumSelection {
         prefixSum = new ArrayList<>(validIndices.size());
         prefixSum.add(weights.get(validIndices.get(0)));
         for (int i = 1; i < validIndices.size(); i++) {
-            prefixSum.add(prefixSum.get(i-1) + weights.get(validIndices.get(i)));
+            prefixSum.add(prefixSum.get(i - 1) + weights.get(validIndices.get(i)));
         }
         intervalPrefixSum = new ArrayList<>(sortedIntervals.size());
         intervalPrefixSum.add(prefixSum.get(validIndices.size() - 1));
@@ -69,10 +69,11 @@ public class PrefixSumSelection {
 
     /**
      * Finds the lower bound of the index result.
+     *
      * @param prefixSum the prefixSum array
-     * @param l the left bound
-     * @param r the right bound
-     * @param weight the weight to find the lower bound
+     * @param l         the left bound
+     * @param r         the right bound
+     * @param weight    the weight to find the lower bound
      * @return An integer representing the lower bound of the index result.
      */
     private int lowerBound(List<Float> prefixSum, int l, int r, Float weight) {

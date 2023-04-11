@@ -25,7 +25,7 @@ public class FilterExpressionParserTest {
         Assert.assertEquals(expOps.size(), 1);
         Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.NOT_IN);
     }
-    
+
     @Test
     public void testTimeStampRangeFilter() {
         String filterCond = "INDEX.TIME - SEED.1 >= 0.5 AND INDEX.TIME <= SEED.1 + 11";

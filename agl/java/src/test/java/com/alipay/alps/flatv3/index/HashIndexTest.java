@@ -8,11 +8,13 @@ import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.VariableSource;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.Assert.assertArrayEquals;
 
 public class HashIndexTest {
     @Test

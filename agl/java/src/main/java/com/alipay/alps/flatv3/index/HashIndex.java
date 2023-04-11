@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
+import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
@@ -10,12 +10,13 @@ import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class HashIndex extends BaseIndex {
     private Map<String, Range> typeRanges;
+
     public HashIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
         super(indexType, indexColumn, indexDtype, neighborDataset);
     }
@@ -48,7 +49,7 @@ public class HashIndex extends BaseIndex {
 
     @Override
     public AbstractIndexResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
-        List<Range> ranges = searchType((CategoryCmpWrapper)cmpExpWrapper, inputVariables);
+        List<Range> ranges = searchType((CategoryCmpWrapper) cmpExpWrapper, inputVariables);
         RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
         return rangeIndexResult;
     }
