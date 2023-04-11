@@ -14,9 +14,9 @@ import java.util.PriorityQueue;
 /**
  * TopKSampler is a class extending Sampler class.
  * It is used to get the top K elements from a given set of data that meets a given condition.
- * It has a PriorityQueue to store the top K elements and a Comparator to compare two pairs of keys and values.
+ * It has a PriorityQueue to store the top K elements and a comparator.
  * The sample() method is overridden to find the top K elements from the given data.
- * The factor attribute is used to determine the order of the elements in the PriorityQueue.
+ * The isReverse attribute is used to determine the order of the elements in the PriorityQueue.
  */
 public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     private List<T> weights = null;
@@ -29,11 +29,11 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     }
 
     private void setupPriorityQueue(SampleCondition sampleCondition) {
-        int factor = sampleCondition.isReverse() ? -1 : 1;
+        int isReverse = sampleCondition.isReverse() ? -1 : 1;
         comparator = new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
-                return weights.get(o1).compareTo(weights.get(o2)) * factor;
+                return weights.get(o1).compareTo(weights.get(o2)) * isReverse;
             }
         };
         priorityQueue = new PriorityQueue<>(sampleCondition.getLimit(), comparator);

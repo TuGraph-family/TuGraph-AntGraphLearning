@@ -21,7 +21,7 @@ public class NeighborDataset implements Serializable {
         return this.neighborCount;
     }
 
-    public <T extends Comparable<T>> List<T> copyAndShuffle(int[] originIndex, String key) {
+    public <T extends Comparable<T>> List<T> deepCopyAndReIndex(int[] originIndex, String key) {
         int neighborCount = getNeighborCount();
         int shuffleIndex[] = new int[neighborCount];
         for (int i = 0; i < neighborCount; i++) {
@@ -63,7 +63,7 @@ public class NeighborDataset implements Serializable {
         return stringAttributes != null ? stringAttributes.get(attrName) : null;
     }
 
-    public <T extends Comparable<T>> List<T> copyAttributeList(String key) {
+    public <T extends Comparable<T>> List<T> deepCopyAttributeList(String key) {
         if (floatAttributes != null && floatAttributes.containsKey(key)) {
             return (List<T>) new ArrayList<>(floatAttributes.get(key));
         } else if (longAttributes != null && longAttributes.containsKey(key)) {

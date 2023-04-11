@@ -118,7 +118,7 @@ public class WeightedSampler extends AbstractSampler {
             if (originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {
                 sortedWeights = ((RangeIndex) (indexResult.getIndex())).getSortedWeights();
             } else {
-                sortedWeights = getNeighborDataset().copyAndShuffle(originIndices, getSampleCondition().getKey());
+                sortedWeights = getNeighborDataset().deepCopyAndReIndex(originIndices, getSampleCondition().getKey());
             }
             prefixSumSelection = new PrefixSumSelection(((RangeIndexResult) indexResult).getRangeList(), originIndices, computePrefixSum(sortedWeights), getRand());
         } else {

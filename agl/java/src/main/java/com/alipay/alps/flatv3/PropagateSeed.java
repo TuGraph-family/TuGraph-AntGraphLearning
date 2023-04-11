@@ -21,7 +21,7 @@ public class PropagateSeed {
      * Constructor of PropagateSeed.
      * @param otherOutputSchema: schema of output, e.g. "id:STRING,age:INT", which is used to
      *                           build the index for neighbor table.
-     * @param indexesMap:        a map of indexName -> index.
+     * @param indexMetas:        a list of indexMetas.
      * @param filterCond:        a filter condition, e.g. "age>=18 and age<=35".
      * @param sampleCond:        a sample condition, e.g. "topk(by=time, limit=5)".
      */

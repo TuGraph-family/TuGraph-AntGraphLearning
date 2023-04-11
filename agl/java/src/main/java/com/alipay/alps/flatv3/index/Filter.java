@@ -21,8 +21,10 @@ public class Filter {
     private LogicExps logicExps = null;
 
     /*
-     * @param indexMetas: index metas, it may contain multiple indexes
+     * Construct a filter.
+     * @param indexMetas: a list of index metas, it will introduce multiple indexes
      * @param filterCond: filter condition
+     * @param neighborDataset: neighbor dataset
      */
     public Filter(List<String> indexMetas, String filterCond, NeighborDataset neighborDataset) throws Exception {
         if (indexMetas == null || indexMetas.size() == 0) {
@@ -60,7 +62,7 @@ public class Filter {
             }
         }
         inputVariables.put(VariableSource.SEED, seedVariableMap);
-        // in case of empty filter condition, we are using the base_index, null is the index column
+        // in case of empty filter condition, we are using the base_index, NO_FILTER is the index column
         if (logicExps.getExpRPNCount() == 0) {
             return getIndex(IndexFactory.NO_FILTER).search(null, inputVariables);
         }

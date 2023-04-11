@@ -25,6 +25,8 @@ public class IndexFactory {
         indexesMap.clear();
     }
 
+    // if indexColumn can be found in indexesMap, return the index
+    // else create a new index, update indexesMap and return the index
     private static BaseIndex getOrCreate(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
         if (indexesMap.containsKey(indexColumn)) {
             BaseIndex index = indexesMap.get(indexColumn);

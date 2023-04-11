@@ -26,7 +26,7 @@ public class RangeIndex extends BaseIndex {
     @Override
     public int[] buildIndex() {
         String indexColumn = getIndexColumn();
-        sortedWeights = neighborDataset.copyAttributeList(indexColumn);
+        sortedWeights = neighborDataset.deepCopyAttributeList(indexColumn);
         originIndices = super.buildIndex();
         quicksort(originIndices, sortedWeights, 0, sortedWeights.size() - 1);
         return originIndices;
@@ -113,15 +113,13 @@ public class RangeIndex extends BaseIndex {
                 rangeLE.join(rangeGE);
                 return rangeLE;
             }
-            // will return two ranges: [0, range.key-1] [range.value+1, size-1]
+            // TODO: return two ranges: [0, range.key-1] [range.value+1, size-1]
             throw new Exception("!= not implemented");
         }
         return binarySearchInequation(arithCmpWrapper, inputVariables);
     }
 
-    // arithCmpWrapper: index.time  < seed.1 + 2
-    // inputVariables: seed.1 = 2; index.time = list<float/xxx>
-    // 
+    // binary search for a range of values that satisfy the inequality
     private Range binarySearchInequation(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
         String indexColumn = arithCmpWrapper.getIndexColumn(); // index.time
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
