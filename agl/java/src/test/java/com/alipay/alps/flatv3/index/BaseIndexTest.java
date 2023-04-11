@@ -26,7 +26,7 @@ public class BaseIndexTest {
 
     @Test
     public void testBuildIndex() {
-        HashIndex baseIndex = new HashIndex("hash_index:attr1:string", neighborDataset);
+        BaseIndex baseIndex = IndexFactory.createIndex("hash_index:attr1:string", neighborDataset);
         assertEquals("hash_index", baseIndex.getIndexType());
         assertEquals("attr1", baseIndex.getIndexColumn());
         assertEquals("string", baseIndex.getIndexDtype());
@@ -34,7 +34,7 @@ public class BaseIndexTest {
 
     @Test
     public void testGetters() {
-        RangeIndex baseIndex = new RangeIndex("range_index:attr2:float", neighborDataset);
+        BaseIndex baseIndex = IndexFactory.createIndex("range_index:attr2:float", neighborDataset);
         assertEquals("range_index", baseIndex.getIndexType());
         assertEquals("attr2", baseIndex.getIndexColumn());
         assertEquals("float", baseIndex.getIndexDtype());
@@ -42,7 +42,7 @@ public class BaseIndexTest {
 
     @Test
     public void testGetDtype() {
-        BaseIndex baseIndex = new RangeIndex("range_index:attr2:float", neighborDataset);
+        BaseIndex baseIndex = IndexFactory.createIndex("range_index:attr2:float", neighborDataset);
         assertEquals("string", baseIndex.getDtype("attr1"));
         assertEquals("float", baseIndex.getDtype("attr2"));
         assertEquals("long", baseIndex.getDtype("attr3"));
@@ -51,7 +51,7 @@ public class BaseIndexTest {
     // test for a case with empty indexMeta and no filter conditions
     @Test
     public void testGetIndexResultWithEmptyIndexMetaAndNOFilter() throws Exception {
-        BaseIndex baseIndex = new BaseIndex("", neighborDataset);
+        BaseIndex baseIndex = IndexFactory.createIndex("", neighborDataset);
         AbstractIndexResult indexResult = baseIndex.search(null, null);
         assertEquals(4, indexResult.getSize());
         assertArrayEquals(originIndex, indexResult.getIndices().toArray());

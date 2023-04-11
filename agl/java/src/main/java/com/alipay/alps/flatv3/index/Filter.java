@@ -3,7 +3,7 @@ package com.alipay.alps.flatv3.index;
 import com.antfin.agl.proto.sampler.LogicExps;
 import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.AbstactCmpWrapper;
+import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.antfin.agl.proto.sampler.CmpExp;
@@ -19,15 +19,27 @@ import java.util.Stack;
 
 public class Filter {
     private LogicExps logicExps = null;
-    private Map<String, BaseIndex> indexesMap = null;
 
     /*
-     * @param indexesMap: indexName -> index
+     * @param indexMetas: index metas, it may contain multiple indexes
      * @param filterCond: filter condition
      */
-    public Filter(Map<String, BaseIndex> indexesMap, String filterCond) {
-        this.indexesMap = indexesMap;
-        logicExps = new FilterConditionParser().parseFilterCondition(filterCond);
+    public Filter(List<String> indexMetas, String filterCond, NeighborDataset neighborDataset) throws Exception {
+        if (indexMetas == null || indexMetas.size() == 0) {
+            IndexFactory.createIndex("", neighborDataset);
+        } else {
+            for (String indexMeta : indexMetas) {
+                IndexFactory.createIndex(indexMeta, neighborDataset);
+            }
+        }
+        logicExps = FilterConditionParser.parseFilterCondition(filterCond);
+    }
+
+    private BaseIndex getIndex(String indexColumn) {
+        if (!IndexFactory.indexesMap.containsKey(indexColumn)) {
+            throw new RuntimeException("Index not found: " + indexColumn);
+        }
+        return IndexFactory.indexesMap.get(indexColumn);
     }
 
     /* 
@@ -48,8 +60,9 @@ public class Filter {
             }
         }
         inputVariables.put(VariableSource.SEED, seedVariableMap);
+        // in case of empty filter condition, we are using the base_index, null is the index column
         if (logicExps.getExpRPNCount() == 0) {
-            return indexesMap.get(null).search(null, inputVariables);
+            return getIndex(IndexFactory.NO_FILTER).search(null, inputVariables);
         }
         Stack<AbstractIndexResult> indexResultStack = new Stack<>();
         for (int i = 0; i < logicExps.getExpRPNCount(); i++) {
@@ -66,10 +79,10 @@ public class Filter {
                 }
             } else {
                 CmpExp cmpExp = expOrOp.getExp();
-                AbstactCmpWrapper expWrapper = (cmpExp.getOp() == CmpOp.IN || cmpExp.getOp() == CmpOp.NOT_IN) ?
+                AbstractCmpWrapper expWrapper = (cmpExp.getOp() == CmpOp.IN || cmpExp.getOp() == CmpOp.NOT_IN) ?
                         new CategoryCmpWrapper(cmpExp) : new ArithmeticCmpWrapper(cmpExp);
                 String indexColumn = expWrapper.getIndexColumn();
-                BaseIndex index = indexesMap.get(indexColumn);
+                BaseIndex index = getIndex(indexColumn);
                 indexResult = index.search(expWrapper, inputVariables);
             }
             indexResultStack.add(indexResult);

@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import java.util.Arrays;
 
 public class FilterConditionParser {
-    public LogicExps parseFilterCondition(String filterCond) {
+    public static LogicExps parseFilterCondition(String filterCond) {
         LogicExps logicExps = null;
         try {
             // if filterCond is empty string, return an empty LogicExps
@@ -23,7 +23,7 @@ public class FilterConditionParser {
             FilterConditionVisitor visitor = new FilterConditionVisitor();
             logicExps = visitor.visit(parser.start()).build();
         } catch (Throwable e) {
-            throw new RuntimeException("filter syntax error. filter input:"+ filterCond +"\n error:" + Arrays.toString(e.getStackTrace()));
+            throw new RuntimeException("filter syntax error. filter input:" + filterCond + "\n error:" + Arrays.toString(e.getStackTrace()));
         }
         return logicExps;
     }

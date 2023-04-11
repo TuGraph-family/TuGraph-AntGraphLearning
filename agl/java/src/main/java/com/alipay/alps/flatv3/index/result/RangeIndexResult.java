@@ -92,7 +92,7 @@ public class RangeIndexResult extends AbstractIndexResult {
     @Override
     public List<Integer> getIndices() {
         List<Integer> ans = new ArrayList<>();
-        Integer[] originIndex = getIndex().getOriginIndices();
+        int[] originIndex = getIndex().getOriginIndices();
         for (Range p : sortedIntervals) {
             for (int i = p.getLow(); i <= p.getHigh(); i++) {
                 ans.add(originIndex[i]);
@@ -103,7 +103,7 @@ public class RangeIndexResult extends AbstractIndexResult {
 
     @Override
     public int getOriginIndex(int i) {
-        Integer[] originIndex = getIndex().getOriginIndices();
+        int[] originIndex = getIndex().getOriginIndices();
         return originIndex[i];
     }
 

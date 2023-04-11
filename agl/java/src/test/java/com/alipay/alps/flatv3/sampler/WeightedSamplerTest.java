@@ -1,5 +1,6 @@
 package com.alipay.alps.flatv3.sampler;
 
+import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
@@ -18,24 +19,21 @@ import static org.junit.Assert.assertEquals;
 
 public class WeightedSamplerTest {
     private BaseIndex baseIndex;
-    private HashIndex typeIndex;
-    private RangeIndex weightIndex;
+    private BaseIndex typeIndex;
+    private BaseIndex weightIndex;
     private NeighborDataset neighborDataset;
     List<Float> weights = Arrays.asList(1.0F, 2.0F, 3.0F, 4.0F, 5.0F, 6.0F, 7.0F, 8.0F, 9.0F, 10.0F);
 
     @Before
     public void setUp() {
         List<String> ids = Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
-        List<Long> times = Arrays.asList(100L, 99L, 98L, 97L, 96L, 95L, 94L, 93L, 92L, 91L);
         List<String> types = Arrays.asList("item", "shop", "user", "item", "user", "item", "shop", "user", "item", "user");
         neighborDataset = new NeighborDataset(ids.size());
         neighborDataset.addAttributeList("weight", weights);
-        neighborDataset.addAttributeList("time", times);
         neighborDataset.addAttributeList("type", types);
-        baseIndex = new BaseIndex("", neighborDataset);
-        typeIndex = new HashIndex("range_index:type:string", neighborDataset);
-        new RangeIndex("range_index:time:long", neighborDataset);
-        weightIndex = new RangeIndex("range_index:weight:float", neighborDataset);
+        baseIndex = IndexFactory.createIndex("", neighborDataset);
+        typeIndex = IndexFactory.createIndex("range_index:type:string", neighborDataset);
+        weightIndex = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
     }
 
     @Test

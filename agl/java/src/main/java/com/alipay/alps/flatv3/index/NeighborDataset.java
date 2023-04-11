@@ -20,7 +20,8 @@ public class NeighborDataset implements Serializable {
     public int getNeighborCount() {
         return this.neighborCount;
     }
-    public <T extends Comparable<T>> List<T> copyAndShuffle(Integer[] originIndex, String key) {
+
+    public <T extends Comparable<T>> List<T> copyAndShuffle(int[] originIndex, String key) {
         int neighborCount = getNeighborCount();
         int shuffleIndex[] = new int[neighborCount];
         for (int i = 0; i < neighborCount; i++) {
@@ -58,6 +59,18 @@ public class NeighborDataset implements Serializable {
     public List<String> getStringAttributeList(String attrName) {
         return stringAttributes != null ? stringAttributes.get(attrName) : null;
     }
+
+    public <T extends Comparable<T>> List<T> copyAttributeList(String key) {
+        if (floatAttributes != null && floatAttributes.containsKey(key)) {
+            return (List<T>) new ArrayList<>(floatAttributes.get(key));
+        } else if (longAttributes != null && longAttributes.containsKey(key)) {
+            return (List<T>) new ArrayList<>(longAttributes.get(key));
+        } else if (stringAttributes != null && stringAttributes.containsKey(key)) {
+            return (List<T>) new ArrayList<>(stringAttributes.get(key));
+        }
+        return null;
+    }
+
     public <T extends Comparable<T>> List<T> getAttributeList(String key) {
         if (floatAttributes != null && floatAttributes.containsKey(key)) {
             return (List<T>) floatAttributes.get(key);

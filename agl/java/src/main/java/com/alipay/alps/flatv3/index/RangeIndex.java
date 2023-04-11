@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.index;
 
 import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.AbstactCmpWrapper;
+import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
@@ -12,6 +12,7 @@ import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -19,16 +20,17 @@ import java.util.Map;
 
 public class RangeIndex extends BaseIndex {
     private List sortedWeights;
-    public RangeIndex(String indexMeta, NeighborDataset neighborDataset) {
-        super(indexMeta, neighborDataset);
+    public RangeIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
+        super(indexType, indexColumn, indexDtype, neighborDataset);
     }
 
     @Override
-    public void buildIndex() {
+    public int[] buildIndex() {
         String indexColumn = getIndexColumn();
-        List<Comparable> attributes = neighborDataset.getAttributeList(indexColumn);
-        originIndices = sortBy(attributes);
-        sortedWeights = neighborDataset.copyAndShuffle(originIndices, indexColumn);
+        sortedWeights = neighborDataset.copyAttributeList(indexColumn);
+        originIndices = super.buildIndex();
+        quicksort(originIndices, sortedWeights, 0, sortedWeights.size() - 1);
+        return originIndices;
     }
 
     public List getSortedWeights() {
@@ -36,29 +38,43 @@ public class RangeIndex extends BaseIndex {
     }
 
     @Override
-    public AbstractIndexResult search(AbstactCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    public AbstractIndexResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
         Range range = binarySearch((ArithmeticCmpWrapper)cmpExpWrapper, inputVariables);
         List<Range> ranges = new ArrayList<>();
-        ranges.add(range);
+        if (range.getSize() > 0) {
+            ranges.add(range);
+        }
         RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
         return rangeIndexResult;
     }
 
-    private <T extends Comparable<T>> Integer[] sortBy(List<T> datas) {
-        Integer[] index = new Integer[datas.size()];
-        for (int i = 0; i < datas.size(); i++) {
-            index[i] = i;
+    public static void quicksort(int[] indices, List<Comparable> weights, int left, int right) {
+        if (left < right) {
+            int pivotIndex = partition(indices, weights, left, right);
+            quicksort(indices, weights, left, pivotIndex - 1);
+            quicksort(indices, weights, pivotIndex + 1, right);
         }
-        Arrays.sort(index, new Comparator<Integer>() {
-            public int compare(Integer i1, Integer i2) {
-                return datas.get(i1).compareTo(datas.get(i2));
-            }
-        });
-        return index;
     }
 
-    public Integer[] getOriginIndex() {
-        return originIndices;
+    private static int partition(int[] indices, List<Comparable> weights, int left, int right) {
+        Comparable pivotWeight = weights.get(right);
+        int i = left - 1;
+        for (int j = left; j < right; j++) {
+            if (weights.get(j).compareTo(pivotWeight) < 0) {
+                i++;
+                swap(indices, i, j);
+                Collections.swap(weights, i, j);
+            }
+        }
+        swap(indices, i + 1, right);
+        Collections.swap(weights, i + 1, right);
+        return i + 1;
+    }
+
+    private static void swap(int[] array, int i, int j) {
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
     }
     
     private <T> int lowerBound(List<T> nums, java.util.function.Function<T, Boolean> f) {

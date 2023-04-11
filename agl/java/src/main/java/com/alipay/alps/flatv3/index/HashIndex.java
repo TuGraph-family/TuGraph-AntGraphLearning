@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.index;
 
 import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.AbstactCmpWrapper;
+import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.result.Range;
 import com.alipay.alps.flatv3.index.result.RangeIndexResult;
@@ -16,12 +16,12 @@ import java.util.TreeMap;
 
 public class HashIndex extends BaseIndex {
     private Map<String, Range> typeRanges;
-    public HashIndex(String indexMeta, NeighborDataset neighborDataset) {
-        super(indexMeta, neighborDataset);
+    public HashIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
+        super(indexType, indexColumn, indexDtype, neighborDataset);
     }
 
     @Override
-    protected void buildIndex() {
+    protected int[] buildIndex() {
         Map<String, List<Integer>> typeIndexes = new TreeMap<>();
         List<String> types = neighborDataset.getAttributeList(getIndexColumn());
         for (int i = 0; i < types.size(); i++) {
@@ -31,7 +31,7 @@ public class HashIndex extends BaseIndex {
             }
             typeIndexes.get(type).add(i);
         }
-        originIndices = new Integer[types.size()];
+        originIndices = new int[types.size()];
         this.typeRanges = new HashMap<>();
         int count = 0;
         for (String type : typeIndexes.keySet()) {
@@ -43,10 +43,11 @@ public class HashIndex extends BaseIndex {
             range.setHigh(count - 1);
             this.typeRanges.put(type, range);
         }
+        return originIndices;
     }
 
     @Override
-    public AbstractIndexResult search(AbstactCmpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
+    public AbstractIndexResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
         List<Range> ranges = searchType((CategoryCmpWrapper)cmpExpWrapper, inputVariables);
         RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
         return rangeIndexResult;

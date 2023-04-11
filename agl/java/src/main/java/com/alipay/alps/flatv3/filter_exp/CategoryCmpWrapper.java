@@ -6,10 +6,10 @@ import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
-public class CategoryCmpWrapper extends AbstactCmpWrapper {
+public class CategoryCmpWrapper extends AbstractCmpWrapper {
     public CategoryCmpWrapper(CmpExp cmpExp) {
         super(cmpExp);
     }
@@ -28,7 +28,7 @@ public class CategoryCmpWrapper extends AbstactCmpWrapper {
         }
     }
 
-
+    // TODO: support more types, like long, etc.
     public String getStringValue(Element element, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
         if (element.getSymbolCase() == Element.SymbolCase.NUM) {
             return element.getNum().getS();

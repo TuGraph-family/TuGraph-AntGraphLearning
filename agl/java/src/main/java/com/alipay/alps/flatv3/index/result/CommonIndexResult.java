@@ -9,11 +9,12 @@ import java.util.Set;
 
 public class CommonIndexResult extends AbstractIndexResult {
     private List<Integer> indices = null;
+
     public CommonIndexResult(BaseIndex index, List<Integer> sortedIndices) {
         super(index);
         this.indices = sortedIndices;
     }
-    
+
     public static List<Integer> joinList(List<Integer> sortedList1, List<Integer> sortedList2) {
         Set<Integer> joinedList = new HashSet<>(sortedList1);
         joinedList.retainAll(new HashSet<>(sortedList2));

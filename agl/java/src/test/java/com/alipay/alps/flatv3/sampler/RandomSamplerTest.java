@@ -2,6 +2,7 @@ package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HashIndex;
+import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
 import com.alipay.alps.flatv3.index.RangeIndex;
@@ -20,8 +21,9 @@ import static org.junit.Assert.assertEquals;
 public class RandomSamplerTest {
     private NeighborDataset neighborDataset;
     private BaseIndex baseIndex;
-    private RangeIndex weightIndex;
+    private BaseIndex weightIndex;
     private BaseIndex typeIndex;
+    
     @Before
     public void setUp() {
         List<String> ids = new ArrayList<>();
@@ -34,9 +36,9 @@ public class RandomSamplerTest {
         neighborDataset.addAttributeList("weight", weight);
         List<String> typeList = Arrays.asList("item", "shop", "user", "item", "user", "item", "shop", "user", "item", "user");
         neighborDataset.addAttributeList("node_type", typeList);
-        baseIndex = new BaseIndex("", neighborDataset);
-        weightIndex = new RangeIndex("range_index:weight:float", neighborDataset);
-        typeIndex = new HashIndex("hash_index:node_type:string", neighborDataset);
+        baseIndex = IndexFactory.createIndex("", neighborDataset);
+        weightIndex = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
+        typeIndex = IndexFactory.createIndex("hash_index:node_type:string", neighborDataset);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.alipay.alps.flatv3;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HashIndex;
+import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.RangeIndex;
 
@@ -37,10 +38,6 @@ public class PropagateSeedTest {
 
     @Test
     public void testNoFilterTopkSampler() throws Exception {
-        RangeIndex weightIndex = new RangeIndex("", neighborDataset);
-        Map<String, BaseIndex> indexes = new HashMap<>();
-        indexes.put(weightIndex.getIndexColumn(), weightIndex);
-
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
         for (int i = 0; i < seedIds.size(); i++) {
@@ -49,22 +46,21 @@ public class PropagateSeedTest {
 
         String filterCond = "";
         String sampleCond = "topk(by=time, limit=2)";
-        PropagateSeed propagateSeed = new PropagateSeed("", indexes, neighborDataset, filterCond, sampleCond);
+        PropagateSeed propagateSeed = new PropagateSeed("", null, neighborDataset, filterCond, sampleCond);
         List<List<Integer>> result = propagateSeed.process(seedIds, seedAttrs, null, null);
         List<List<Integer>> expected = new ArrayList<>(seedIds.size());
-        expected.add(Arrays.asList(1, 2));
-        expected.add(Arrays.asList(2, 3));
-        expected.add(Arrays.asList(2, 3));
-        expected.add(Arrays.asList(3, 4));
-        expected.add(Arrays.asList(3, 4));
-        assertEquals(result, expected);
+        expected.add(Arrays.asList(0, 1));
+        expected.add(Arrays.asList(0, 1));
+        expected.add(Arrays.asList(0, 1));
+        expected.add(Arrays.asList(0, 1));
+        expected.add(Arrays.asList(0, 1));
+        assertEquals(expected, result);
     }
 
     @Test
     public void testRangeFilterTopkSampler() throws Exception {
-        RangeIndex weightIndex = new RangeIndex("range_index:time:long", neighborDataset);
-        Map<String, BaseIndex> indexes = new HashMap<>();
-        indexes.put(weightIndex.getIndexColumn(), weightIndex);
+        List<String> indexMetas = new ArrayList<>();
+        indexMetas.add("range_index:time:long");
 
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
@@ -74,7 +70,7 @@ public class PropagateSeedTest {
 
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11";
         String sampleCond = "topk(by=time, limit=2)";
-        PropagateSeed propagateSeed = new PropagateSeed("", indexes, neighborDataset, filterCond, sampleCond);
+        PropagateSeed propagateSeed = new PropagateSeed("", indexMetas, neighborDataset, filterCond, sampleCond);
         List<List<Integer>> result = propagateSeed.process(seedIds, seedAttrs, null, null);
         List<List<Integer>> expected = new ArrayList<>(seedIds.size());
         expected.add(Arrays.asList(1, 2));
@@ -87,23 +83,28 @@ public class PropagateSeedTest {
 
     @Test
     public void testRangeTypeFilterTopkSampler() throws Exception {
-        BaseIndex timeIndex = new RangeIndex("range_index:time:long", neighborDataset);
-        BaseIndex typeIndex = new HashIndex("hash_index:type:string", neighborDataset);
-        Map<String, BaseIndex> indexes = new HashMap<>();
-        indexes.put(timeIndex.getIndexColumn(), timeIndex);
-        indexes.put(typeIndex.getIndexColumn(), typeIndex);
+        List<String> indexMetas = new ArrayList<>();
+        indexMetas.add("range_index:time:long");
+        indexMetas.add("hash_index:type:string");
 
-        List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         List<List<Object>> seedAttrs = new ArrayList<>();
+        List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         for (int i = 0; i < seedIds.size(); i++) {
             seedAttrs.add(Arrays.asList((i+1) * 1L));
         }
 
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11 OR index.type in ('item', 'user')";
         String sampleCond = "topk(by=time, limit=3)";
-        PropagateSeed propagateSeed = new PropagateSeed("", indexes, neighborDataset, filterCond, sampleCond);
+        PropagateSeed propagateSeed = new PropagateSeed("", indexMetas, neighborDataset, filterCond, sampleCond);
         List<List<Integer>> result = propagateSeed.process(seedIds, seedAttrs, null, null);
-
+        List<List<String>> chosenNeighbors = new ArrayList<>();
+        for (List<Integer> neighborsOfSeed : result) {
+            List<String> neighborIds = new ArrayList<>();
+            for (Integer neighborIdx : neighborsOfSeed) {
+                neighborIds.add(ids.get(neighborIdx));
+            }
+            chosenNeighbors.add(neighborIds);
+        }
         Collections.shuffle(indices);
         for (int i = 0; i < 10; i++) {
             while (indices.get(i) != i) {
@@ -115,15 +116,25 @@ public class PropagateSeedTest {
             }
         }
         NeighborDataset newNeighborDataset = new NeighborDataset(ids.size());
-        newNeighborDataset.addAttributeList("time", times);
-        newNeighborDataset.addAttributeList("type", types);
-        BaseIndex newTimeIndex = new RangeIndex("range_index:time:long", newNeighborDataset);
-        BaseIndex newTypeIndex = new HashIndex("hash_index:type:string", newNeighborDataset);
-        Map<String, BaseIndex> newIndexes = new HashMap<>();
-        newIndexes.put(newTimeIndex.getIndexColumn(), newTimeIndex);
-        newIndexes.put(newTypeIndex.getIndexColumn(), newTypeIndex);
-        PropagateSeed newPropagateSeed = new PropagateSeed("", newIndexes, newNeighborDataset, filterCond, sampleCond);
+        newNeighborDataset.addAttributeList("new_time", times);
+        newNeighborDataset.addAttributeList("new_type", types);
+
+        String newFilterCond = "index.new_time - seed.1 >= 0.5 AND index.new_time <= seed.1 + 11 OR index.new_type in ('item', 'user')";
+        String newSampleCond = "topk(by=new_time, limit=3)";
+        List<String> newIndexMetas = new ArrayList<>();
+        newIndexMetas.add("range_index:new_time:long");
+        newIndexMetas.add("hash_index:new_type:string");
+        IndexFactory.clear();
+        PropagateSeed newPropagateSeed = new PropagateSeed("", newIndexMetas, newNeighborDataset, newFilterCond, newSampleCond);
         List<List<Integer>> newResult = newPropagateSeed.process(seedIds, seedAttrs, null, null);
-        assertEquals(result, newResult);
+        List<List<String>> newChosenNeighbors = new ArrayList<>();
+        for (List<Integer> neighborsOfSeed : newResult) {
+            List<String> neighborIds = new ArrayList<>();
+            for (Integer neighborIdx : neighborsOfSeed) {
+                neighborIds.add(ids.get(neighborIdx));
+            }
+            newChosenNeighbors.add(neighborIds);
+        }
+        assertEquals(chosenNeighbors, newChosenNeighbors);
     }
 }

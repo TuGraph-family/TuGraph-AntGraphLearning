@@ -26,12 +26,11 @@ public class HashIndexTest {
         neighborDataset.addAttributeList("node_type", typeList);
 
         // Create a hash index
-        HashIndex hashIndex = new HashIndex("hash_index:node_type:string", neighborDataset);
+        BaseIndex hashIndex = IndexFactory.createIndex("hash_index:node_type:string", neighborDataset);
 
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         String filterCond = "index.node_type in (user, shop)";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
         AbstractIndexResult indexResult = hashIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables);
         assertArrayEquals(Arrays.asList(1, 2, 4).toArray(), indexResult.getIndices().toArray());

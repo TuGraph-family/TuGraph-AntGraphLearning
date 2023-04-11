@@ -15,8 +15,7 @@ public class CompareExpTest {
     @Test
     public void testEvalEqualExp() {
         String filterCond = "index.time - (seed.1 - seed.2 * seed.3) / index.time2 == 94.6";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
@@ -35,8 +34,7 @@ public class CompareExpTest {
    @Test
    public void testEvalLargerThanExp() {
        String filterCond = "index.time - seed.1 / index.time2 >=  10 * seed.2";
-       FilterConditionParser filterConditionParser = new FilterConditionParser();
-       LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+       LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
        CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
        Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
        Map<String, Element.Number> indexVariableMap = new HashMap<>();
@@ -54,8 +52,7 @@ public class CompareExpTest {
    @Test
    public void testEvalTypeEqualExp() {
        String filterCond = "index.type = seed.1";
-       FilterConditionParser filterConditionParser = new FilterConditionParser();
-       LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+       LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
        CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
        Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
        Map<String, Element.Number> indexVariableMap = new HashMap<>();
@@ -64,15 +61,14 @@ public class CompareExpTest {
        Map<String, Element.Number> seedVariableMap = new HashMap<>();
        seedVariableMap.put("1", Element.Number.newBuilder().setS("item").build());
        inputVariables.put(VariableSource.SEED, seedVariableMap);
-       boolean result = new ArithmeticCmpWrapper(cmpExp).eval(inputVariables);
+       boolean result = new CategoryCmpWrapper(cmpExp).eval(inputVariables);
        Assert.assertTrue(result);
    }
 
    @Test
    public void testEvalInCategoryExp() {
        String filterCond = "seed.1 in (user, item)";
-       FilterConditionParser filterConditionParser = new FilterConditionParser();
-       LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+       LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
        CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
        Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
        Map<String, Element.Number> seedVariableMap = new HashMap<>();
@@ -91,8 +87,7 @@ public class CompareExpTest {
    @Test
    public void testEvalNotInCategoryExp() {
        String filterCond = "seed.1 not in (user, item)";
-       FilterConditionParser filterConditionParser = new FilterConditionParser();
-       LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+       LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
        CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
        Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
        Map<String, Element.Number> seedVariableMap = new HashMap<>();

@@ -19,15 +19,6 @@ import java.util.PriorityQueue;
  The factor attribute is used to determine the order of the elements in the PriorityQueue.
  */
 public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
-    // public static class Node<T extends Comparable<T>> {
-    //     int index;
-    //     T weight;
-
-    //     public Node(int index, T weight) {
-    //         this.index = index;
-    //         this.weight = weight;
-    //     }
-    // }
     private List<T> weights = null;
     private PriorityQueue<Integer> priorityQueue = null;
     private Comparator<Integer> comparator = null;
@@ -51,11 +42,6 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     @Override
     public List<Integer> sample(AbstractIndexResult indexResult) {
         int sampleCount = this.getSampleCondition().getLimit();
-        int candidateCount = indexResult.getSize();
-        if (candidateCount <= sampleCount) {
-            return indexResult.getIndices();
-        }
-
         ArrayList<Integer> sampledIndex = new ArrayList<>();
         String originIndexColumn = indexResult.getIndex().getIndexColumn();
         if (indexResult instanceof RangeIndexResult && originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {
@@ -111,7 +97,7 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
             for (int idx : indexResult.getIndices()) {
                 priorityQueue.add(idx);
             }
-            for (int i = 0; i < sampleCount; i++) {
+            for (int i = 0; i < sampleCount && !priorityQueue.isEmpty(); i++) {
                 sampledIndex.add(priorityQueue.poll());
             }
             if (originIndexColumn == null && cachedIndex == null) {

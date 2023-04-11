@@ -11,10 +11,11 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstactCmpWrapper {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstactCmpWrapper.class);
+public abstract class AbstractCmpWrapper {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractCmpWrapper.class);
     protected CmpExp cmpExp;
     protected String indexColumn;
+
     public static CmpOp parseCmpOp(String cmpOp) {
         if (cmpOp.compareToIgnoreCase("<=") == 0) {
             return CmpOp.LE;
@@ -41,7 +42,7 @@ public abstract class AbstactCmpWrapper {
         return indexColumn;
     }
 
-    public AbstactCmpWrapper(CmpExp cmpExp) {
+    public AbstractCmpWrapper(CmpExp cmpExp) {
         this.cmpExp = cmpExp;
         parseIndexName(this.cmpExp.getLhsRPNList());
         parseIndexName(this.cmpExp.getRhsRPNList());
@@ -74,9 +75,9 @@ public abstract class AbstactCmpWrapper {
 
     protected <T extends Comparable<T>> boolean compare(T left, T right, CmpOp cmpOp) {
         if (left instanceof Double && right instanceof Double) {
-            Double diff = (Double)left - (Double)right;
+            Double diff = (Double) left - (Double) right;
             if (Math.abs(diff) < 0.001) {
-                return compareDiff((int) (diff*100000), cmpOp);
+                return compareDiff((int) (diff * 100000), cmpOp);
             }
         }
 

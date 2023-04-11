@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- A data structure that implements the Alias method for generating random samples from a discrete probability distribution.
+ A data structure that implements the Alias method for generating random samples without replacement from a discrete probability distribution.
  The algorithm creates two tables, one with probabilities and one with corresponding indices for each element in the distribution.
  The alias table is created such that the table has entries with probabilities equal to or greater than the average of the distribution, and each entry is paired with another entry with a probability less than the average.
  The data structure is then used to generate random samples from the probability distribution using the nextRandom() method.

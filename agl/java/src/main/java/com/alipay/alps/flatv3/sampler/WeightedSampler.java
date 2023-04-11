@@ -107,7 +107,7 @@ public class WeightedSampler extends AbstractSampler {
      */
     private List<Integer> sampleByPrefixSum(AbstractIndexResult indexResult, boolean replacement) {
         if (indexResult instanceof RangeIndexResult) {
-            Integer[] originIndices = indexResult.getIndex().getOriginIndices();
+            int[] originIndices = indexResult.getIndex().getOriginIndices();
             String originIndexColumn = indexResult.getIndex().getIndexColumn();
             List<Float> sortedWeights = null;
             if (originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {

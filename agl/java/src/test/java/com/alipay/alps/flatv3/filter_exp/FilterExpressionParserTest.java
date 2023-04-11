@@ -13,16 +13,14 @@ public class FilterExpressionParserTest {
     @Test
     public void testEmptyFilterCond() {
         String filterCond = "";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         Assert.assertEquals(logicExps.getExpRPNCount(), 0);
     }
 
     @Test
     public void testTypeFilter() {
         String filterCond = "index.type not in (node, item)";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 1);
         Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.NOT_IN);
@@ -31,8 +29,7 @@ public class FilterExpressionParserTest {
     @Test
     public void testTimeStampRangeFilter() {
         String filterCond = "INDEX.TIME - SEED.1 >= 0.5 AND INDEX.TIME <= SEED.1 + 11";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 3);
         Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);
@@ -43,8 +40,7 @@ public class FilterExpressionParserTest {
     @Test
     public void testUnionFilters() {
         String filterCond = "index.time - seed.1 >= 0.5 or index.type not in (node, item)";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 3);
         Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);
@@ -55,8 +51,7 @@ public class FilterExpressionParserTest {
     @Test
     public void testJoinFilters() {
         String filterCond = "index.time - seed.1 >= 0.5 and index.type not in (node, item)";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 3);
         Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);
@@ -67,8 +62,7 @@ public class FilterExpressionParserTest {
     @Test
     public void testJoinUnionFilters() {
         String filterCond = "index.time - (seed.1 - seed.2 * 4.3) / index.type >= 0.5 and INDEX.1 - 10 < SEED + 100 or SEED in (item, user)";
-        FilterConditionParser filterConditionParser = new FilterConditionParser();
-        LogicExps logicExps = filterConditionParser.parseFilterCondition(filterCond);
+        LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         List<LogicExps.ExpOrOp> expOps = logicExps.getExpRPNList();
         Assert.assertEquals(expOps.size(), 5);
         Assert.assertEquals(expOps.get(0).getExp().getOp(), CmpOp.GE);

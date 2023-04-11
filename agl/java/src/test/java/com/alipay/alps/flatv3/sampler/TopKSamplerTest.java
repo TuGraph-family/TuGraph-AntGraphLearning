@@ -2,6 +2,7 @@ package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HashIndex;
+import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.result.CommonIndexResult;
 import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
@@ -33,10 +34,10 @@ public class TopKSamplerTest {
         neighborDataset.addAttributeList("weight", weights);
         neighborDataset.addAttributeList("time", times);
         neighborDataset.addAttributeList("type", types);
-        baseIndex = new BaseIndex("", neighborDataset);
-        typeIndex = new HashIndex("range_index:type:string", neighborDataset);
-        timeIndex = new RangeIndex("range_index:time:long", neighborDataset);
-        weightIndex = new RangeIndex("range_index:weight:float", neighborDataset);
+        baseIndex = IndexFactory.createIndex("", neighborDataset);
+        typeIndex = IndexFactory.createIndex("range_index:type:string", neighborDataset);
+        timeIndex = IndexFactory.createIndex("range_index:time:long", neighborDataset);
+        weightIndex = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
     }
 
     @Test

@@ -25,9 +25,9 @@ public class PropagateSeed {
      * @param filterCond:        a filter condition, e.g. "age>=18 and age<=35".
      * @param sampleCond:        a sample condition, e.g. "topk(by=time, limit=5)".
      */
-    public PropagateSeed(String otherOutputSchema, Map<String, BaseIndex> indexesMap, NeighborDataset neighborDataset, String filterCond, String sampleCond) {
+    public PropagateSeed(String otherOutputSchema, List<String> indexMetas, NeighborDataset neighborDataset, String filterCond, String sampleCond) throws Exception {
         this.otherOutputSchema = otherOutputSchema.replaceAll("\\s", "");
-        filter = new Filter(indexesMap, filterCond);
+        filter = new Filter(indexMetas, filterCond, neighborDataset);
         sampler = SamplerFactory.createSampler(new SampleCondition(sampleCond), neighborDataset);
 
     }

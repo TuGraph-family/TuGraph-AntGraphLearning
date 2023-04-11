@@ -2,18 +2,17 @@ package com.alipay.alps.flatv3.filter_exp;
 
 import com.alipay.alps.flatv3.antlr4.FilterBaseVisitor;
 import com.alipay.alps.flatv3.antlr4.FilterParser;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
 import com.antfin.agl.proto.sampler.ArithmeticOp;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.LogicOp;
 import com.antfin.agl.proto.sampler.VariableSource;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder> {
     private final static String NOT_IN = "not in";
@@ -38,7 +37,8 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         }
     }
 
-    @Override public LogicExps.Builder visitAndExp(FilterParser.AndExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitAndExp(FilterParser.AndExpContext ctx) {
         String op = ctx.getChild(1).getText();
         visitChildren(ctx);
         logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf(op.toUpperCase())));
@@ -51,7 +51,8 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public LogicExps.Builder visitOrExp(FilterParser.OrExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitOrExp(FilterParser.OrExpContext ctx) {
         String op = ctx.getChild(1).getText();
         visitChildren(ctx);
         logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setOp(LogicOp.valueOf(op.toUpperCase())));
@@ -75,7 +76,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder();
         cmpExpBuilder.addAllLhsRPN(arithmeticValOpsLeft);
         cmpExpBuilder.addAllRhsRPN(arithmeticValOpsRight);
-        cmpExpBuilder.setOp(AbstactCmpWrapper.parseCmpOp(op));
+        cmpExpBuilder.setOp(AbstractCmpWrapper.parseCmpOp(op));
         // reverse polish representation
         logicExpsBuilder.addExpRPN(LogicExps.ExpOrOp.newBuilder().setExp(cmpExpBuilder));
         return logicExpsBuilder;
@@ -87,7 +88,8 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public LogicExps.Builder visitCompareExp(FilterParser.CompareExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitCompareExp(FilterParser.CompareExpContext ctx) {
         return visitCompareOrCategoryExp(ctx);
     }
 
@@ -97,25 +99,29 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public LogicExps.Builder visitCategoryExp(FilterParser.CategoryExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitCategoryExp(FilterParser.CategoryExpContext ctx) {
         return visitCompareOrCategoryExp(ctx);
     }
 
-    @Override public LogicExps.Builder visitStarDivExp(FilterParser.StarDivExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitStarDivExp(FilterParser.StarDivExpContext ctx) {
         String op = ctx.getChild(1).getText();
         visitChildren(ctx);
         arithmeticValOps.add(Element.newBuilder().setOp(ArithmeticOp.valueOf(arithmeticOpMap.get(op))).build());
         return logicExpsBuilder;
     }
 
-    @Override public LogicExps.Builder visitPlusMinusExp(FilterParser.PlusMinusExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitPlusMinusExp(FilterParser.PlusMinusExpContext ctx) {
         String op = ctx.getChild(1).getText();
         visitChildren(ctx);
         arithmeticValOps.add(Element.newBuilder().setOp(ArithmeticOp.valueOf(arithmeticOpMap.get(op))).build());
         return logicExpsBuilder;
     }
 
-    @Override public LogicExps.Builder visitColumnExp(FilterParser.ColumnExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitColumnExp(FilterParser.ColumnExpContext ctx) {
         String exp = ctx.getChild(0).getText();
         Element.Builder elementBuilder = Element.newBuilder();
         // split by dot
@@ -133,7 +139,8 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         return logicExpsBuilder;
     }
 
-    @Override public LogicExps.Builder visitLiteralExp(FilterParser.LiteralExpContext ctx) {
+    @Override
+    public LogicExps.Builder visitLiteralExp(FilterParser.LiteralExpContext ctx) {
         String exp = ctx.getChild(0).getText();
         Element.Builder elementBuilder = Element.newBuilder();
         Element.Number.Builder elementNumBuilder = Element.newBuilder().getNumBuilder();

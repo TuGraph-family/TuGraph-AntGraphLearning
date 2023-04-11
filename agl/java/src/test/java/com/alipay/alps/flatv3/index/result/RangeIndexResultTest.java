@@ -1,5 +1,6 @@
 package com.alipay.alps.flatv3.index.result;
 
+import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.RangeIndex;
 import com.alipay.alps.flatv3.index.BaseIndex;
@@ -19,7 +20,7 @@ public class RangeIndexResultTest {
         }
         NeighborDataset neighborDataset = new NeighborDataset(ids.size());
         neighborDataset.addAttributeList("weight", weights);
-        BaseIndex index = new RangeIndex("range_index:weight:float", neighborDataset);
+        BaseIndex index = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
 
         List<Range> ranges1 = new ArrayList<>();
         Range range1 = new Range(1, 3);

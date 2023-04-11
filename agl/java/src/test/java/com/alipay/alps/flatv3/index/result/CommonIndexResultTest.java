@@ -1,6 +1,7 @@
 package com.alipay.alps.flatv3.index.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import org.junit.Test;
 import org.junit.Before;
@@ -18,7 +19,7 @@ public class CommonIndexResultTest {
             ids.add(i);
         }
         NeighborDataset neighborDataset = new NeighborDataset(ids.size());
-        index = new BaseIndex("", neighborDataset);
+        index = IndexFactory.createIndex("", neighborDataset);
         result = new CommonIndexResult(index, Arrays.asList(1, 2, 3, 4, 5));
     }
 

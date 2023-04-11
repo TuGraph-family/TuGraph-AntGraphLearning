@@ -14,11 +14,11 @@ public class PrefixSumSelection {
     private List<Float> prefixSum;
     private List<Float> intervalPrefixSum;
     private List<Range> sortedIntervals;
-    private Integer[] originIndices;
+    private int[] originIndices;
     private List<Integer> validIndices;
     private Random rand;
 
-    public PrefixSumSelection(List<Range> sortedIntervals, Integer[] originIndices, List<Float> prefixSum, Random rand) {
+    public PrefixSumSelection(List<Range> sortedIntervals, int[] originIndices, List<Float> prefixSum, Random rand) {
         this.sortedIntervals = sortedIntervals;
         this.originIndices = originIndices;
         this.prefixSum = prefixSum;
