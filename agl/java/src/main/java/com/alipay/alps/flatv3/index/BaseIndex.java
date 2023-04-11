@@ -16,14 +16,15 @@ public class BaseIndex implements Serializable {
     protected NeighborDataset neighborDataset = null;
     protected int[] originIndices = null;
 
-    private String indexType;
-    private String indexColumn;
-    private String indexDtype;
-
     /*
      * indexType: can be any of [hash_index, range_index]
      * indexDtype: can be any of [long, float, string]
+     * indexColumn: the column name of the index
      */
+    private String indexType;
+    private String indexDtype;
+    private String indexColumn;
+    
     public BaseIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
         this.indexType = indexType;
         this.indexColumn = indexColumn;
