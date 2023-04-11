@@ -66,7 +66,7 @@ public class PropagateSeedTest {
 
     @Test
     public void testRangeFilterTopkSampler() throws Exception {
-        // create index meta
+        // add 1 range index meta
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:time:long");
 
@@ -103,28 +103,27 @@ public class PropagateSeedTest {
 
     @Test
     public void testRangeTypeFilterTopkSampler() throws Exception {
-        // indexMetas: the meta data of the index, e.g. range_index:time:long, hash_index:type:string
+        // add a range index meta and a hash index meta
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:time:long");
         indexMetas.add("hash_index:type:string");
 
-        // seedAttrs: the attributes of the seeds
+        // the attributes of the seeds
         List<List<Object>> seedAttrs = new ArrayList<>();
         List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
         for (int i = 0; i < seedIds.size(); i++) {
             seedAttrs.add(Arrays.asList((i + 1) * 1L));
         }
 
-        // filterCond: the filter condition for the propagation
+        // the filter condition for the propagation
         String filterCond = "index.time - seed.1 >= 0.5 AND index.time <= seed.1 + 11 OR index.type in ('item', 'user')";
 
-        // sampleCond: the sample condition for the propagation
+        // the sample condition for the propagation
         String sampleCond = "topk(by=time, limit=3)";
 
-        // propagateSeed: the PropagateSeed object
         PropagateSeed propagateSeed = new PropagateSeed("", indexMetas, neighborDataset, filterCond, sampleCond);
 
-        // result: the result of the propagation
+        // the result of the propagation
         List<List<Integer>> result = propagateSeed.process(seedIds, seedAttrs, null, null);
         List<List<String>> chosenNeighbors = new ArrayList<>();
         for (List<Integer> neighborsOfSeed : result) {

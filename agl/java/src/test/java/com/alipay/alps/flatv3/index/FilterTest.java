@@ -42,7 +42,7 @@ public class FilterTest {
     @Test
     public void testTypeFilter() throws Exception {
         List<Object> seedType = Arrays.asList("item");
-        // Create a hash index
+        // add a hash index
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("hash_index:node_type:string");
         Filter filter = new Filter(indexMetas, "index.node_type in (user, shop)", neighborDataset);
@@ -54,7 +54,7 @@ public class FilterTest {
     @Test
     public void testRangeFilter() throws Exception {
         List<Object> seedScore = Arrays.asList(0.1F);
-        // Create a hash index
+        // add a range index
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:score:float");
         Filter filter = new Filter(indexMetas, "index.score - seed.1 >= 0.2 and index.score < 0.4  + seed.1", neighborDataset);
@@ -66,7 +66,7 @@ public class FilterTest {
     @Test
     public void testRangeAndTypeFilter() throws Exception {
         List<Object> seedScore = Arrays.asList(0.1F);
-        // Create a hash index
+        // add a range index and a hash index
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:score:float");
         indexMetas.add("hash_index:node_type:string");
@@ -81,7 +81,7 @@ public class FilterTest {
     @Test
     public void testTwoRangeFilter() throws Exception {
         List<Object> seedData = Arrays.asList(0.1F, 0.2F);
-        // Create a filter
+        // add a score range index and a price range index
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:score:float");
         indexMetas.add("range_index:price:float");
