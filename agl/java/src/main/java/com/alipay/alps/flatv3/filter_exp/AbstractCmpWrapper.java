@@ -17,7 +17,7 @@ public abstract class AbstractCmpWrapper {
     protected String indexColumn;
 
     public static CmpOp parseCmpOp(String cmpOp) {
-        switch (cmpOp) {
+        switch (cmpOp.toLowerCase()) {
             case "<=":
                 return CmpOp.LE;
             case "<":
@@ -31,9 +31,9 @@ public abstract class AbstractCmpWrapper {
                 return CmpOp.EQ;
             case "!=":
                 return CmpOp.NE;
-            case "IN":
+            case "in":
                 return CmpOp.IN;
-            case "NOT IN":
+            case "not in":
                 return CmpOp.NOT_IN;
             default:
                 LOG.error("not supported comparison op:{}", cmpOp);

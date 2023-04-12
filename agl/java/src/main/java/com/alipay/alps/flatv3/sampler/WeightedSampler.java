@@ -34,8 +34,8 @@ public class WeightedSampler extends AbstractSampler {
         // get weights from the neighborDataset by the key in the sampleCondition
         weights = getNeighborDataset().getNumberAttributeList(getSampleCondition().getKey());
         int candidateCount = indexResult.getSize();
-        // If there are fewer candidates than the limit, return all of them
-        if (candidateCount <= getSampleCondition().getLimit()) {
+        // If there are fewer candidates than the limit and we are sampling without replacement, return all of neighbors
+        if (candidateCount <= getSampleCondition().getLimit() && !getSampleCondition().isReplacement()) {
             return indexResult.getIndices();
         }
         // If there is no filter condition, and we don't need to sample with replacement, and the limit is small, use the alias method
