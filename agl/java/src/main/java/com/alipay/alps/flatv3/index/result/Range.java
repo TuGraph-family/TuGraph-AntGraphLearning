@@ -20,7 +20,7 @@ import lombok.Setter;
  * 2. [-1, -1] is invalid because the low value and high value are less than 0.
  * 3. [1, 0] is invalid because the low value is greater than the high value.
  *
- * [2, 9] join [6, 10] is [6, 9]
+ * [2, 9] join [6, 10], we can get [6, 9]
  */
 public class Range {
     @Getter
