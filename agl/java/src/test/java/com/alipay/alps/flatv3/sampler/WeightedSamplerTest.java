@@ -36,7 +36,7 @@ public class WeightedSamplerTest {
     }
 
     @Test
-    public void testSmallCandidateSize() {
+    public void testSmallCandidateSizeWithoutReplacement() {
         String sampleMeta = "weighted_sampler(by=weight, limit=5, replacement=false)";
         WeightedSampler sampler = new WeightedSampler(new SampleCondition(sampleMeta), neighborDataset);
         AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Collections.singletonList(new Range(0, 2)));
