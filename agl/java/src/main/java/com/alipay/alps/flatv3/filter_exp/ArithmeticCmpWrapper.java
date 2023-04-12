@@ -1,6 +1,5 @@
 package com.alipay.alps.flatv3.filter_exp;
 
-import com.antfin.agl.proto.sampler.ArithmeticOp;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
@@ -26,49 +25,56 @@ public class ArithmeticCmpWrapper extends AbstractCmpWrapper {
         return compare(leftSum, rightSum, cmpExp.getOp());
     }
 
-    public double getDoubleValue(Element.Number num) {
-        if (num.getDataCase() == Element.Number.DataCase.F) {
-            return (double) num.getF();
-        } else if (num.getDataCase() == Element.Number.DataCase.I) {
-            return (double) num.getI();
+    public double getNumericValue(Element.Number num) {
+        switch (num.getDataCase()) {
+            case S:
+                throw new RuntimeException("string is not supported");
+            case F:
+                return (double) num.getF();
+            case I:
+                return (double) num.getI();
+            default:
+                throw new RuntimeException("invalid number");
         }
-        throw new RuntimeException("invalid number");
     }
 
     public double calculateArithmetic(List<Element> elements, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
         Stack<Double> vars = new Stack<>();
         for (int i = 0; i < elements.size(); i++) {
-            Element element = elements.get(i);
-            if (element.getSymbolCase() == Element.SymbolCase.NUM) {
-                vars.push(getDoubleValue(element.getNum()));
-            } else if (element.getSymbolCase() == Element.SymbolCase.VAR) {
-                VariableSource sourceType = element.getVar().getSource();
-                String name = element.getVar().getName();
-                vars.push(getDoubleValue(inputVariables.get(sourceType).get(name)));
-            } else if (element.getSymbolCase() == Element.SymbolCase.OP) {
-                double varRight = vars.pop();
-                double varLeft = vars.pop();
-                switch (element.getOp()) {
-                    case DIV:
-                        vars.push(varLeft / varRight);
-                        break;
-                    case STAR:
-                        vars.push(varLeft * varRight);
-                        break;
-                    case MOD:
-                        vars.push(varLeft % varRight);
-                        break;
-                    case PLUS:
-                        vars.push(varLeft + varRight);
-                        break;
-                    case MINUS:
-                        vars.push(varLeft - varRight);
-                        break;
-                    default:
-                        throw new RuntimeException("invalid op");
-                }
-            } else {
-                throw new RuntimeException("invalid element");
+            switch (elements.get(i).getSymbolCase()) {
+                case NUM:
+                    vars.push(getNumericValue(elements.get(i).getNum()));
+                    break;
+                case VAR:
+                    VariableSource sourceType = elements.get(i).getVar().getSource();
+                    String name = elements.get(i).getVar().getName();
+                    vars.push(getNumericValue(inputVariables.get(sourceType).get(name)));
+                    break;
+                case OP:
+                    double varRight = vars.pop();
+                    double varLeft = vars.pop();
+                    switch (elements.get(i).getOp()) {
+                        case DIV:
+                            vars.push(varLeft / varRight);
+                            break;
+                        case STAR:
+                            vars.push(varLeft * varRight);
+                            break;
+                        case MOD:
+                            vars.push(varLeft % varRight);
+                            break;
+                        case PLUS:
+                            vars.push(varLeft + varRight);
+                            break;
+                        case MINUS:
+                            vars.push(varLeft - varRight);
+                            break;
+                        default:
+                            throw new RuntimeException("invalid op");
+                    }
+                    break;
+                default:
+                    throw new RuntimeException("invalid element");
             }
         }
         return vars.peek();

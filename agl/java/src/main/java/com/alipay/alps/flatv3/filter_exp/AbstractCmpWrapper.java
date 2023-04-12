@@ -59,20 +59,26 @@ public abstract class AbstractCmpWrapper {
         boolean foundDIVorMODOperator = false;
         boolean foundIndex = false;
         for (Element element : rpnList) {
-            if (element.getSymbolCase() == Element.SymbolCase.VAR && element.getVar().getSource() == VariableSource.INDEX) {
-                if (indexColumn != null) {
-                    LOG.error("Only support at most one index column in each compare expression, but the exp breaks this rule. {}", cmpExp);
-                }
-                indexColumn = element.getVar().getName();
-                foundIndex = true;
-            } else if (element.getSymbolCase() == Element.SymbolCase.OP) {
-                if (element.getOp() == ArithmeticOp.DIV || element.getOp() == ArithmeticOp.MOD) {
-                    foundDIVorMODOperator = true;
-                }
-            } else if (element.getSymbolCase() == Element.SymbolCase.NUM) {
-                // do nothing
-            } else {
-                LOG.error("Unsupported element type in RPN list. {}", element);
+            switch (element.getSymbolCase()) {
+                case VAR:
+                    if (element.getVar().getSource() == VariableSource.INDEX) {
+                        if (indexColumn != null) {
+                            LOG.error("Only support at most one index column in each compare expression, but the exp breaks this rule. {}", cmpExp);
+                        }
+                        indexColumn = element.getVar().getName();
+                        foundIndex = true;
+                    }
+                    break;
+                case OP:
+                    if (element.getOp() == ArithmeticOp.DIV || element.getOp() == ArithmeticOp.MOD) {
+                        foundDIVorMODOperator = true;
+                    }
+                    break;
+                case NUM:
+                    // do nothing
+                    break;
+                default:
+                    LOG.error("Unsupported element type in RPN list. {}", element);
             }
         }
         if (foundIndex && foundDIVorMODOperator) {

@@ -52,14 +52,20 @@ public class Filter {
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         Map<String, Element.Number> seedVariableMap = new HashMap<>();
         for (int i = 0; i < seedValues.size(); i++) {
-            Object seedValue = seedValues.get(i);
-            if (seedValue instanceof Float) {
-                seedVariableMap.put(String.valueOf(i + 1), Element.Number.newBuilder().setF((Float) seedValue).build());
-            } else if (seedValue instanceof Long) {
-                seedVariableMap.put(String.valueOf(i + 1), Element.Number.newBuilder().setI((Long) seedValue).build());
-            } else if (seedValue instanceof String) {
-                seedVariableMap.put(String.valueOf(i + 1), Element.Number.newBuilder().setS((String) seedValue).build());
+            Object value = seedValues.get(i);
+            Element.Number.Builder numberBuilder = Element.Number.newBuilder();
+            if (value instanceof Number) {
+                if (value instanceof Float || value instanceof Double) {
+                    numberBuilder.setF(((Number) value).floatValue());
+                } else {
+                    numberBuilder.setI(((Number) value).longValue());
+                }
+            } else if (value instanceof String) {
+                numberBuilder.setS((String) value);
+            } else {
+                throw new IllegalArgumentException("Unsupported seed value type: " + value.getClass());
             }
+            seedVariableMap.put(String.valueOf(i + 1), numberBuilder.build());
         }
         inputVariables.put(VariableSource.SEED, seedVariableMap);
         // in case of empty filter condition, we are using the base_index, NO_FILTER is the index column

@@ -97,11 +97,16 @@ public class NeighborDataset implements Serializable {
     }
 
     public <T> void addAttributeList(String key, List<T> values) {
-        if (values.get(0) instanceof Float) {
+        if (values.isEmpty()) {
+            throw new IllegalArgumentException("Values list cannot be empty");
+        }
+    
+        Object firstValue = values.get(0);
+        if (firstValue instanceof Float) {
             addFloatAttributeList(key, (List<Float>) values);
-        } else if (values.get(0) instanceof Long) {
+        } else if (firstValue instanceof Long) {
             addLongAttributeList(key, (List<Long>) values);
-        } else if (values.get(0) instanceof String) {
+        } else if (firstValue instanceof String) {
             addStringAttributeList(key, (List<String>) values);
         }
     }
