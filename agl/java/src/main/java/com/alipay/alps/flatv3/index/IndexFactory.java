@@ -35,14 +35,18 @@ public class IndexFactory {
                     index.getIndexDtype().compareToIgnoreCase(indexDtype) == 0;
             return index;
         }
-        if (indexType.compareToIgnoreCase(HASH_INDEX) == 0) {
-            indexesMap.put(indexColumn, new HashIndex(indexType, indexColumn, indexDtype, neighborDataset));
-        } else if (indexType.compareToIgnoreCase(RANGE_INDEX) == 0) {
-            indexesMap.put(indexColumn, new RangeIndex(indexType, indexColumn, indexDtype, neighborDataset));
-        } else if (indexType.compareToIgnoreCase(NO_FILTER) == 0) {
-            indexesMap.put(indexColumn, new BaseIndex(NO_FILTER, indexColumn, "", neighborDataset));
-        } else {
-            throw new RuntimeException("Not support hash_range_index yet");
+        switch (indexType) {
+            case HASH_INDEX:
+                indexesMap.put(indexColumn, new HashIndex(indexType, indexColumn, indexDtype, neighborDataset));
+                break;
+            case RANGE_INDEX:
+                indexesMap.put(indexColumn, new RangeIndex(indexType, indexColumn, indexDtype, neighborDataset));
+                break;
+            case NO_FILTER:
+                indexesMap.put(indexColumn, new BaseIndex(NO_FILTER, indexColumn, indexDtype, neighborDataset));
+                break;
+            default:
+                throw new RuntimeException("Not support hash_range_index yet");
         }
         return indexesMap.get(indexColumn);
     }

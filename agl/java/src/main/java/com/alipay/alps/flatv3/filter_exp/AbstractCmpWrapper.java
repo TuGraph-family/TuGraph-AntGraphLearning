@@ -17,25 +17,28 @@ public abstract class AbstractCmpWrapper {
     protected String indexColumn;
 
     public static CmpOp parseCmpOp(String cmpOp) {
-        if (cmpOp.compareToIgnoreCase("<=") == 0) {
-            return CmpOp.LE;
-        } else if (cmpOp.compareToIgnoreCase("<") == 0) {
-            return CmpOp.LT;
-        } else if (cmpOp.compareToIgnoreCase(">=") == 0) {
-            return CmpOp.GE;
-        } else if (cmpOp.compareToIgnoreCase(">") == 0) {
-            return CmpOp.GT;
-        } else if (cmpOp.compareToIgnoreCase("=") == 0 || cmpOp.compareToIgnoreCase("==") == 0) {
-            return CmpOp.EQ;
-        } else if (cmpOp.compareToIgnoreCase("!=") == 0) {
-            return CmpOp.NE;
-        } else if (cmpOp.compareToIgnoreCase("IN") == 0) {
-            return CmpOp.IN;
-        } else if (cmpOp.compareToIgnoreCase("NOT IN") == 0) {
-            return CmpOp.NOT_IN;
+        switch (cmpOp) {
+            case "<=":
+                return CmpOp.LE;
+            case "<":
+                return CmpOp.LT;
+            case ">=":
+                return CmpOp.GE;
+            case ">":
+                return CmpOp.GT;
+            case "=":
+            case "==":
+                return CmpOp.EQ;
+            case "!=":
+                return CmpOp.NE;
+            case "IN":
+                return CmpOp.IN;
+            case "NOT IN":
+                return CmpOp.NOT_IN;
+            default:
+                LOG.error("not supported comparison op:{}", cmpOp);
+                return CmpOp.CMP_UNKNOWN;
         }
-        LOG.error("not supported comparison op:{}", cmpOp);
-        return CmpOp.CMP_UNKNOWN;
     }
 
     public String getIndexColumn() {
@@ -66,6 +69,10 @@ public abstract class AbstractCmpWrapper {
                 if (element.getOp() == ArithmeticOp.DIV || element.getOp() == ArithmeticOp.MOD) {
                     foundDIVorMODOperator = true;
                 }
+            } else if (element.getSymbolCase() == Element.SymbolCase.NUM) {
+                // do nothing
+            } else {
+                LOG.error("Unsupported element type in RPN list. {}", element);
             }
         }
         if (foundIndex && foundDIVorMODOperator) {
@@ -85,20 +92,23 @@ public abstract class AbstractCmpWrapper {
     }
 
     private boolean compareDiff(int diff, CmpOp cmpOp) {
-        if (cmpOp == CmpOp.LE) {
-            return diff <= 0;
-        } else if (cmpOp == CmpOp.LT) {
-            return diff < 0;
-        } else if (cmpOp == CmpOp.GE) {
-            return diff >= 0;
-        } else if (cmpOp == CmpOp.GT) {
-            return diff > 0;
-        } else if (cmpOp == CmpOp.EQ) {
-            return diff == 0;
-        } else if (cmpOp == CmpOp.NE) {
-            return diff != 0;
+        switch (cmpOp) {
+            case LE:
+                return diff <= 0;
+            case LT:
+                return diff < 0;
+            case GE:
+                return diff >= 0;
+            case GT:
+                return diff > 0;
+            case EQ:
+                return diff == 0;
+            case NE:
+                return diff != 0;
+            default:
+                LOG.error("not supported comparison op:{}", cmpOp);
+                return false;
         }
-        return false;
     }
 
     public abstract boolean eval(Map<VariableSource, Map<String, Element.Number>> inputVariables);

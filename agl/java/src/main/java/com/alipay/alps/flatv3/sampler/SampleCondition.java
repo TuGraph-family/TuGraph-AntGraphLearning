@@ -77,14 +77,21 @@ public class SampleCondition {
                 } else {
                     String a1 = p.substring(0, sepPos);
                     String a2 = p.substring(sepPos + 1);
-                    if (a1.compareToIgnoreCase(BY) == 0) {
-                        this.key = a2;
-                    } else if (a1.compareToIgnoreCase(LIMIT) == 0) {
-                        this.limit = Integer.valueOf(a2);
-                    } else if (a1.compareToIgnoreCase(REPLACE) == 0) {
-                        this.replacement = Boolean.valueOf(a2);
-                    } else if (a1.compareToIgnoreCase(REVERSE) == 0) {
-                        this.reverse = Boolean.valueOf(a2);
+                    switch (a1) {
+                        case BY:
+                            this.key = a2;
+                            break;
+                        case LIMIT:
+                            this.limit = Integer.valueOf(a2);
+                            break;
+                        case REPLACE:
+                            this.replacement = Boolean.valueOf(a2);
+                            break;
+                        case REVERSE:
+                            this.reverse = Boolean.valueOf(a2);
+                            break;
+                        default:
+                            break;
                     }
                 }
             }

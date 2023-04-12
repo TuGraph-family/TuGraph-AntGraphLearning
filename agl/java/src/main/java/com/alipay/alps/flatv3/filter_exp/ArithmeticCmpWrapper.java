@@ -48,18 +48,24 @@ public class ArithmeticCmpWrapper extends AbstractCmpWrapper {
             } else if (element.getSymbolCase() == Element.SymbolCase.OP) {
                 double varRight = vars.pop();
                 double varLeft = vars.pop();
-                if (element.getOp() == ArithmeticOp.DIV) {
-                    vars.push(varLeft / varRight);
-                } else if (element.getOp() == ArithmeticOp.STAR) {
-                    vars.push(varLeft * varRight);
-                } else if (element.getOp() == ArithmeticOp.MOD) {
-                    vars.push(varLeft % varRight);
-                } else if (element.getOp() == ArithmeticOp.PLUS) {
-                    vars.push(varLeft + varRight);
-                } else if (element.getOp() == ArithmeticOp.MINUS) {
-                    vars.push(varLeft - varRight);
-                } else {
-                    throw new RuntimeException("invalid op");
+                switch (element.getOp()) {
+                    case DIV:
+                        vars.push(varLeft / varRight);
+                        break;
+                    case STAR:
+                        vars.push(varLeft * varRight);
+                        break;
+                    case MOD:
+                        vars.push(varLeft % varRight);
+                        break;
+                    case PLUS:
+                        vars.push(varLeft + varRight);
+                        break;
+                    case MINUS:
+                        vars.push(varLeft - varRight);
+                        break;
+                    default:
+                        throw new RuntimeException("invalid op");
                 }
             } else {
                 throw new RuntimeException("invalid element");
