@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.filter.parser.CmpWrapperFactory;
+import com.alipay.alps.flatv3.filter.parser.FilterConditionParser;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
@@ -39,7 +39,7 @@ public class RangeIndexTest {
         String filterCond = "index.weight < 1.4";
         LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-        AbstractIndexResult indexResult = rangeIndex.search(new ArithmeticCmpWrapper(cmpExp), inputVariables);
+        AbstractResult indexResult = rangeIndex.search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables);
         assertArrayEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
     }
 
@@ -57,7 +57,7 @@ public class RangeIndexTest {
         String filterCond = "index.timestamp - seed.1 >= 2";
         LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-        AbstractIndexResult indexResult = rangeIndex.search(new ArithmeticCmpWrapper(cmpExp), inputVariables);
+        AbstractResult indexResult = rangeIndex.search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables);
         System.out.println("------indexResult:" + Arrays.toString(indexResult.getIndices().toArray()));
         assertArrayEquals(Arrays.asList(1, 4).toArray(), indexResult.getIndices().toArray());
     }

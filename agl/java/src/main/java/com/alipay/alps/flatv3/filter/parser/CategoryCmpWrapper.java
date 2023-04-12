@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.filter_exp;
+package com.alipay.alps.flatv3.filter.parser;
 
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.CmpOp;
@@ -21,7 +21,7 @@ public class CategoryCmpWrapper extends AbstractCmpWrapper {
             for (int i = 0; i < cmpExp.getRhsRPNCount(); i++) {
                 rightTypes.add(getStringValue(cmpExp.getRhsRPN(i), inputVariables));
             }
-            return cmpExp.getOp() == CmpOp.IN ? rightTypes.contains(left) : !rightTypes.contains(left);
+            return (cmpExp.getOp() == CmpOp.IN) == rightTypes.contains(left);
         } else {
             String right = getStringValue(cmpExp.getRhsRPN(0), inputVariables);
             return compare(left, right, cmpExp.getOp());

@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.filter.parser.CategoryCmpWrapper;
+import com.alipay.alps.flatv3.filter.parser.FilterConditionParser;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
@@ -34,7 +34,7 @@ public class HashIndexTest {
         String filterCond = "index.node_type in (user, shop)";
         LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-        AbstractIndexResult indexResult = hashIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables);
+        AbstractResult indexResult = hashIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables);
         assertArrayEquals(Arrays.asList(1, 2, 4).toArray(), indexResult.getIndices().toArray());
     }
 }

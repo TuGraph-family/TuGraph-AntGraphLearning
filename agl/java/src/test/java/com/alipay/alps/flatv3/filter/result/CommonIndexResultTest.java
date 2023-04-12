@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.index.result;
+package com.alipay.alps.flatv3.filter.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 public class CommonIndexResultTest {
     private BaseIndex index;
-    private CommonIndexResult result;
+    private CommonResult result;
 
     @Before
     public void setup() {
@@ -25,20 +25,20 @@ public class CommonIndexResultTest {
         }
         NeighborDataset neighborDataset = new NeighborDataset(ids.size());
         index = IndexFactory.createIndex("", neighborDataset);
-        result = new CommonIndexResult(index, Arrays.asList(1, 2, 3, 4, 5));
+        result = new CommonResult(index, Arrays.asList(1, 2, 3, 4, 5));
     }
 
     @Test
     public void testJoin() {
-        CommonIndexResult otherResult = new CommonIndexResult(index, Arrays.asList(3, 4, 5, 6, 7));
-        AbstractIndexResult joinedResult = result.join(otherResult);
+        CommonResult otherResult = new CommonResult(index, Arrays.asList(3, 4, 5, 6, 7));
+        AbstractResult joinedResult = result.join(otherResult);
         assertArrayEquals(Arrays.asList(3, 4, 5).toArray(), joinedResult.getIndices().toArray());
     }
 
     @Test
     public void testUnion() {
-        CommonIndexResult otherResult = new CommonIndexResult(index, Arrays.asList(3, 4, 5, 6, 7));
-        AbstractIndexResult unionResult = result.union(otherResult);
+        CommonResult otherResult = new CommonResult(index, Arrays.asList(3, 4, 5, 6, 7));
+        AbstractResult unionResult = result.union(otherResult);
 
         assertArrayEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7).toArray(), unionResult.getIndices().toArray());
     }

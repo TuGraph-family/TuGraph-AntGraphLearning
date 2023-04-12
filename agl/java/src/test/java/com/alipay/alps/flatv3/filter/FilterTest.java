@@ -1,7 +1,7 @@
-package com.alipay.alps.flatv3.index;
+package com.alipay.alps.flatv3.filter;
 
-
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.index.NeighborDataset;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class FilterTest {
         List<Object> seedType = Arrays.asList("item");
         // Create a hash index
         Filter filter = new Filter(null, "", neighborDataset);
-        AbstractIndexResult indexResult = filter.filter(seedType);
+        AbstractResult indexResult = filter.filter(seedType);
         assertArrayEquals(Arrays.asList(0, 1, 2, 3, 4).toArray(), indexResult.getIndices().toArray());
     }
 
@@ -46,7 +46,7 @@ public class FilterTest {
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("hash_index:node_type:string");
         Filter filter = new Filter(indexMetas, "index.node_type in (user, shop)", neighborDataset);
-        AbstractIndexResult indexResult = filter.filter(seedType);
+        AbstractResult indexResult = filter.filter(seedType);
         assertArrayEquals(Arrays.asList(1, 2, 4).toArray(), indexResult.getIndices().toArray());
     }
 
@@ -58,7 +58,7 @@ public class FilterTest {
         List<String> indexMetas = new ArrayList<>();
         indexMetas.add("range_index:score:float");
         Filter filter = new Filter(indexMetas, "index.score - seed.1 >= 0.2 and index.score < 0.4  + seed.1", neighborDataset);
-        AbstractIndexResult indexResult = filter.filter(seedScore);
+        AbstractResult indexResult = filter.filter(seedScore);
         assertArrayEquals(Arrays.asList(2, 3).toArray(), indexResult.getIndices().toArray());
     }
 
@@ -73,7 +73,7 @@ public class FilterTest {
         Filter filter = new Filter(indexMetas,
                 "index.score - seed.1 >= 0.2 and index.score < 0.4  + seed.1 and index.node_type in (user, shop)",
                 neighborDataset);
-        AbstractIndexResult indexResult = filter.filter(seedScore);
+        AbstractResult indexResult = filter.filter(seedScore);
         assertArrayEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
     }
 
@@ -88,7 +88,7 @@ public class FilterTest {
         Filter filter = new Filter(indexMetas,
                 "index.score - seed.1 >= 0.2 and index.score < 0.4 + seed.1 and index.price - seed.2 >= 0.2 and index.price < 0.4  + seed.2",
                 neighborDataset);
-        AbstractIndexResult indexResult = filter.filter(seedData);
+        AbstractResult indexResult = filter.filter(seedData);
         assertArrayEquals(Arrays.asList(3).toArray(), indexResult.getIndices().toArray());
     }
 }

@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.parser.AbstractCmpWrapper;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
@@ -65,10 +65,10 @@ public class BaseIndex implements Serializable {
         return originIndices;
     }
 
-    public AbstractIndexResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
-        List<Range> ranges = new ArrayList<>();
-        ranges.add(new Range(0, neighborDataset.getNeighborCount() - 1));
-        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
+    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+        List<RangeUnit> ranges = new ArrayList<>();
+        ranges.add(new RangeUnit(0, neighborDataset.getNeighborCount() - 1));
+        RangeResult rangeIndexResult = new RangeResult(this, ranges);
         return rangeIndexResult;
     }
 }

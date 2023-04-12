@@ -1,12 +1,13 @@
-package com.alipay.alps.flatv3.index;
+package com.alipay.alps.flatv3.filter;
 
-import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.FilterConditionParser;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.filter.parser.AbstractCmpWrapper;
+import com.alipay.alps.flatv3.filter.parser.CmpWrapperFactory;
+import com.alipay.alps.flatv3.filter.parser.FilterConditionParser;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.IndexFactory;
+import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.antfin.agl.proto.sampler.CmpExp;
-import com.antfin.agl.proto.sampler.CmpOp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.LogicOp;
@@ -48,7 +49,7 @@ public class Filter {
      * @param seedValues: values of one seed
      * @return: neighbor indices conforming to the filter condition
      */
-    public AbstractIndexResult filter(List<Object> seedValues) throws Exception {
+    public AbstractResult filter(List<Object> seedValues) throws Exception {
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         Map<String, Element.Number> seedVariableMap = new HashMap<>();
         for (int i = 0; i < seedValues.size(); i++) {
@@ -72,14 +73,14 @@ public class Filter {
         if (logicExps.getExpRPNCount() == 0) {
             return getIndex(IndexFactory.NO_FILTER).search(null, inputVariables);
         }
-        Stack<AbstractIndexResult> indexResultStack = new Stack<>();
+        Stack<AbstractResult> indexResultStack = new Stack<>();
         for (int i = 0; i < logicExps.getExpRPNCount(); i++) {
             LogicExps.ExpOrOp expOrOp = logicExps.getExpRPN(i);
-            AbstractIndexResult indexResult = null;
+            AbstractResult indexResult = null;
             if (expOrOp.getDataCase() == LogicExps.ExpOrOp.DataCase.OP) {
                 LogicOp logicOp = expOrOp.getOp();
-                AbstractIndexResult indexResult1 = indexResultStack.pop();
-                AbstractIndexResult indexResult2 = indexResultStack.pop();
+                AbstractResult indexResult1 = indexResultStack.pop();
+                AbstractResult indexResult2 = indexResultStack.pop();
                 if (logicOp == LogicOp.AND) {
                     indexResult = indexResult1.join(indexResult2);
                 } else if (logicOp == LogicOp.OR) {
@@ -87,8 +88,7 @@ public class Filter {
                 }
             } else {
                 CmpExp cmpExp = expOrOp.getExp();
-                AbstractCmpWrapper expWrapper = (cmpExp.getOp() == CmpOp.IN || cmpExp.getOp() == CmpOp.NOT_IN) ?
-                        new CategoryCmpWrapper(cmpExp) : new ArithmeticCmpWrapper(cmpExp);
+                AbstractCmpWrapper expWrapper = CmpWrapperFactory.createCmpWrapper(cmpExp);
                 String indexColumn = expWrapper.getIndexColumn();
                 BaseIndex index = getIndex(indexColumn);
                 indexResult = index.search(expWrapper, inputVariables);

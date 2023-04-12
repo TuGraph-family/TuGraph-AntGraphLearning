@@ -1,10 +1,10 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.ArithmeticCmpWrapper;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.parser.AbstractCmpWrapper;
+import com.alipay.alps.flatv3.filter.parser.ArithmeticCmpWrapper;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.CmpOp;
 import com.antfin.agl.proto.sampler.Element;
@@ -37,13 +37,13 @@ public class RangeIndex extends BaseIndex {
     }
 
     @Override
-    public AbstractIndexResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
-        Range range = binarySearch((ArithmeticCmpWrapper) cmpExpWrapper, inputVariables);
-        List<Range> ranges = new ArrayList<>();
+    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+        RangeUnit range = binarySearch((ArithmeticCmpWrapper) cmpExpWrapper, inputVariables);
+        List<RangeUnit> ranges = new ArrayList<>();
         if (range.getSize() > 0) {
             ranges.add(range);
         }
-        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
+        RangeResult rangeIndexResult = new RangeResult(this, ranges);
         return rangeIndexResult;
     }
 
@@ -102,13 +102,13 @@ public class RangeIndex extends BaseIndex {
         return right;
     }
 
-    private Range binarySearch(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    private RangeUnit binarySearch(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
         if (arithCmpWrapper.getCmpExp().getOp() == CmpOp.EQ || arithCmpWrapper.getCmpExp().getOp() == CmpOp.NE) {
             CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder().mergeFrom(arithCmpWrapper.getCmpExp());
             cmpExpBuilder.setOp(CmpOp.LE);
-            Range rangeLE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables);
+            RangeUnit rangeLE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables);
             cmpExpBuilder.setOp(CmpOp.GE);
-            Range rangeGE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables);
+            RangeUnit rangeGE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables);
             if (arithCmpWrapper.getCmpExp().getOp() == CmpOp.EQ) {
                 rangeLE.join(rangeGE);
                 return rangeLE;
@@ -120,13 +120,13 @@ public class RangeIndex extends BaseIndex {
     }
 
     // binary search for a range of values that satisfy the inequality
-    private Range binarySearchInequation(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
+    private RangeUnit binarySearchInequation(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
         String indexColumn = arithCmpWrapper.getIndexColumn(); // index.time
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
         indexVariableMap.put(indexColumn, null);
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
 
-        Range range = new Range(0, originIndices.length - 1);
+        RangeUnit range = new RangeUnit(0, originIndices.length - 1);
         boolean hasLowerBound = arithCmpWrapper.hasLowerBound();
         if (neighborDataset.getFloatAttributeList(indexColumn) != null) {
             java.util.function.Function<Float, Boolean> comparison = (neighboringValue) -> {

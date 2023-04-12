@@ -1,31 +1,31 @@
-package com.alipay.alps.flatv3.index.result;
+package com.alipay.alps.flatv3.filter.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class RangeIndexResult extends AbstractIndexResult {
-    private List<Range> sortedIntervals = null;
+public class RangeResult extends AbstractResult {
+    private List<RangeUnit> sortedIntervals = null;
     private List<Integer> prefixCounts = null;
 
-    public RangeIndexResult(BaseIndex index, List<Range> sortedIntervals) {
+    public RangeResult(BaseIndex index, List<RangeUnit> sortedIntervals) {
         super(index);
         this.sortedIntervals = sortedIntervals;
     }
 
-    private static List<Range> joinRanges(List<Range> range1, List<Range> range2) {
-        List<Range> mergedRange = new ArrayList<>();
+    private static List<RangeUnit> joinRanges(List<RangeUnit> range1, List<RangeUnit> range2) {
+        List<RangeUnit> mergedRange = new ArrayList<>();
         int i = 0, j = 0;
         while (i < range1.size() && j < range2.size()) {
-            Range pair1 = range1.get(i);
-            Range pair2 = range2.get(j);
+            RangeUnit pair1 = range1.get(i);
+            RangeUnit pair2 = range2.get(j);
             if (pair1.getHigh() < pair2.getLow()) {
                 i++;
             } else if (pair2.getHigh() < pair1.getLow()) {
                 j++;
             } else {
-                mergedRange.add(new Range(Math.max(pair1.getLow(), pair2.getLow()), Math.min(pair1.getHigh(), pair2.getHigh())));
+                mergedRange.add(new RangeUnit(Math.max(pair1.getLow(), pair2.getLow()), Math.min(pair1.getHigh(), pair2.getHigh())));
                 i++;
                 j++;
             }
@@ -33,12 +33,12 @@ public class RangeIndexResult extends AbstractIndexResult {
         return mergedRange;
     }
 
-    private static List<Range> unionRanges(List<Range> range1, List<Range> range2) {
-        List<Range> mergedRange = new ArrayList<>();
+    private static List<RangeUnit> unionRanges(List<RangeUnit> range1, List<RangeUnit> range2) {
+        List<RangeUnit> mergedRange = new ArrayList<>();
         int i = 0, j = 0;
         while (i < range1.size() && j < range2.size()) {
-            Range pair1 = new Range(range1.get(i));
-            Range pair2 = new Range(range2.get(j));
+            RangeUnit pair1 = new RangeUnit(range1.get(i));
+            RangeUnit pair2 = new RangeUnit(range2.get(j));
             if (pair1.getHigh() < pair2.getLow()) {
                 mergedRange.add(pair1);
                 i++;
@@ -68,24 +68,24 @@ public class RangeIndexResult extends AbstractIndexResult {
     }
 
     @Override
-    public AbstractIndexResult join(AbstractIndexResult right) {
-        if (getIndex() == right.getIndex() && right instanceof RangeIndexResult) {
-            List<Range> joinedIntervals = joinRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
-            return new RangeIndexResult(getIndex(), joinedIntervals);
+    public AbstractResult join(AbstractResult right) {
+        if (getIndex() == right.getIndex() && right instanceof RangeResult) {
+            List<RangeUnit> joinedIntervals = joinRanges(sortedIntervals, ((RangeResult) right).sortedIntervals);
+            return new RangeResult(getIndex(), joinedIntervals);
         } else {
-            List<Integer> joinedList = CommonIndexResult.joinList(getIndices(), right.getIndices());
-            return new CommonIndexResult(updateIndex(right), joinedList);
+            List<Integer> joinedList = CommonResult.joinList(getIndices(), right.getIndices());
+            return new CommonResult(updateIndex(right), joinedList);
         }
     }
 
     @Override
-    public AbstractIndexResult union(AbstractIndexResult right) {
-        if (getIndex() == right.getIndex() && right instanceof RangeIndexResult) {
-            List<Range> unionedIntervals = unionRanges(sortedIntervals, ((RangeIndexResult) right).sortedIntervals);
-            return new RangeIndexResult(getIndex(), unionedIntervals);
+    public AbstractResult union(AbstractResult right) {
+        if (getIndex() == right.getIndex() && right instanceof RangeResult) {
+            List<RangeUnit> unionedIntervals = unionRanges(sortedIntervals, ((RangeResult) right).sortedIntervals);
+            return new RangeResult(getIndex(), unionedIntervals);
         } else {
-            List<Integer> unionedList = CommonIndexResult.unionList(getIndices(), right.getIndices());
-            return new CommonIndexResult(updateIndex(right), unionedList);
+            List<Integer> unionedList = CommonResult.unionList(getIndices(), right.getIndices());
+            return new CommonResult(updateIndex(right), unionedList);
         }
     }
 
@@ -93,7 +93,7 @@ public class RangeIndexResult extends AbstractIndexResult {
     public List<Integer> getIndices() {
         List<Integer> ans = new ArrayList<>();
         int[] originIndex = getIndex().getOriginIndices();
-        for (Range p : sortedIntervals) {
+        for (RangeUnit p : sortedIntervals) {
             for (int i = p.getLow(); i <= p.getHigh(); i++) {
                 ans.add(originIndex[i]);
             }
@@ -111,7 +111,7 @@ public class RangeIndexResult extends AbstractIndexResult {
         if (prefixCounts == null) {
             prefixCounts = new ArrayList<>(sortedIntervals.size());
             int currentCount = 0;
-            for (Range range : sortedIntervals) {
+            for (RangeUnit range : sortedIntervals) {
                 prefixCounts.add(range.getSize() + currentCount);
                 currentCount += range.getSize();
             }
@@ -131,7 +131,7 @@ public class RangeIndexResult extends AbstractIndexResult {
         return rank - preCount + sortedIntervals.get(low).getLow();
     }
 
-    public List<Range> getRangeList() {
+    public List<RangeUnit> getRangeList() {
         return sortedIntervals;
     }
 

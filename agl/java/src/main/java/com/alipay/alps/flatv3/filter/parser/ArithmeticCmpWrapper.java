@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.filter_exp;
+package com.alipay.alps.flatv3.filter.parser;
 
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.Element;
@@ -30,7 +30,7 @@ public class ArithmeticCmpWrapper extends AbstractCmpWrapper {
             case S:
                 throw new RuntimeException("string is not supported");
             case F:
-                return (double) num.getF();
+                return num.getF();
             case I:
                 return (double) num.getI();
             default:

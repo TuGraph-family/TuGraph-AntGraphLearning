@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.CommonIndexResult;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.CommonResult;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,22 +29,22 @@ public class RandomSampler extends AbstractSampler {
      * @return An ArrayList<Integer> object containing the indices of the selected elements
      */
     @Override
-    public List<Integer> sample(AbstractIndexResult indexResult) {
+    public List<Integer> sample(AbstractResult indexResult) {
         int candidateCount = indexResult.getSize();
         int sampleCount = this.getSampleCondition().getLimit();
         // If the number of samples requested is less than 1/sampleCountToCandidateCountRatio of the input size,
         // simply select samples at random without replacement using a HashSet.
         List<Integer> sampled = sampleWithCount(candidateCount, sampleCount);
         List<Integer> sampledIndex = new ArrayList<>(sampled.size());
-        if (indexResult instanceof CommonIndexResult) {
+        if (indexResult instanceof CommonResult) {
             List<Integer> originIndices = indexResult.getIndices();
             for (int i = 0; i < sampled.size(); i++) {
                 sampledIndex.add(originIndices.get(sampled.get(i)));
             }
         } else {
-            assert indexResult instanceof RangeIndexResult;
+            assert indexResult instanceof RangeResult;
             for (int i = 0; i < sampled.size(); i++) {
-                int idx = ((RangeIndexResult) indexResult).getRangeIndex(sampled.get(i));
+                int idx = ((RangeResult) indexResult).getRangeIndex(sampled.get(i));
                 sampledIndex.add(indexResult.getOriginIndex(idx));
             }
 

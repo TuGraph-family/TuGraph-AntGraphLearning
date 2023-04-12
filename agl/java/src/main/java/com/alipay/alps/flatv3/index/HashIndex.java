@@ -1,10 +1,10 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.filter_exp.AbstractCmpWrapper;
-import com.alipay.alps.flatv3.filter_exp.CategoryCmpWrapper;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.parser.AbstractCmpWrapper;
+import com.alipay.alps.flatv3.filter.parser.CategoryCmpWrapper;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class HashIndex extends BaseIndex {
-    private Map<String, Range> typeRanges;
+    private Map<String, RangeUnit> typeRanges;
 
     public HashIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
         super(indexType, indexColumn, indexDtype, neighborDataset);
@@ -37,7 +37,7 @@ public class HashIndex extends BaseIndex {
         int count = 0;
         for (String type : typeIndexes.keySet()) {
             List<Integer> indices = typeIndexes.get(type);
-            Range range = new Range(count, -1);
+            RangeUnit range = new RangeUnit(count, -1);
             for (int index : indices) {
                 originIndices[count++] = index;
             }
@@ -48,15 +48,15 @@ public class HashIndex extends BaseIndex {
     }
 
     @Override
-    public AbstractIndexResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
-        List<Range> ranges = searchType((CategoryCmpWrapper) cmpExpWrapper, inputVariables);
-        RangeIndexResult rangeIndexResult = new RangeIndexResult(this, ranges);
+    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
+        List<RangeUnit> ranges = searchType((CategoryCmpWrapper) cmpExpWrapper, inputVariables);
+        RangeResult rangeIndexResult = new RangeResult(this, ranges);
         return rangeIndexResult;
     }
 
-    private List<Range> searchType(CategoryCmpWrapper cateCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    private List<RangeUnit> searchType(CategoryCmpWrapper cateCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
         String indexKey = getIndexColumn();
-        List<Range> ansList = new ArrayList<>();
+        List<RangeUnit> ansList = new ArrayList<>();
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
         indexVariableMap.put(indexKey, null);
         inputVariables.put(VariableSource.INDEX, indexVariableMap);

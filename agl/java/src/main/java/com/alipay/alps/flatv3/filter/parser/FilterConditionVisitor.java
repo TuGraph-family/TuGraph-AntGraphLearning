@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.filter_exp;
+package com.alipay.alps.flatv3.filter.parser;
 
 import com.alipay.alps.flatv3.antlr4.FilterBaseVisitor;
 import com.alipay.alps.flatv3.antlr4.FilterParser;
@@ -19,12 +19,12 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
     private final static String IN = "in";
     private final static String NOT = "not";
 
-    private LogicExps.Builder logicExpsBuilder = LogicExps.newBuilder();
+    private final LogicExps.Builder logicExpsBuilder = LogicExps.newBuilder();
     private List<Element> arithmeticValOps = null;
-    private List<Element> arithmeticValOpsLeft = new ArrayList<>();
-    private List<Element> arithmeticValOpsRight = new ArrayList<>();
-    private HashMap<String, String> arithmeticOpMap = new HashMap<>();
-    private HashSet<String> sourceTypeSet = new HashSet<>();
+    private final List<Element> arithmeticValOpsLeft = new ArrayList<>();
+    private final List<Element> arithmeticValOpsRight = new ArrayList<>();
+    private final HashMap<String, String> arithmeticOpMap = new HashMap<>();
+    private final HashSet<String> sourceTypeSet = new HashSet<>();
 
     public FilterConditionVisitor() {
         arithmeticOpMap.put("-", "MINUS");
@@ -125,7 +125,7 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
         String exp = ctx.getChild(0).getText();
         Element.Builder elementBuilder = Element.newBuilder();
         // split by dot
-        String arrs[] = exp.split("\\.");
+        String[] arrs = exp.split("\\.");
         if (sourceTypeSet.contains(arrs[0].toUpperCase())) {
             Element.Variable.Builder elementVarBuilder = Element.newBuilder().getVarBuilder().setSource(VariableSource.valueOf(arrs[0].toUpperCase()));
             elementVarBuilder.setName(arrs.length <= 1 ? "" : arrs[1]);

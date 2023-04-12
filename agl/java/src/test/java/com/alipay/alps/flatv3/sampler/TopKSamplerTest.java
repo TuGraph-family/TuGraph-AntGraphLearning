@@ -3,10 +3,10 @@ package com.alipay.alps.flatv3.sampler;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.CommonIndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.CommonResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,7 +41,7 @@ public class TopKSamplerTest {
 
     @Test
     public void testSmallCandidateSize() {
-        AbstractIndexResult indexResult = new RangeIndexResult(typeIndex, Collections.singletonList(new Range(0, 3)));
+        AbstractResult indexResult = new RangeResult(typeIndex, Collections.singletonList(new RangeUnit(0, 3)));
 
         String sampleMeta = "topk(by=weight, limit=5, reverse=false, replacement=False)";
         TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
@@ -53,7 +53,7 @@ public class TopKSamplerTest {
 
     @Test
     public void testNoFilterSampleByTimestampReverse() {
-        AbstractIndexResult indexResult = new RangeIndexResult(baseIndex, Collections.singletonList(new Range(0, 9)));
+        AbstractResult indexResult = new RangeResult(baseIndex, Collections.singletonList(new RangeUnit(0, 9)));
 
         String sampleMeta = "topk(by=weight, limit=5, reverse=true, replacement=false)";
         TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
@@ -65,7 +65,7 @@ public class TopKSamplerTest {
 
     @Test
     public void testWeightFilterSampleByTimestamp() {
-        AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Collections.singletonList(new Range(1, 8)));
+        AbstractResult indexResult = new RangeResult(weightIndex, Collections.singletonList(new RangeUnit(1, 8)));
 
         String sampleMeta = "topk(by=time, limit=5, reverse=false, replacement=false)";
         TopKSampler<Long> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
@@ -78,7 +78,7 @@ public class TopKSamplerTest {
 
     @Test
     public void testTimeFilterSampleByTimestamp() {
-        AbstractIndexResult indexResult = new RangeIndexResult(timeIndex, Collections.singletonList(new Range(1, 7)));
+        AbstractResult indexResult = new RangeResult(timeIndex, Collections.singletonList(new RangeUnit(1, 7)));
 
         String sampleMeta = "topk(by=time, limit=5, reverse=false, replacement=false)";
         TopKSampler<Long> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
@@ -92,7 +92,7 @@ public class TopKSamplerTest {
 
     @Test
     public void testTypeTimeFilterSampleByWeight() {
-        AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
+        AbstractResult indexResult = new CommonResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
 
         String sampleMeta = "topk(by=weight, limit=3, reverse=true, replacement=false)";
         TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);
@@ -104,7 +104,7 @@ public class TopKSamplerTest {
 
     @Test
     public void testTypeWeightFilterSampleByWeight() {
-        AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
+        AbstractResult indexResult = new CommonResult(typeIndex, Arrays.asList(0, 2, 4, 5, 6, 9));
 
         String sampleMeta = "topk(by=weight, limit=3, reverse=false, replacement=false)";
         TopKSampler<Float> sampler = new TopKSampler<>(new SampleCondition(sampleMeta), neighborDataset);

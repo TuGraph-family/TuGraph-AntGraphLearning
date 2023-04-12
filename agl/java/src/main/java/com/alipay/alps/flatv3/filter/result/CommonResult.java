@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.index.result;
+package com.alipay.alps.flatv3.filter.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 
@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class CommonIndexResult extends AbstractIndexResult {
+public class CommonResult extends AbstractResult {
     private List<Integer> indices = null;
 
-    public CommonIndexResult(BaseIndex index, List<Integer> sortedIndices) {
+    public CommonResult(BaseIndex index, List<Integer> sortedIndices) {
         super(index);
         this.indices = sortedIndices;
     }
@@ -28,15 +28,15 @@ public class CommonIndexResult extends AbstractIndexResult {
     }
 
     @Override
-    public AbstractIndexResult join(AbstractIndexResult right) {
+    public AbstractResult join(AbstractResult right) {
         List<Integer> joinedList = joinList(indices, right.getIndices());
-        return new CommonIndexResult(updateIndex(right), joinedList);
+        return new CommonResult(updateIndex(right), joinedList);
     }
 
     @Override
-    public AbstractIndexResult union(AbstractIndexResult right) {
+    public AbstractResult union(AbstractResult right) {
         List<Integer> unionedList = unionList(indices, right.getIndices());
-        return new CommonIndexResult(updateIndex(right), unionedList);
+        return new CommonResult(updateIndex(right), unionedList);
     }
 
     @Override

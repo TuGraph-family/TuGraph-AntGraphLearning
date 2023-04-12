@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,23 +40,23 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     }
 
     @Override
-    public List<Integer> sample(AbstractIndexResult indexResult) {
+    public List<Integer> sample(AbstractResult indexResult) {
         int sampleCount = this.getSampleCondition().getLimit();
         ArrayList<Integer> sampledIndex = new ArrayList<>();
         String originIndexColumn = indexResult.getIndex().getIndexColumn();
-        if (indexResult instanceof RangeIndexResult && originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {
+        if (indexResult instanceof RangeResult && originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {
             // reuse sorted neighbors in indexing stage
-            if (indexResult instanceof RangeIndexResult) {
-                List<Range> sortedIntervals = ((RangeIndexResult) indexResult).getRangeList();
+            if (indexResult instanceof RangeResult) {
+                List<RangeUnit> sortedIntervals = ((RangeResult) indexResult).getRangeList();
                 if (getSampleCondition().isReverse()) {
                     for (int i = sortedIntervals.size() - 1; i >= 0; i--) {
-                        Range range = sortedIntervals.get(i);
+                        RangeUnit range = sortedIntervals.get(i);
                         for (int j = range.getHigh(); j >= range.getLow() && sampledIndex.size() < sampleCount; j--) {
                             sampledIndex.add(indexResult.getOriginIndex(j));
                         }
                     }
                 } else {
-                    for (Range range : sortedIntervals) {
+                    for (RangeUnit range : sortedIntervals) {
                         for (int i = range.getLow(); i <= range.getHigh() && sampledIndex.size() < sampleCount; i++) {
                             sampledIndex.add(indexResult.getOriginIndex(i));
                         }

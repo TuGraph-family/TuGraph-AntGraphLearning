@@ -1,6 +1,6 @@
 package com.alipay.alps.flatv3.index;
 
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,7 +53,7 @@ public class BaseIndexTest {
     @Test
     public void testGetIndexResultWithEmptyIndexMetaAndNOFilter() throws Exception {
         BaseIndex baseIndex = IndexFactory.createIndex("", neighborDataset);
-        AbstractIndexResult indexResult = baseIndex.search(null, null);
+        AbstractResult indexResult = baseIndex.search(null, null);
         assertEquals(4, indexResult.getSize());
         assertArrayEquals(originIndex, indexResult.getIndices().toArray());
     }

@@ -3,10 +3,10 @@ package com.alipay.alps.flatv3.sampler;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.CommonIndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.CommonResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class RandomSamplerTest {
 
     @Test
     public void testNoFilterWithReplacement() {
-        AbstractIndexResult indexResult = new RangeIndexResult(baseIndex, Collections.singletonList(new Range(0, 9)));
+        AbstractResult indexResult = new RangeResult(baseIndex, Collections.singletonList(new RangeUnit(0, 9)));
         String sampleMeta = "random_sampler(limit=6, replacement=true)";
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
@@ -64,7 +64,7 @@ public class RandomSamplerTest {
     // but the sample size is less than the number of filtered results * sampleCountToCandidateCountRatio
     @Test
     public void testTypeFilterWithoutReplacementSmallSampleCount() {
-        AbstractIndexResult indexResult = new RangeIndexResult(typeIndex, Arrays.asList(new Range(0, 3), new Range(6, 9)));
+        AbstractResult indexResult = new RangeResult(typeIndex, Arrays.asList(new RangeUnit(0, 3), new RangeUnit(6, 9)));
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=2, replacement=False)";
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
@@ -90,7 +90,7 @@ public class RandomSamplerTest {
     // test sampling with replacement based on no filter results
     @Test
     public void testSmallCandidateSize() {
-        AbstractIndexResult indexResult = new RangeIndexResult(typeIndex, Arrays.asList(new Range(0, 3), new Range(6, 9)));
+        AbstractResult indexResult = new RangeResult(typeIndex, Arrays.asList(new RangeUnit(0, 3), new RangeUnit(6, 9)));
         String sampleMeta = "random_sampler(limit=9, replacement=False)";
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
 
@@ -116,7 +116,7 @@ public class RandomSamplerTest {
     // but the sample size is larger than the number of filtered results
     @Test
     public void testWeightFilterWithoutReplacement() throws Exception {
-        AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Arrays.asList(new Range(0, 3), new Range(5, 8)));
+        AbstractResult indexResult = new RangeResult(weightIndex, Arrays.asList(new RangeUnit(0, 3), new RangeUnit(5, 8)));
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=3, replacement=False)";
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
@@ -143,7 +143,7 @@ public class RandomSamplerTest {
     // but the sample size is larger than the number of filtered results * sampleCountToCandidateCountRatio
     @Test
     public void testTypeFilterWithReplacement() throws Exception {
-        AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Arrays.asList(new Range(0, 3), new Range(5, 8)));
+        AbstractResult indexResult = new RangeResult(weightIndex, Arrays.asList(new RangeUnit(0, 3), new RangeUnit(5, 8)));
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=3, replacement=True)";
         AbstractSampler sampler = SamplerFactory.createSampler(new SampleCondition(sampleMeta), neighborDataset);
@@ -169,7 +169,7 @@ public class RandomSamplerTest {
     // test sampling with replacement based on type filter and range filter results
     @Test
     public void testWeightTypeFilterWithoutReplacementSmallSampleCount() throws Exception {
-        AbstractIndexResult indexResult = new CommonIndexResult(weightIndex, Arrays.asList(1, 2, 4, 6, 7, 9));
+        AbstractResult indexResult = new CommonResult(weightIndex, Arrays.asList(1, 2, 4, 6, 7, 9));
 
         // test sampling with replacement
         String sampleMeta = "random_sampler(limit=2, replacement=True)";

@@ -2,8 +2,8 @@ package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.index.RangeIndex;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 import com.alipay.alps.flatv3.sampler.utils.AliasMethod;
 import com.alipay.alps.flatv3.sampler.utils.PrefixSumSelection;
 import com.alipay.alps.flatv3.sampler.utils.WeightedSelectionTree;
@@ -30,7 +30,7 @@ public class WeightedSampler extends AbstractSampler {
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
     @Override
-    public List<Integer> sample(AbstractIndexResult indexResult) {
+    public List<Integer> sample(AbstractResult indexResult) {
         // get weights from the neighborDataset by the key in the sampleCondition
         weights = getNeighborDataset().getNumberAttributeList(getSampleCondition().getKey());
         int candidateCount = indexResult.getSize();
@@ -82,7 +82,7 @@ public class WeightedSampler extends AbstractSampler {
      *
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
-    private List<Integer> sampleByOrderStatisticTree(AbstractIndexResult indexResult) {
+    private List<Integer> sampleByOrderStatisticTree(AbstractResult indexResult) {
         //create the tree
         WeightedSelectionTree tree = new WeightedSelectionTree(indexResult.getIndices(), weights, getRand());
         //sample the indices
@@ -110,8 +110,8 @@ public class WeightedSampler extends AbstractSampler {
      *
      * @return An ArrayList of integers representing the index of the sampled elements.
      */
-    private List<Integer> sampleByPrefixSum(AbstractIndexResult indexResult, boolean replacement) {
-        if (indexResult instanceof RangeIndexResult) {
+    private List<Integer> sampleByPrefixSum(AbstractResult indexResult, boolean replacement) {
+        if (indexResult instanceof RangeResult) {
             int[] originIndices = indexResult.getIndex().getOriginIndices();
             String originIndexColumn = indexResult.getIndex().getIndexColumn();
             List<Float> sortedWeights = null;
@@ -120,7 +120,7 @@ public class WeightedSampler extends AbstractSampler {
             } else {
                 sortedWeights = getNeighborDataset().deepCopyAndReIndex(originIndices, getSampleCondition().getKey());
             }
-            prefixSumSelection = new PrefixSumSelection(((RangeIndexResult) indexResult).getRangeList(), originIndices, computePrefixSum(sortedWeights), getRand());
+            prefixSumSelection = new PrefixSumSelection(((RangeResult) indexResult).getRangeList(), originIndices, computePrefixSum(sortedWeights), getRand());
         } else {
             prefixSumSelection = new PrefixSumSelection(indexResult.getIndices(), weights, getRand());
         }

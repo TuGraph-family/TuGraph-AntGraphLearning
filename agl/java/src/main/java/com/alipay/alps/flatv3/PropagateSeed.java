@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3;
 
-import com.alipay.alps.flatv3.index.Filter;
+import com.alipay.alps.flatv3.filter.Filter;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.sampler.AbstractSampler;
 import com.alipay.alps.flatv3.sampler.SampleCondition;
 import com.alipay.alps.flatv3.sampler.SamplerFactory;
@@ -44,7 +44,7 @@ public class PropagateSeed {
                                        Map<String, Object> frontierValues, List<Object> neigborAttrs) throws Exception {
         List<List<Integer>> neighborList = new ArrayList<>();
         for (int i = 0; i < seeds.size(); i++) {
-            AbstractIndexResult indexResult = filter.filter(seedAttrs.get(i));
+            AbstractResult indexResult = filter.filter(seedAttrs.get(i));
             List<Integer> neighborIndices = sampler.sample(indexResult);
             neighborList.add(neighborIndices);
         }

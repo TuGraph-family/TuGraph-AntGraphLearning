@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.filter_exp;
+package com.alipay.alps.flatv3.filter.parser;
 
 import com.antfin.agl.proto.sampler.ArithmeticOp;
 import com.antfin.agl.proto.sampler.CmpExp;
@@ -15,6 +15,12 @@ public abstract class AbstractCmpWrapper {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractCmpWrapper.class);
     protected CmpExp cmpExp;
     protected String indexColumn;
+
+    public AbstractCmpWrapper(CmpExp cmpExp) {
+        this.cmpExp = cmpExp;
+        parseIndexName(this.cmpExp.getLhsRPNList());
+        parseIndexName(this.cmpExp.getRhsRPNList());
+    }
 
     public static CmpOp parseCmpOp(String cmpOp) {
         switch (cmpOp.toLowerCase()) {
@@ -43,12 +49,6 @@ public abstract class AbstractCmpWrapper {
 
     public String getIndexColumn() {
         return indexColumn;
-    }
-
-    public AbstractCmpWrapper(CmpExp cmpExp) {
-        this.cmpExp = cmpExp;
-        parseIndexName(this.cmpExp.getLhsRPNList());
-        parseIndexName(this.cmpExp.getRhsRPNList());
     }
 
     public CmpExp getCmpExp() {

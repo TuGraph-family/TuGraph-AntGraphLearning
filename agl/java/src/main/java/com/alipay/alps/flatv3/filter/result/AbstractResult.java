@@ -1,13 +1,13 @@
-package com.alipay.alps.flatv3.index.result;
+package com.alipay.alps.flatv3.filter.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
 
 import java.util.List;
 
-public abstract class AbstractIndexResult {
+public abstract class AbstractResult {
     private final BaseIndex index;
 
-    public AbstractIndexResult(BaseIndex index) {
+    public AbstractResult(BaseIndex index) {
         this.index = index;
     }
 
@@ -15,9 +15,9 @@ public abstract class AbstractIndexResult {
         return index;
     }
 
-    public abstract AbstractIndexResult join(AbstractIndexResult right);
+    public abstract AbstractResult join(AbstractResult right);
 
-    public abstract AbstractIndexResult union(AbstractIndexResult right);
+    public abstract AbstractResult union(AbstractResult right);
 
     public abstract int getSize();
 
@@ -25,7 +25,7 @@ public abstract class AbstractIndexResult {
 
     public abstract int getOriginIndex(int i);
 
-    protected BaseIndex updateIndex(AbstractIndexResult right) {
+    protected BaseIndex updateIndex(AbstractResult right) {
         BaseIndex finalIndex;
         BaseIndex leftIndex = getIndex();
         if (leftIndex != null && leftIndex.getIndexColumn() != null) {

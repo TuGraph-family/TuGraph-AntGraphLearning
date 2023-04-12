@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.sampler;
 
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
 
 import java.util.List;
 import java.util.Random;
@@ -39,7 +39,7 @@ public abstract class AbstractSampler {
      * @param indexResult IndexResult object used when sampling data
      * @return ArrayList of integers containing the sampled data
      */
-    public abstract List<Integer> sample(AbstractIndexResult indexResult);
+    public abstract List<Integer> sample(AbstractResult indexResult);
 
     // Getter for SampleCondition object
     public SampleCondition getSampleCondition() {

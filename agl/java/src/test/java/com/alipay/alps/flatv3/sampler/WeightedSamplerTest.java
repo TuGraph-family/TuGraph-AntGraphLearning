@@ -3,10 +3,10 @@ package com.alipay.alps.flatv3.sampler;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.result.AbstractIndexResult;
-import com.alipay.alps.flatv3.index.result.CommonIndexResult;
-import com.alipay.alps.flatv3.index.result.Range;
-import com.alipay.alps.flatv3.index.result.RangeIndexResult;
+import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.CommonResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class WeightedSamplerTest {
     public void testSmallCandidateSizeWithoutReplacement() {
         String sampleMeta = "weighted_sampler(by=weight, limit=5, replacement=false)";
         WeightedSampler sampler = new WeightedSampler(new SampleCondition(sampleMeta), neighborDataset);
-        AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Collections.singletonList(new Range(0, 2)));
+        AbstractResult indexResult = new RangeResult(weightIndex, Collections.singletonList(new RangeUnit(0, 2)));
         List<Integer> actual = sampler.sample(indexResult);
         List<Integer> expected = Arrays.asList(0, 1, 2);
         assertEquals(expected, actual);
@@ -50,8 +50,8 @@ public class WeightedSamplerTest {
         String sampleMeta = "weighted_sampler(by=weight, limit=3, replacement=true)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
-        Range candidateRange = new Range(0, 9);
-        AbstractIndexResult indexResult = new RangeIndexResult(baseIndex, Collections.singletonList(candidateRange));
+        RangeUnit candidateRange = new RangeUnit(0, 9);
+        AbstractResult indexResult = new RangeResult(baseIndex, Collections.singletonList(candidateRange));
 
         int numSamples = 5500000;
         int[] frequence = new int[10];
@@ -76,8 +76,8 @@ public class WeightedSamplerTest {
         String sampleMeta = "weighted_sampler(by=weight, limit=2, replacement=false)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
-        Range candidateRange = new Range(0, 9);
-        AbstractIndexResult indexResult = new RangeIndexResult(baseIndex, Collections.singletonList(candidateRange));
+        RangeUnit candidateRange = new RangeUnit(0, 9);
+        AbstractResult indexResult = new RangeResult(baseIndex, Collections.singletonList(candidateRange));
 
         int numSamples = 5500000;
         int[] frequence = new int[10];
@@ -100,7 +100,7 @@ public class WeightedSamplerTest {
         String sampleMeta = "weighted_sampler(by=weight, limit=3, replacement=true)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
-        AbstractIndexResult indexResult = new RangeIndexResult(typeIndex, Arrays.asList(new Range(0, 3), new Range(6, 9)));
+        AbstractResult indexResult = new RangeResult(typeIndex, Arrays.asList(new RangeUnit(0, 3), new RangeUnit(6, 9)));
 
         int numSamples = 4500000;
         int[] frequence = new int[10];
@@ -125,8 +125,8 @@ public class WeightedSamplerTest {
         String sampleMeta = "weighted_sampler(by=weight, limit=2, replacement=false)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
-        Range candidateRange = new Range(1, 8);
-        AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Collections.singletonList(candidateRange));
+        RangeUnit candidateRange = new RangeUnit(1, 8);
+        AbstractResult indexResult = new RangeResult(weightIndex, Collections.singletonList(candidateRange));
 
         int numSamples = 100000;
         int[] frequence = new int[10];
@@ -149,7 +149,7 @@ public class WeightedSamplerTest {
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
         List<Integer> candidateIndices = Arrays.asList(0, 2, 4, 5, 6, 9);
-        AbstractIndexResult indexResult = new CommonIndexResult(weightIndex, candidateIndices);
+        AbstractResult indexResult = new CommonResult(weightIndex, candidateIndices);
 
         float totalWeight = 0.0F;
         for (int i : candidateIndices) {
@@ -181,8 +181,8 @@ public class WeightedSamplerTest {
         String sampleMeta = "weighted_sampler(by=weight, limit=3, replacement=false)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
-        Range candidateRange = new Range(0, 9);
-        AbstractIndexResult indexResult = new RangeIndexResult(baseIndex, Collections.singletonList(candidateRange));
+        RangeUnit candidateRange = new RangeUnit(0, 9);
+        AbstractResult indexResult = new RangeResult(baseIndex, Collections.singletonList(candidateRange));
 
 
         int numSamples = 1000000;
@@ -206,8 +206,8 @@ public class WeightedSamplerTest {
         String sampleMeta = "weighted_sampler(by=weight, limit=3, replacement=false)";
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
-        Range candidateRange = new Range(2, 8);
-        AbstractIndexResult indexResult = new RangeIndexResult(weightIndex, Collections.singletonList(candidateRange));
+        RangeUnit candidateRange = new RangeUnit(2, 8);
+        AbstractResult indexResult = new RangeResult(weightIndex, Collections.singletonList(candidateRange));
 
 
         int numSamples = 1000000;
@@ -231,7 +231,7 @@ public class WeightedSamplerTest {
         SampleCondition sampleCondition = new SampleCondition(sampleMeta);
         WeightedSampler sampler = new WeightedSampler(sampleCondition, neighborDataset);
         List<Integer> candidateIndices = Arrays.asList(0, 2, 4, 5, 6, 9);
-        AbstractIndexResult indexResult = new CommonIndexResult(typeIndex, candidateIndices);
+        AbstractResult indexResult = new CommonResult(typeIndex, candidateIndices);
 
 
         int numSamples = 1000000;

@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.index.result;
+package com.alipay.alps.flatv3.filter.result;
 
 
 import lombok.Getter;
@@ -22,7 +22,7 @@ import lombok.Setter;
  *
  * [2, 9] join [6, 10], we can get [6, 9]
  */
-public class Range {
+public class RangeUnit {
     @Getter
     @Setter
     private int low;
@@ -30,7 +30,7 @@ public class Range {
     @Setter
     private int high;
 
-    public Range(Range r) {
+    public RangeUnit(RangeUnit r) {
         this.low = r.low;
         this.high = r.low;
         if (this.low > this.high) {
@@ -39,7 +39,7 @@ public class Range {
         }
     }
 
-    public Range(int low, int high) {
+    public RangeUnit(int low, int high) {
         this.low = low;
         this.high = high;
     }
@@ -48,7 +48,7 @@ public class Range {
         return (number >= low && number <= high);
     }
 
-    public void join(Range range) {
+    public void join(RangeUnit range) {
         this.low = Math.max(this.low, range.low);
         this.high = Math.min(this.high, range.high);
         if (this.low > this.high) {
@@ -62,22 +62,6 @@ public class Range {
             return 0;
         }
         return high - low + 1;
-    }
-
-    public void setLow(int low) {
-        this.low = low;
-    }
-
-    public void setHigh(int high) {
-        this.high = high;
-    }
-
-    public int getLow() {
-        return low;
-    }
-
-    public int getHigh() {
-        return high;
     }
 
     @Override
