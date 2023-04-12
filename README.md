@@ -1,3 +1,15 @@
+## 编译安装
+### 镜像
+* ubuntu-2204 or centos?
+* 环境：
+  * Python: 3.9+？
+  * CPP: gcc10? c++17?
+## Doc
+* Sphinx构建
+
+## Docker
+* TODO: 选择合适的镜像？Dockerfile from ubuntu？
+
 ## README的意义
 
 README 文件通常是项目的第一个入口点。你应该通过 README 明确地告诉大家，为什么他们应该使用你的项目，以及安装和使用的方法。
