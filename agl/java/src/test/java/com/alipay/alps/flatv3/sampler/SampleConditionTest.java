@@ -21,7 +21,7 @@ public class SampleConditionTest {
 
     @Test
     public void testToString() {
-        SampleCondition sampleCondition = new SampleCondition("weighted_sample", "index.$1.weight", 5, false, true);
+        SampleCondition sampleCondition = new SampleCondition("weighted_sample", "index.$1.weight", 5, false, true, 34);
         String expected = "SampleCondition{method='weighted_sample', key='index.$1.weight', limit=5, replacement=false, reverse=true}";
         assertEquals(expected, sampleCondition.toString());
     }

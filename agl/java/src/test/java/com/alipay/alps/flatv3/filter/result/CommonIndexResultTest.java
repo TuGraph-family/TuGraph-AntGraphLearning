@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3.filter.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 import com.alipay.alps.flatv3.index.IndexFactory;
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,8 +23,8 @@ public class CommonIndexResultTest {
         for (int i = 0; i < 10; i++) {
             ids.add(i);
         }
-        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
-        index = IndexFactory.createIndex("", neighborDataset);
+        HeteroDataset neighborDataset = new HeteroDataset(5);
+        index = new IndexFactory().createIndex("", neighborDataset);
         result = new CommonResult(index, Arrays.asList(1, 2, 3, 4, 5));
     }
 

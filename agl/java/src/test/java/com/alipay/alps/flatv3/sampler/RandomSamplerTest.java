@@ -1,12 +1,12 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.IndexFactory;
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.CommonResult;
-import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.HeteroDataset;
+import com.alipay.alps.flatv3.index.IndexFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +18,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class RandomSamplerTest {
-    private NeighborDataset neighborDataset;
+    private HeteroDataset neighborDataset;
     private BaseIndex baseIndex;
     private BaseIndex weightIndex;
     private BaseIndex typeIndex;
@@ -31,13 +31,13 @@ public class RandomSamplerTest {
             ids.add(String.valueOf(i));
             weight.add(1.0F - 0.1F * i);
         }
-        neighborDataset = new NeighborDataset(ids.size());
+        neighborDataset = new HeteroDataset(ids.size());
         neighborDataset.addAttributeList("weight", weight);
         List<String> typeList = Arrays.asList("item", "shop", "user", "item", "user", "item", "shop", "user", "item", "user");
         neighborDataset.addAttributeList("node_type", typeList);
-        baseIndex = IndexFactory.createIndex("", neighborDataset);
-        weightIndex = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
-        typeIndex = IndexFactory.createIndex("hash_index:node_type:string", neighborDataset);
+        baseIndex = new IndexFactory().createIndex("", neighborDataset);
+        weightIndex = new IndexFactory().createIndex("range_index:weight:float", neighborDataset);
+        typeIndex = new IndexFactory().createIndex("hash_index:node_type:string", neighborDataset);
     }
 
     @Test

@@ -37,7 +37,7 @@ public abstract class AbstractResult {
     }
 
     public boolean hasFilterCondition() {
-        return index != null && index.getIndexColumn() != null;
+        return index != null && index.getIndexColumn() != null && !index.getIndexColumn().isEmpty();
     }
 
 }

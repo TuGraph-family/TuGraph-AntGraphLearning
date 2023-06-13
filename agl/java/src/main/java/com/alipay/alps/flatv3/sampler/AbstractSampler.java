@@ -1,7 +1,7 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 
 import java.util.List;
 import java.util.Random;
@@ -13,9 +13,9 @@ public abstract class AbstractSampler {
     // SampleCondition object that stores the properties used for sampling
     private final SampleCondition sampleCondition;
     // neighborDataset object that stores the data used for sampling
-    private final NeighborDataset neighborDataset;
+    private final HeteroDataset neighborDataset;
     // Random object used to generate a random seed
-    private final Random rand = new Random();
+    private Random rand = null;
 
     // If it is larger than this threshold, we will delete the sampled node from the candidate set physically
     // If sample ratio is less than this threshold, 
@@ -28,9 +28,10 @@ public abstract class AbstractSampler {
      * @param sampleCondition SampleCondition object for storing the properties used for sampling
      * @param neighborDataset NeighborDataset object for storing the data used for sampling
      */
-    public AbstractSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+    public AbstractSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         this.sampleCondition = sampleCondition;
         this.neighborDataset = neighborDataset;
+        this.rand = new Random(sampleCondition.getSeed());
     }
 
     /**
@@ -52,7 +53,7 @@ public abstract class AbstractSampler {
     }
 
     // Getter for NeighborDataset object
-    public NeighborDataset getNeighborDataset() {
+    public HeteroDataset getNeighborDataset() {
         return neighborDataset;
     }
 

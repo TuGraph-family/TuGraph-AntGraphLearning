@@ -10,35 +10,54 @@ import com.antfin.agl.proto.sampler.CmpOp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RangeIndex extends BaseIndex {
-    private List sortedWeights;
+public class RangeIndex extends BaseIndex implements Serializable {
+    private List sortedWeights = null;
 
-    public RangeIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
-        super(indexType, indexColumn, indexDtype, neighborDataset);
+    public RangeIndex() {
     }
-
+    public RangeIndex(String indexType, String indexColumn, String indexDtype) {
+        super(indexType, indexColumn, indexDtype);
+    }
+    public List getSortedWeights() {
+        return sortedWeights;
+    }
     @Override
-    public int[] buildIndex() {
+    public int[] buildIndex(HeteroDataset neighborDataset) {
         String indexColumn = getIndexColumn();
         sortedWeights = neighborDataset.deepCopyAttributeList(indexColumn);
-        originIndices = super.buildIndex();
+        originIndices = super.buildIndex(neighborDataset);
         quicksort(originIndices, sortedWeights, 0, sortedWeights.size() - 1);
         return originIndices;
     }
 
-    public List getSortedWeights() {
-        return sortedWeights;
+    private void shuffleWeights(HeteroDataset neighborDataset) {
+        if (sortedWeights != null) {
+            return;
+        }
+        sortedWeights = neighborDataset.deepCopyAttributeList(getIndexColumn());
+        ArrayList<Integer> shuffleIndex = new ArrayList<Integer>(Collections.nCopies(this.originIndices.length, 0));
+        int candidateCount = this.originIndices.length;
+        for (int i = 0; i < candidateCount; i++) {
+            shuffleIndex.set(this.originIndices[i], i);
+        }
+        for (int i = 0; i < candidateCount; i++) {
+            while (shuffleIndex.get(i) != i) {
+                Collections.swap(sortedWeights, i, shuffleIndex.get(i));
+                Collections.swap(shuffleIndex, i, shuffleIndex.get(i));
+            }
+        }
     }
 
     @Override
-    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
-        RangeUnit range = binarySearch((ArithmeticCmpWrapper) cmpExpWrapper, inputVariables);
+    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables, HeteroDataset neighborDataset) throws Exception {
+        RangeUnit range = binarySearch((ArithmeticCmpWrapper) cmpExpWrapper, inputVariables, neighborDataset);
         List<RangeUnit> ranges = new ArrayList<>();
         if (range.getSize() > 0) {
             ranges.add(range);
@@ -80,7 +99,7 @@ public class RangeIndex extends BaseIndex {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
             int mid = left + (right - left) / 2;
-            if (f.apply(nums.get(mid))) {
+            if (f.apply((T)nums.get(mid))) {
                 right = mid - 1;
             } else {
                 left = mid + 1;
@@ -93,7 +112,7 @@ public class RangeIndex extends BaseIndex {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
             int mid = left + (right - left) / 2;
-            if (f.apply(nums.get(mid))) {
+            if (f.apply((T)nums.get(mid))) {
                 left = mid + 1;
             } else {
                 right = mid - 1;
@@ -102,13 +121,13 @@ public class RangeIndex extends BaseIndex {
         return right;
     }
 
-    private RangeUnit binarySearch(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    private RangeUnit binarySearch(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables, HeteroDataset neighborDataset) throws Exception {
         if (arithCmpWrapper.getCmpExp().getOp() == CmpOp.EQ || arithCmpWrapper.getCmpExp().getOp() == CmpOp.NE) {
             CmpExp.Builder cmpExpBuilder = CmpExp.newBuilder().mergeFrom(arithCmpWrapper.getCmpExp());
             cmpExpBuilder.setOp(CmpOp.LE);
-            RangeUnit rangeLE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables);
+            RangeUnit rangeLE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables, neighborDataset);
             cmpExpBuilder.setOp(CmpOp.GE);
-            RangeUnit rangeGE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables);
+            RangeUnit rangeGE = binarySearchInequation(new ArithmeticCmpWrapper(cmpExpBuilder.build()), inputVariables, neighborDataset);
             if (arithCmpWrapper.getCmpExp().getOp() == CmpOp.EQ) {
                 rangeLE.join(rangeGE);
                 return rangeLE;
@@ -116,16 +135,16 @@ public class RangeIndex extends BaseIndex {
             // TODO: return two ranges: [0, range.key-1] [range.value+1, size-1]
             throw new Exception("!= not implemented");
         }
-        return binarySearchInequation(arithCmpWrapper, inputVariables);
+        return binarySearchInequation(arithCmpWrapper, inputVariables, neighborDataset);
     }
 
     // binary search for a range of values that satisfy the inequality
-    private RangeUnit binarySearchInequation(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) {
+    private RangeUnit binarySearchInequation(ArithmeticCmpWrapper arithCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables, HeteroDataset neighborDataset) {
         String indexColumn = arithCmpWrapper.getIndexColumn(); // index.time
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
         indexVariableMap.put(indexColumn, null);
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
-
+        shuffleWeights(neighborDataset);
         RangeUnit range = new RangeUnit(0, originIndices.length - 1);
         boolean hasLowerBound = arithCmpWrapper.hasLowerBound();
         if (neighborDataset.getFloatAttributeList(indexColumn) != null) {

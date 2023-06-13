@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.aliyun.openservices:loghub-client-lib:0.6.3">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/aliyun/openservices/loghub-client-lib/0.6.3/loghub-client-lib-0.6.3.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/aliyun/openservices/loghub-client-lib/0.6.3/loghub-client-lib-0.6.3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/aliyun/openservices/loghub-client-lib/0.6.3/loghub-client-lib-0.6.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -6,7 +6,6 @@ start:(expr)*;
 
 expr:
     literal_value                                                   #LiteralExp
-    | column_name                                                   #ColumnExp
     | unary_operator expr                                           #UnaryExp
     | expr ( STAR | DIV | MOD) expr                                 #StarDivExp
     | expr ( PLUS | MINUS) expr                                     #PlusMinusExp
@@ -24,6 +23,7 @@ expr:
     | expr AND_ expr                                                #AndExp
     | expr OR_ expr                                                 #OrExp
     | OPEN_PAR expr (COMMA expr) * CLOSE_PAR                        #ParExp
+    | column_name                                                   #ColumnExp
 ;
 
 keyword:

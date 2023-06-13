@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.googlecode.protobuf-java-format:protobuf-java-format:1.2">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/protobuf-java-format/protobuf-java-format/1.2/protobuf-java-format-1.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/protobuf-java-format/protobuf-java-format/1.2/protobuf-java-format-1.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/protobuf-java-format/protobuf-java-format/1.2/protobuf-java-format-1.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

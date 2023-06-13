@@ -1,16 +1,20 @@
 package com.alipay.alps.flatv3.index;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class IndexFactory {
     public static final String HASH_INDEX = "hash_index";
     public static final String RANGE_INDEX = "range_index";
     public static final String NO_FILTER = "";
-    public static Map<String, BaseIndex> indexesMap = new HashMap<>();
 
-    // indexMeta: index_type:column_name:index_dtype
-    public static BaseIndex createIndex(String indexMeta, NeighborDataset neighborDataset) {
+    /**
+     * @param indexMeta:       index_type:column_name:index_dtype
+     * @param neighborDataset: neighbor dataset
+     * @return an index
+     */
+    public BaseIndex createIndex(String indexMeta, HeteroDataset neighborDataset) {
         String t[] = indexMeta.split(":");
         String indexColumn = NO_FILTER;
         String indexDtype = "";
@@ -21,33 +25,43 @@ public class IndexFactory {
         return getOrCreate(t[0], indexColumn, indexDtype, neighborDataset);
     }
 
-    public static void clear() {
-        indexesMap.clear();
+    /**
+     * @param indexMetas:      a list of index metas, it will introduce multiple indexes
+     * @param neighborDataset: neighbor dataset
+     * @return a map of index column and index
+     */
+    public Map<String, BaseIndex> getIndexesMap(List<String> indexMetas, HeteroDataset neighborDataset) {
+        Map<String, BaseIndex> indexesMap = new HashMap<>();
+        if (indexMetas == null || indexMetas.size() == 0) {
+            BaseIndex index = createIndex("", neighborDataset);
+            indexesMap.put(index.getIndexColumn(), index);
+        } else {
+            for (String indexMeta : indexMetas) {
+                BaseIndex index = createIndex(indexMeta, neighborDataset);
+                indexesMap.put(index.getIndexColumn(), index);
+            }
+        }
+        return indexesMap;
     }
 
     // if indexColumn can be found in indexesMap, return the index
     // else create a new index, update indexesMap and return the index
-    private static BaseIndex getOrCreate(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
-        if (indexesMap.containsKey(indexColumn)) {
-            BaseIndex index = indexesMap.get(indexColumn);
-            assert index.getIndexType().compareToIgnoreCase(indexType) == 0 &&
-                    index.getIndexColumn().compareToIgnoreCase(indexColumn) == 0 &&
-                    index.getIndexDtype().compareToIgnoreCase(indexDtype) == 0;
-            return index;
-        }
+    private BaseIndex getOrCreate(String indexType, String indexColumn, String indexDtype, HeteroDataset neighborDataset) {
+        BaseIndex index = null;
         switch (indexType) {
             case HASH_INDEX:
-                indexesMap.put(indexColumn, new HashIndex(indexType, indexColumn, indexDtype, neighborDataset));
+                index = new HashIndex(indexType, indexColumn, indexDtype);
                 break;
             case RANGE_INDEX:
-                indexesMap.put(indexColumn, new RangeIndex(indexType, indexColumn, indexDtype, neighborDataset));
+                index = new RangeIndex(indexType, indexColumn, indexDtype);
                 break;
             case NO_FILTER:
-                indexesMap.put(indexColumn, new BaseIndex(NO_FILTER, indexColumn, indexDtype, neighborDataset));
+                index = new BaseIndex(NO_FILTER, indexColumn, indexDtype);
                 break;
             default:
                 throw new RuntimeException("Not support hash_range_index yet");
         }
-        return indexesMap.get(indexColumn);
+        index.buildIndex(neighborDataset);
+        return index;
     }
 }

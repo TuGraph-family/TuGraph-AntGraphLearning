@@ -48,6 +48,12 @@ public class ArithmeticCmpWrapper extends AbstractCmpWrapper {
                 case VAR:
                     VariableSource sourceType = elements.get(i).getVar().getSource();
                     String name = elements.get(i).getVar().getName();
+                    if (!inputVariables.containsKey(sourceType)) {
+                        throw new RuntimeException("variable source missing: " + sourceType);
+                    }
+                    if (!inputVariables.get(sourceType).containsKey(name)) {
+                        throw new RuntimeException("variable field missing: " + name);
+                    }
                     vars.push(getNumericValue(inputVariables.get(sourceType).get(name)));
                     break;
                 case OP:

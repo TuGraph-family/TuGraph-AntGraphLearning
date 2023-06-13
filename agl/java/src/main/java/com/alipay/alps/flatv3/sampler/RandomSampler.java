@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.CommonResult;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,7 +16,7 @@ import java.util.List;
  * It uses a random number generator to select a subset of the IndexResult object based on the provided SampleCondition.
  */
 public class RandomSampler extends AbstractSampler {
-    public RandomSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+    public RandomSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         super(sampleCondition, neighborDataset);
     }
 
@@ -87,7 +87,7 @@ public class RandomSampler extends AbstractSampler {
         for (int i = 0; i < n; i++) {
             sampledIndex.add(i);
         }
-        Collections.shuffle(sampledIndex);
+        Collections.shuffle(sampledIndex, getRand());
         return sampledIndex.subList(0, k);
     }
 }

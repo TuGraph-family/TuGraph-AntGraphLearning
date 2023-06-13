@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.aliyun.odps:hadoop-fs-oss:3.3.14-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/aliyun/odps/hadoop-fs-oss/3.3.14-SNAPSHOT/hadoop-fs-oss-3.3.14-20210916.062157-5.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/aliyun/odps/hadoop-fs-oss/3.3.14-SNAPSHOT/hadoop-fs-oss-3.3.14-20210916.062157-5-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/aliyun/odps/hadoop-fs-oss/3.3.14-SNAPSHOT/hadoop-fs-oss-3.3.14-20210916.062157-5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

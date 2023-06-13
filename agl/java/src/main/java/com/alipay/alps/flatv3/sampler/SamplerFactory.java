@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.NeighborDataset;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 
 public class SamplerFactory {
-    public static AbstractSampler createSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+    public static AbstractSampler createSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         switch (sampleCondition.getMethod().toLowerCase()) {
             case "weighted_sampler":
                 // If the sampling method is weighted_sampler, return a WeightedSampler
@@ -20,17 +20,17 @@ public class SamplerFactory {
         }
     }
 
-    private static AbstractSampler createTopKSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+    private static AbstractSampler createTopKSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         // Get the data type of the key
         String dtype = neighborDataset.getDtype(sampleCondition.getKey()).toLowerCase();
         switch (dtype) {
             // If the data type is float, return a TopKSampler<Float>
             case "float":
                 return new TopKSampler<Float>(sampleCondition, neighborDataset);
-                // If the data type is long, return a TopKSampler<Long>
+            // If the data type is long, return a TopKSampler<Long>
             case "long":
                 return new TopKSampler<Long>(sampleCondition, neighborDataset);
-                // If the data type is string, return a TopKSampler<String>
+            // If the data type is string, return a TopKSampler<String>
             case "string":
                 return new TopKSampler<String>(sampleCondition, neighborDataset);
             default:
