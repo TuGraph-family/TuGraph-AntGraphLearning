@@ -124,8 +124,7 @@ public class GraphFeatureGenerator {
             throw new RuntimeException("missing edge:" + edgeId + " node1Id:" + node1Id + " node2Id:" + node2Id, e);
         }
     }
-
-    public String getGraphFeature(List<String> roots) {
+    public String getGraphFeature(List<String> roots, boolean compress) {
         Map<String, List<Integer>> rootTypeIndices = new HashMap<>();
         GraphFeature.Builder graphFeatureBuilder = generateGraphFeature(roots, rootTypeIndices);
         GraphFeature.Root.Builder rootBuilder = GraphFeature.Root.newBuilder();
@@ -141,7 +140,11 @@ public class GraphFeatureGenerator {
         rootBuilder.setSubgraph(multiItemsBuilder);
         graphFeatureBuilder.setRoot(rootBuilder);
 
-        return serializeGraphFeature(graphFeatureBuilder.build(), false);
+        return serializeGraphFeature(graphFeatureBuilder.build(), compress);
+    }
+
+    public String getGraphFeature(List<String> roots) {
+        return getGraphFeature(roots, false);
     }
 
     public String getGraphFeature(String root) {

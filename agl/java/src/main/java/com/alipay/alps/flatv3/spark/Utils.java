@@ -4,6 +4,7 @@ import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.SaveMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,13 +21,17 @@ public class Utils {
         String[] columnNames = inputDataset.columns();
         List<Column> aggColumns = new ArrayList<>();
 
-        for (int i = 2; i < columnNames.length; i++) {
-            aggColumns.add(concat_ws("\t", collect_list(col(columnNames[i]))).alias(columnNames[i]));
+        for (int i = 0; i < columnNames.length; i++) {
+            if (columnNames[i].compareTo(key) == 0) {
+                continue;
+            }
+            aggColumns.add(concat_ws("\t", collect_list(col(columnNames[i]))).alias(columnNames[i]+"_list"));
         }
 
-        Dataset<Row> aggDataset = inputDataset.groupBy(col(key))
+        Dataset<Row> aggDataset = inputDataset
+//                .repartition(col(key)).sortWithinPartitions("node_id")
+                .groupBy(col(key))
                 .agg(aggColumns.get(0), aggColumns.subList(1, aggColumns.size()).toArray(new org.apache.spark.sql.Column[0]));
-
         return aggDataset;
     }
 
@@ -41,7 +46,7 @@ public class Utils {
 
     public static void outputData(SparkSession spark, Dataset<Row> subgraph, String output) {
         if (output.startsWith("file:///")) {
-            subgraph.write().csv(output);
+            subgraph.repartition(1).write().mode(SaveMode.Overwrite).option("header", "true").csv(output);
         } else {
             spark.sql("DROP TABLE IF EXISTS " + output);
             subgraph.write().saveAsTable(output);

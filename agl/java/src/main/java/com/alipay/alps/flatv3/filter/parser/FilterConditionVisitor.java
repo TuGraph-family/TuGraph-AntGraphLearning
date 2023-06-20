@@ -142,6 +142,15 @@ public class FilterConditionVisitor extends FilterBaseVisitor<LogicExps.Builder>
     }
 
     @Override
+    public LogicExps.Builder visitUnaryExp(FilterParser.UnaryExpContext ctx) {
+        String op = ctx.getChild(0).getText();
+        arithmeticValOps.add(Element.newBuilder().setNum(Element.Number.newBuilder().setI(0l)).build());
+        visitChildren(ctx);
+        arithmeticValOps.add(Element.newBuilder().setOp(ArithmeticOp.valueOf(arithmeticOpMap.get(op))).build());
+        return logicExpsBuilder;
+    }
+
+    @Override
     public LogicExps.Builder visitLiteralExp(FilterParser.LiteralExpContext ctx) {
         String exp = ctx.getChild(0).getText();
         Element.Builder elementBuilder = Element.newBuilder();

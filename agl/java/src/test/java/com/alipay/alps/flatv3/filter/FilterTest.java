@@ -72,6 +72,21 @@ public class FilterTest {
         assertArrayEquals(Arrays.asList(2, 3).toArray(), indexResult.getIndices().toArray());
     }
 
+    // test range filter with negative value
+    @Test
+    public void testRangeFilterNegativeVal() throws Exception {
+        List<Object> seedScore = Arrays.asList(0.3F);
+        HeteroDataset seedAttrs = new HeteroDataset(seedScore.size());
+        seedAttrs.addAttributeList("score", seedScore);
+        // add a range index
+        List<String> indexMetas = new ArrayList<>();
+        indexMetas.add("range_index:score:float");
+        Filter filter = new Filter("index.score - seed.score <= -0.1");
+        Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
+        AbstractResult indexResult = filter.filter(0, seedAttrs, neighborDataset, indexMap);
+        assertArrayEquals(Arrays.asList(0, 1).toArray(), indexResult.getIndices().toArray());
+    }
+
     // test range filter and type filter
     @Test
     public void testRangeAndTypeFilter() throws Exception {

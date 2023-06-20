@@ -22,7 +22,6 @@ import scala.Tuple4;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,16 +36,17 @@ public class DynamicGraph {
                 .builder()
                 .appName("SparkSQL_Demo")
                 .config("spark.sql.warehouse.dir", warehouseLocation)
-                .master("local")
                 .enableHiveSupport()
                 .getOrCreate();
         Map<String, String> arguments = Utils.populateArgumentMap(args);
         System.out.println("========================arguments: " + Arrays.toString(arguments.entrySet().toArray()));
         // input data
         String inputLabel = arguments.getOrDefault(Constants.INPUT_LABEL, "");
-        String inputNeighbor = arguments.getOrDefault(Constants.INPUT_NEIGHBOR, "");
-        String inputFeature = arguments.getOrDefault(Constants.INPUT_FEATURE, "");
+        String inputEdge = arguments.getOrDefault(Constants.INPUT_EDGE, "");
+        String inputNodeFeature = arguments.getOrDefault(Constants.INPUT_NODE_FEATURE, "");
+        String inputEdgeFeature = arguments.getOrDefault(Constants.INPUT_EDGE_FEATURE, "");
         String outputResults = arguments.getOrDefault(Constants.OUTPUT_RESULTS, "");
+        System.out.println("========================inputEdgeFeature: " + inputEdgeFeature);
 
         int maxHop = Integer.parseInt(arguments.get(Constants.HOP));
         String sampleCond = arguments.get(Constants.SAMPLE_COND);
@@ -60,27 +60,19 @@ public class DynamicGraph {
 
         SubGraphSpecs subGraphSpecs = new SubGraphSpecs(subgraphSpec);
         Dataset<Row> seedDS = Utils.inputData(spark, inputLabel)
+                .withColumn("time", col("time").cast(DataTypes.LongType))
+                .cache();
+
+        Dataset<Row> seedLabels = Utils.aggregateConcatWs("seed", seedDS);
+
+        Dataset<Row> edgeDF = Utils.inputData(spark, inputEdge)
                 .withColumn("time", col("time").cast(DataTypes.LongType)).cache();
-        seedDS.show();
-        seedDS.printSchema();
-
-        Dataset<Row> seedLabels = Utils.aggregateConcatWs("seed", seedDS)
-                .repartition(seedDS.col("seed")).sortWithinPartitions("node_id");
-        seedLabels.show();
-        seedLabels.printSchema();
-
-        Dataset<Row> edgeDF = Utils.inputData(spark, inputNeighbor)
-                .withColumn("ts", col("ts").cast(DataTypes.LongType)).cache();
-        Dataset<Row> neighborDF = edgeDF.withColumnRenamed("u", "node1_id")
-                .withColumnRenamed("i", "node2_id").union(edgeDF.withColumnRenamed("i", "node1_id")
-                        .withColumnRenamed("u", "node2_id"))
+        Dataset<Row> neighborDF = edgeDF
                 .repartition(col("node1_id")).sortWithinPartitions("edge_id")
                 .groupBy("node1_id").agg(
                         collect_list("node2_id").as("collected_node2_id"),
                         collect_list("edge_id").as("collected_edge_id"),
-                        collect_list("ts").as("collected_ts")).cache();
-        neighborDF.show();
-        neighborDF.printSchema();
+                        collect_list("time").as("collected_time")).cache();
 
         Dataset<IndexInfo> indexDS = neighborDF.map(new MapFunction<Row, IndexInfo>() {
             @Override
@@ -88,14 +80,14 @@ public class DynamicGraph {
                 String node1_id = row.getString(0);
                 List<String> node2_id = row.getList(1);
                 List<String>  edge_id = row.getList(2);
-                List<Long>  times = row.getList(3);
+                List<Long>  time = row.getList(3);
                 IndexInfo indexInfo = new IndexInfo();
                 indexInfo.setNode1_id(node1_id);
                 indexInfo.setNode2_id(node2_id);
                 indexInfo.setEdge_id(edge_id);
-                indexInfo.setTime(times);
+                indexInfo.setTime(time);
                 HeteroDataset heteroDataset = new HeteroDataset(node2_id.size());
-                heteroDataset.addAttributeList("times", times);
+                heteroDataset.addAttributeList("time", time);
                 Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, heteroDataset);
                 IndexInfo.setAllIndexes(indexMap, indexInfo);
                 return indexInfo;
@@ -123,25 +115,35 @@ public class DynamicGraph {
                         .agg(collect_list("seed").as("collected_seed"),
                              collect_list("other1Long").as("collect_list"))
                         .withColumnRenamed("node1", "node_id");
-                seedAgg.show();
-                seedAgg.printSchema();
             }
         }
 
-        Dataset<SubGraphElement> subgraphStructure = resultGraphElement.distinct();
-        if (inputFeature.trim().length() > 0) {
-            Dataset<Row> rawFeatureDF = spark.sql(inputFeature);
-            subgraphStructure = subgraphStructure
-                    .join(rawFeatureDF, subgraphStructure.col("id").equalTo(rawFeatureDF.col("node_id")), "inner")
-                    .select("seed", "entryType", "node1", "node2", "id", "new_feature")
+        resultGraphElement.distinct().cache();
+        Dataset<SubGraphElement> nodeStructure = resultGraphElement.filter("entryType = 'node' or entryType = 'root'");
+        Dataset<SubGraphElement> nodeFeatureDF = nodeStructure;
+        if (inputNodeFeature.trim().length() > 0) {
+            Dataset<Row> rawNodeFeatureDF = spark.sql(inputNodeFeature);
+            nodeFeatureDF = nodeFeatureDF
+                    .join(rawNodeFeatureDF, nodeFeatureDF.col("id").equalTo(rawNodeFeatureDF.col("node_id")), "inner")
+                    .select("seed", "entryType", "node1", "node2", "id", "node_feature")
                     .map((MapFunction<Row, SubGraphElement>) (Row row) -> {
                                 return new SubGraphElement(row.getString(0), row.getString(1), row.getString(2), row.getString(3), row.getString(4), row.getString(5), "");
                             },
                             Encoders.bean(SubGraphElement.class));
         }
-        Dataset<Row> subgraph = subgraphStructure.groupByKey((MapFunction<SubGraphElement, String>) row -> row.getSeed(), Encoders.STRING())
+        Dataset<SubGraphElement> edgeStructure = resultGraphElement.filter("entryType = 'edge'");
+        Dataset<SubGraphElement> edgeFeatureDF = edgeStructure;
+        if (inputEdgeFeature.trim().length() > 0) {
+            Dataset<Row> rawEdgeFeatureDF = Utils.inputData(spark, inputEdgeFeature);
+            edgeFeatureDF = rawEdgeFeatureDF.join(edgeStructure, edgeStructure.col("id").equalTo(rawEdgeFeatureDF.col("edge_id")), "inner")
+                    .select("seed", "entryType", "node1", "node2", "id", "edge_feature")
+                    .map((MapFunction<Row, SubGraphElement>) row -> new SubGraphElement(row.getString(0), row.getString(1), row.getString(2), row.getString(3), row.getString(4), row.getString(5), ""),
+                            Encoders.bean(SubGraphElement.class));
+        }
+        Dataset<Row> subgraph = nodeFeatureDF.union(edgeFeatureDF).groupByKey((MapFunction<SubGraphElement, String>) row -> row.getSeed(), Encoders.STRING())
                 .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs), Encoders.tuple(Encoders.STRING(), Encoders.STRING())).toDF("seed", "graph_feature");
-        Utils.outputData(spark, subgraph.join(seedLabels, "seed"), outputResults);
+        Dataset<Row> subgraphx = subgraph.join(seedLabels, "seed");
+        Utils.outputData(spark, subgraphx, outputResults);
     }
 
     public static FlatMapFunction<Tuple2<IndexInfo, Row>, SubGraphElement> getPropergateFunction(String otherOutputSchema, Filter filter, String sampleCond, int hop) {
@@ -161,9 +163,9 @@ public class DynamicGraph {
                         Map<String, BaseIndex> indexes = IndexInfo.getAllIndexes(indexInfo);
 
                         HeteroDataset seedAttrs = new HeteroDataset(seedList.size());
-                        seedAttrs.addAttributeList("times", originTimeList);
+                        seedAttrs.addAttributeList("time", originTimeList);
                         HeteroDataset neighborAttrs = new HeteroDataset(node2IDs.size());
-                        neighborAttrs.addAttributeList("times", indexInfo.getTime());
+                        neighborAttrs.addAttributeList("time", indexInfo.getTime());
 
                         PropagateSeed propagateSeed = new PropagateSeed(otherOutputSchema, filter, sampleCond);
                         SampleOtherOutput sampleOtherOutput = propagateSeed.process(indexes, neighborAttrs, seedList, seedAttrs, null, null);

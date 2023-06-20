@@ -8,7 +8,6 @@ import com.alipay.alps.flatv3.graphfeature.SubGraphSpecs;
 import com.alipay.alps.flatv3.sampler.AbstractSampler;
 import com.alipay.alps.flatv3.sampler.SampleCondition;
 import com.alipay.alps.flatv3.sampler.SamplerFactory;
-import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.api.java.function.MapGroupsFunction;
@@ -19,21 +18,15 @@ import org.apache.spark.sql.SparkSession;
 import scala.Tuple2;
 import scala.Tuple4;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.collect_list;
-import static org.apache.spark.sql.functions.concat_ws;
 
 
 public class SubgraphSampling {
@@ -48,18 +41,21 @@ public class SubgraphSampling {
                 .getOrCreate();
         Map<String, String> arguments = Utils.populateArgumentMap(args);
         System.out.println("========================arguments: " + Arrays.toString(arguments.entrySet().toArray()));
+
+        int maxHop = Integer.parseInt(arguments.get(Constants.HOP));
+        String sampleCond[] = new String[maxHop];
+        String sampleCondStr[] = arguments.get(Constants.SAMPLE_COND).split(";");
+        for (int i = 0; i < maxHop; i++) {
+            sampleCond[i] = i < sampleCondStr.length ? sampleCondStr[i] : sampleCondStr[sampleCondStr.length-1];
+        }
+        String subgraphSpec = arguments.get(Constants.SUBGRAPH_SPEC);
+
         // input data
         String inputLabel = arguments.getOrDefault(Constants.INPUT_LABEL, "");
         String inputEdge = arguments.getOrDefault(Constants.INPUT_EDGE, "");
         String inputNodeFeature = arguments.getOrDefault(Constants.INPUT_NODE_FEATURE, "");
         String inputEdgeFeature = arguments.getOrDefault(Constants.INPUT_EDGE_FEATURE, "");
         String outputResults = arguments.getOrDefault(Constants.OUTPUT_RESULTS, "");
-
-        int maxHop = Integer.parseInt(arguments.get(Constants.HOP));
-        final int logMode = Integer.parseInt(arguments.getOrDefault("logMode", "100000"));
-        String sampleCond = arguments.get(Constants.SAMPLE_COND);
-        Random random = new Random(maxHop);
-        String subgraphSpec = arguments.get(Constants.SUBGRAPH_SPEC);
 
         String indexMetasStr = "";
         String otherOutputSchema = "";
@@ -69,12 +65,7 @@ public class SubgraphSampling {
 
         SubGraphSpecs subGraphSpecs = new SubGraphSpecs(subgraphSpec);
         Dataset<Row> seedDS = Utils.inputData(spark, inputLabel);
-        seedDS.show();
-        seedDS.printSchema();
-        Dataset<Row> seedLabels = Utils.aggregateConcatWs("seed", seedDS)
-                .repartition(seedDS.col("seed")).sortWithinPartitions("node_id");
-        seedLabels.show();
-        seedLabels.printSchema();
+        Dataset<Row> seedLabels = Utils.aggregateConcatWs("seed", seedDS);
 
         Dataset<Row> neighborDF = Utils.inputData(spark, inputEdge)
                 .repartition(col("node1_id")).sortWithinPartitions("node2_id")
@@ -93,7 +84,7 @@ public class SubgraphSampling {
 
         for (int hop = 0; hop < maxHop; hop++) {
             Dataset<SubGraphElement> seedPropagationResults = neighborDF.joinWith(seedAgg, neighborDF.col("node1_id").equalTo(seedAgg.col("node_id")), "inner")
-                    .flatMap(getPropergateFunction(otherOutputSchema, filter, sampleCond, hop, random, logMode), Encoders.bean(SubGraphElement.class));//.cache();
+                    .flatMap(getPropergateFunction(otherOutputSchema, filter, sampleCond[hop], hop), Encoders.bean(SubGraphElement.class));
             resultGraphElement = resultGraphElement.union(seedPropagationResults);
             if (hop + 1 < maxHop) {
                 Dataset<SubGraphElement> seedNodes = seedPropagationResults.filter("entryType = 'node'").distinct();
@@ -131,13 +122,13 @@ public class SubgraphSampling {
 
         // group node features and edge features by seed
         Dataset<Row> subgraph = nodeFeatureDF.union(edgeFeatureDF).groupByKey((MapFunction<SubGraphElement, String>) row -> row.getSeed(), Encoders.STRING())
-                .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs, random, logMode), Encoders.tuple(Encoders.STRING(), Encoders.STRING())).toDF("seed", "graph_feature");
+                .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs), Encoders.tuple(Encoders.STRING(), Encoders.STRING())).toDF("seed", "graph_feature");
 
         Dataset<Row> subgraphLabels = subgraph.join(seedLabels, "seed");
         Utils.outputData(spark, subgraphLabels, outputResults);
     }
 
-    public static FlatMapFunction<Tuple2<Row, Row>, SubGraphElement> getPropergateFunction(String otherOutputSchema, Filter filter, String sampleCond, int hop, Random random, int logMode) {
+    public static FlatMapFunction<Tuple2<Row, Row>, SubGraphElement> getPropergateFunction(String otherOutputSchema, Filter filter, String sampleCond, int hop) {
         return
                 new FlatMapFunction<Tuple2<Row, Row>, SubGraphElement>() {
                     @Override
@@ -175,15 +166,10 @@ public class SubgraphSampling {
                 };
     }
 
-    // s.seed, s.entryType, r.edge_id, r.edge_feature, r.node1_id, r.node2_id
-    public static MapGroupsFunction<String, SubGraphElement, Tuple2<String, String>> getGenerateGraphFeatureFunc(SubGraphSpecs subGraphSpecs, Random random, int logMode) {
+    public static MapGroupsFunction<String, SubGraphElement, Tuple2<String, String>> getGenerateGraphFeatureFunc(SubGraphSpecs subGraphSpecs) {
         return new MapGroupsFunction<String, SubGraphElement, Tuple2<String, String>>() {
             @Override
             public Tuple2<String, String> call(String key, Iterator<SubGraphElement> values) throws Exception {
-                if (random.nextInt(logMode) == 1) {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-                    System.out.println("============getGenerateGraphFeatureFunc si:" + TaskContext.get().stageId() + " ta:"+TaskContext.get().taskAttemptId()+ " parId:" + TaskContext.get().partitionId() + " time:" + LocalDateTime.now().format(formatter));
-                }
                 String seed = key;
                 GraphFeatureGenerator graphFeatureGenerator = new GraphFeatureGenerator(subGraphSpecs);
                 graphFeatureGenerator.init();

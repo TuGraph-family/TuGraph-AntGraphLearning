@@ -44,9 +44,8 @@ public class PAGNN {
                 .getOrCreate();
         Map<String, String> arguments = Utils.populateArgumentMap(args);
         System.out.println("========================arguments: " + Arrays.toString(arguments.entrySet().toArray()));
-
-        String sampleConds = arguments.get(Constants.SAMPLE_COND);
-        String otherOutputSchema = arguments.get(Constants.OTHER_OUTPUT_SCHEMA);
+        String sampleConds = arguments.getOrDefault(Constants.SAMPLE_COND, "");
+        String otherOutputSchema = arguments.getOrDefault(Constants.OTHER_OUTPUT_SCHEMA, "");
         int maxHop = Integer.parseInt(arguments.get(Constants.HOP));
         String subgraphSpec = arguments.get(Constants.SUBGRAPH_SPEC);
         SubGraphSpecs subGraphSpecs = new SubGraphSpecs(subgraphSpec);
@@ -59,18 +58,12 @@ public class PAGNN {
         String outputResults = arguments.getOrDefault(Constants.OUTPUT_RESULTS, "");
 
         Dataset<Row> linkDS = Utils.inputData(spark, linkSqlScript);
-        linkDS.show();
-        linkDS.printSchema();
         Dataset<Row> seedDS = linkDS.select("node_id").distinct().withColumn("seed", col("node_id"));
-        seedDS.show();
-        seedDS.printSchema();
         Dataset<Row> neighborDF = Utils.inputData(spark, inputEdge)
                 .repartition(col("node1_id")).sortWithinPartitions("node2_id")
                 .groupBy("node1_id").agg(
                         collect_list("node2_id").as("collected_node2_id"),
                         collect_list("edge_id").as("collected_edge_id")).cache();
-        neighborDF.show();
-        neighborDF.printSchema();
 
         Dataset<SubGraphElement> resultGraphElement = seedDS.map((MapFunction<Row, SubGraphElement>) row -> {
             String nodeId = row.getString(0);
@@ -94,10 +87,8 @@ public class PAGNN {
         }
 
         Dataset<SubGraphElement> linkSubgraphDS = linkDS.joinWith(resultGraphElement, linkDS.col("node_id").equalTo(resultGraphElement.col("seed")), "inner")
-                .groupByKey((MapFunction<Tuple2<Row, SubGraphElement>, String>) t -> t._1().getString(1), Encoders.STRING())
+                .groupByKey((MapFunction<Tuple2<Row, SubGraphElement>, String>) t -> t._1().getAs("linkid"), Encoders.STRING())
                 .flatMapGroups(getGeneratePathFunc(maxHop), Encoders.bean(SubGraphElement.class));
-        linkSubgraphDS.show();
-        linkSubgraphDS.printSchema();
 
         Dataset<SubGraphElement> nodeStructure = linkSubgraphDS.filter("entryType = 'node' or entryType = 'root'");
         Dataset<SubGraphElement> nodeFeatureDF = nodeStructure;
@@ -126,7 +117,6 @@ public class PAGNN {
         Dataset<Row> subgraph = nodeFeatureDF.union(edgeFeatureDF).groupByKey((MapFunction<SubGraphElement, String>) row -> row.getSeed(), Encoders.STRING())
                 .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs), Encoders.tuple(Encoders.STRING(), Encoders.STRING())).toDF("seed", "graph_feature");
         Utils.outputData(spark, subgraph, outputResults);
-
     }
 
 
@@ -137,13 +127,7 @@ public class PAGNN {
                     public Iterator<SubGraphElement> call(Tuple2<Row, Row> row) throws Exception {
                         // seeds:  node_id, seed
                         Row seedRow = row._2;
-                        // List<String> seedList = seedRow.getList(1);
-                        List<String> seedList = new ArrayList<>();
-                        for (int i = 0; i < seedRow.getList(1).size(); i++) {
-                            seedList.add(seedRow.getList(1).get(i).toString());
-                        }
-                        Collections.sort(seedList);
-
+                        List<String> seedList = seedRow.getList(1);
                         // neighbors: node1_id, node2_ids, edge_ids
                         Row indexInfo = row._1;
                         List<String> node2IDs = indexInfo.getList(1);
@@ -347,7 +331,7 @@ public class PAGNN {
                             + "\nedgeIndices:" + Arrays.toString(graphFeatureGenerator.edgeIndices.entrySet().toArray())
                             + "\nnode2IDs:" + Arrays.toString(graphFeatureGenerator.node1Edges.toArray()), e);
                 }
-                // return new Tuple2<>(seed, "");
+                Collections.sort(rootIds);
                 return new Tuple2<>(seed, graphFeatureGenerator.getGraphFeature(rootIds));
 
             }

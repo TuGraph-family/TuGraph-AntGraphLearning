@@ -203,6 +203,9 @@ public class SubGraphElement implements Serializable {
     }
     
     public String toString() {
-        return "SubGraphElement(seed=" + this.getSeed() + ", entryType=" + this.getEntryType() + ", node1=" + this.getNode1() + ", node2=" + this.getNode2() + ", id=" + this.getID() + ", feature=" + this.getFeature() + ", type=" + this.getType() ;
+        return "SubGraphElement(seed=" + this.getSeed() + ", entryType=" + this.getEntryType()
+                + ", node1=" + this.getNode1() + ", node2=" + this.getNode2()
+                + ", id=" + this.getID() + ", feature=" + this.getFeature() + ", type=" + this.getType()
+                + ", other1=" + getOther1(this) + ", other2=" + getOther2(this);
     }
 }

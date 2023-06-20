@@ -4,6 +4,9 @@ public class Constants {
     public static final String NODE = "node";
     public static final String EDGE = "edge";
     public static final String ROOT = "root";
+    public static final int NODE_INT = 0;
+    public static final int EDGE_INT = 1;
+    public static final int ROOT_INT = 2;
     public static final String LIST_STR = "array<string>";
     public static final String LIST_FLOAT = "array<float>";
     public static final String LIST_DOUBLE = "array<double>";
