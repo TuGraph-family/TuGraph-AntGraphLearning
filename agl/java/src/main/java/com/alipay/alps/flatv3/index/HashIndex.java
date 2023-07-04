@@ -9,6 +9,7 @@ import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,45 @@ public class HashIndex extends BaseIndex implements Serializable {
     }
     public HashIndex(String indexType, String indexColumn, String indexDtype) {
         super(indexType, indexColumn, indexDtype);
+    }
+
+    public byte[] dump() {
+        int byteCountForMap = 4;
+        for (String key : typeRanges.keySet()) {
+            byteCountForMap += 4 + key.length() + 4 * 2;
+        }
+        ByteBuffer buffer = ByteBuffer.allocate(byteCountForMap + 4 * (1+originIndices.length));
+        buffer.putInt(typeRanges.size());
+        for (String key : typeRanges.keySet()) {
+            buffer.putInt(key.length());
+            buffer.put(key.getBytes());
+            buffer.putInt(typeRanges.get(key).getLow());
+            buffer.putInt(typeRanges.get(key).getHigh());
+        }
+        buffer.putInt(originIndices.length);
+        for (int idx : originIndices) {
+            buffer.putInt(idx);
+        }
+        return buffer.array();
+    }
+
+    public void load(byte[] data) {
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        int mapSize = buffer.getInt();
+        typeRanges = new HashMap<>();
+        for (int i = 0; i < mapSize; i++) {
+            int keyLen = buffer.getInt();
+            byte buf[] = new byte[keyLen];
+            buffer.get(buf, 0, keyLen);
+            String key = new String(buf);
+            RangeUnit rangeUnit = new RangeUnit(buffer.getInt(), buffer.getInt());
+            typeRanges.put(key, rangeUnit);
+        }
+        int len = buffer.getInt();
+        originIndices = new int[len];
+        for (int i = 0; i < len; i++) {
+            originIndices[i] = buffer.getInt();
+        }
     }
 
     public Map<String, RangeUnit> getTypeRanges() {
@@ -72,6 +112,7 @@ public class HashIndex extends BaseIndex implements Serializable {
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
         for (String type : this.typeRanges.keySet()) {
             inputVariables.get(VariableSource.INDEX).put(indexKey, Element.Number.newBuilder().setS(type).build());
+            System.out.println("----cateCmpWrapper:" + cateCmpWrapper.getCmpExp() + "\n    indexKey:"+indexKey+" type:"+type+" inputVariables:" + inputVariables.get(VariableSource.INDEX).get(indexKey));
             if (cateCmpWrapper.eval(inputVariables)) {
                 ansList.add(this.typeRanges.get(type));
             }

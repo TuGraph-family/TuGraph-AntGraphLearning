@@ -31,7 +31,8 @@ public abstract class AbstractSampler {
     public AbstractSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         this.sampleCondition = sampleCondition;
         this.neighborDataset = neighborDataset;
-        this.rand = new Random(sampleCondition.getSeed());
+        this.rand = new Random();
+//        this.rand = new Random(sampleCondition.getSeed());
     }
 
     /**

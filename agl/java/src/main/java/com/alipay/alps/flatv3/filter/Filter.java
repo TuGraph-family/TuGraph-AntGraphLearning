@@ -16,8 +16,12 @@ import com.antfin.agl.proto.sampler.LogicOp;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 public class Filter implements Serializable {
@@ -29,6 +33,28 @@ public class Filter implements Serializable {
      */
     public Filter(String filterCond) throws Exception {
         logicExps = FilterConditionParser.parseFilterCondition(filterCond);
+    }
+
+    public Map<VariableSource, Set<String>> getReferColumns() {
+        Map<VariableSource, Set<String>> referColumns = new HashMap<>();
+        for (LogicExps.ExpOrOp expOrOp : logicExps.getExpRPNList()) {
+            if (expOrOp.hasExp()) {
+                CmpExp cmpExp = expOrOp.getExp();
+                List<Element> elements = new ArrayList<>(cmpExp.getLhsRPNList());
+                elements.addAll(cmpExp.getRhsRPNList());
+                for (Element element : elements) {
+                    if (element.hasVar()) {
+                        Element.Variable variable = element.getVar();
+                        VariableSource variableSource = variable.getSource();
+                        if (!referColumns.containsKey(variableSource)) {
+                            referColumns.put(variableSource, new HashSet<String>());
+                        }
+                        referColumns.get(variableSource).add(variable.getName());
+                    }
+                }
+            }
+        }
+        return referColumns;
     }
 
     /*
@@ -62,9 +88,6 @@ public class Filter implements Serializable {
                 AbstractCmpWrapper expWrapper = CmpWrapperFactory.createCmpWrapper(cmpExp);
                 String indexColumn = expWrapper.getIndexColumn();
                 BaseIndex index = indexesMap.get(indexColumn);
-                if (indexColumn.compareToIgnoreCase("time") == 0) {
-                    index = (RangeIndex) index;
-                }
                 indexResult = index.search(expWrapper, inputVariables, neighborValues);
             }
             indexResultStack.add(indexResult);

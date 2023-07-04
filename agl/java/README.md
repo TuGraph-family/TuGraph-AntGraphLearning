@@ -1,11 +1,29 @@
-# 分布式支持过滤采样的GNN子图样本框架
-* 图表征学习的算法发展越来越精细化，针对节点和边的某种属性的采样需求越来越大, 因此实现点和边的属性索引功能，实现高效的过滤和采样的功能。
-* 详细的设计参考 https://yuque.antfin.com/graph_embedding/graphml-internal/nupqgf?singleDoc# 《FlatV3支持过滤和采样》
+# [概述]
 
-## antlr生成parser
-* 为了支持类似SQL的过滤条件，我们使用antlr4.5.3生成JAVA API的语法解析代码，方法如下：
-```
-export CLASSPATH=".:/usr/local/lib/antlr-4.5.3.jar:$CLASSPATH"
-java org.antlr.v4.Tool Filter.g4 -visitor
-```
-* 将生成的文件放置于src/main/java/com/alipay/alps/flatv3/antlr4目录下
+# AGL功能 
+#### [点和边的属性索引]
+#### [基于索引过滤]
+#### [基于属性采样]
+
+# 基础教程 
+#### [编译安装]
+#### [数据准备]
+#### [快速开始]
+
+# 进阶教程 
+#### [同构图子图样本生成]
+#### [异构图子图样本生成]
+#### [动态图子图样本生成]
+#### [LinkPrediction子图样本生成]
+#### [PaGNN样本生成]
+#### [SSR样本生成]
+
+# 详细接口 
+#### [Filter]
+#### [Sampler]
+#### [GraphFeatureGenerator]
+# 联系我们 
+如果有任何问题，请直接提交[issues]，也欢迎通过AGL开源技术支持邮件组联系我们。 
+# License 
+AGL使用[Apache]许可 
+# 致谢

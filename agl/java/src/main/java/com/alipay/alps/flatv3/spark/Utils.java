@@ -29,7 +29,7 @@ public class Utils {
         }
 
         Dataset<Row> aggDataset = inputDataset
-//                .repartition(col(key)).sortWithinPartitions("node_id")
+                .repartition(col(key)).sortWithinPartitions("node_id")
                 .groupBy(col(key))
                 .agg(aggColumns.get(0), aggColumns.subList(1, aggColumns.size()).toArray(new org.apache.spark.sql.Column[0]));
         return aggDataset;
@@ -59,4 +59,14 @@ public class Utils {
         }
         return spark.sql(input);
     }
+
+    public static Map<String, Integer> getColumnIndex(Dataset<Row> dataset) {
+        String seedColumnNames[] = dataset.columns();
+        Map<String, Integer> columnIndex = new HashMap<>();
+        for (int i = 0; i < seedColumnNames.length; i++) {
+            columnIndex.put(seedColumnNames[i], i);
+        }
+        return columnIndex;
+    }
+
 }

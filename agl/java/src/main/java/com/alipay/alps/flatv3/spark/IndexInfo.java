@@ -13,6 +13,7 @@ public class IndexInfo implements Serializable {
     private String node1_id;
     private List<String> node2_id;
     private List<String> edge_id;
+    private List<String> relation;
     private List<Long> time;
     private Map<String, BaseIndex> baseIndexes;
     private Map<String, RangeIndex> rangeIndexes;
@@ -43,6 +44,14 @@ public class IndexInfo implements Serializable {
 
     public void setEdge_id(List<String> edge_id) {
         this.edge_id = edge_id;
+    }
+
+    public List<String> getRelation() {
+        return relation;
+    }
+
+    public void setRelation(List<String> relation) {
+        this.relation = relation;
     }
 
     public List<Long> getTime() {

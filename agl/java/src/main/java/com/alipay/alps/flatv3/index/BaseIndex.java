@@ -8,6 +8,7 @@ import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,24 @@ public class BaseIndex implements Serializable {
         this.indexDtype = indexDtype;
 //        this.neighborDataset = neighborDataset;
 //        originIndices = buildIndex();
+    }
+
+    public byte[] dump() {
+        ByteBuffer buffer = ByteBuffer.allocate(4 * (1+originIndices.length));
+        buffer.putInt(originIndices.length);
+        for (int idx : originIndices) {
+            buffer.putInt(idx);
+        }
+        return buffer.array();
+    }
+
+    public void load(byte[] data) {
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        int len = buffer.getInt();
+        originIndices = new int[len];
+        for (int i = 0; i < len; i++) {
+            originIndices[i] = buffer.getInt();
+        }
     }
 
     public int[] getOriginIndices() {

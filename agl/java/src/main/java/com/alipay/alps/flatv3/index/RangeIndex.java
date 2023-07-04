@@ -37,9 +37,9 @@ public class RangeIndex extends BaseIndex implements Serializable {
         return originIndices;
     }
 
-    private void shuffleWeights(HeteroDataset neighborDataset) {
+    private List shuffleWeights(HeteroDataset neighborDataset) {
         if (sortedWeights != null) {
-            return;
+            return sortedWeights;
         }
         sortedWeights = neighborDataset.deepCopyAttributeList(getIndexColumn());
         ArrayList<Integer> shuffleIndex = new ArrayList<Integer>(Collections.nCopies(this.originIndices.length, 0));
@@ -53,6 +53,7 @@ public class RangeIndex extends BaseIndex implements Serializable {
                 Collections.swap(shuffleIndex, i, shuffleIndex.get(i));
             }
         }
+        return sortedWeights;
     }
 
     @Override
@@ -144,7 +145,7 @@ public class RangeIndex extends BaseIndex implements Serializable {
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
         indexVariableMap.put(indexColumn, null);
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
-        shuffleWeights(neighborDataset);
+        List sortedWeights = shuffleWeights(neighborDataset);
         RangeUnit range = new RangeUnit(0, originIndices.length - 1);
         boolean hasLowerBound = arithCmpWrapper.hasLowerBound();
         if (neighborDataset.getFloatAttributeList(indexColumn) != null) {

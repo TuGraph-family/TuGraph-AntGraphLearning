@@ -35,4 +35,10 @@ public class Constants {
     public static final String OUTPUT_RESULTS = "output_results";
     public static final String INPUT_NODE_FEATURE = "input_node_feature";
     public static final String INPUT_EDGE_FEATURE = "input_edge_feature";
+    public static final String HEGNN_MODE = "hegnn_mode";
+    public static final String HEGNN_TWO_END = "two_end";
+    public static final String HEGNN_PATH = "path";
+
+    public static final String NEED_IDS = "need_ids";
+    public static final String NEED_IDS_DEFAULT = "false";
 }

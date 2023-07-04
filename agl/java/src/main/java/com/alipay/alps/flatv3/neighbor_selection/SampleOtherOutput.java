@@ -82,7 +82,7 @@ public class SampleOtherOutput {
             switch (ts[0]) {
                 case SOURCE_INDEX:
                     if (neighborDataset == null || neighborDataset.getAttributeList(ts[1]) == null) {
-                        throw new RuntimeException("index output schema is wrong");
+                        throw new RuntimeException("index output schema is wrong: " + (neighborDataset == null ? "neighborDataset is null" : "neighborDataset keyset:" + neighborDataset + " missing key:" + ts[1]));
                     }
                     otherOutputList[j - 1] = (List) neighborDataset.getAttributeList(ts[1]);
                     otherOutputSource[j - 1] = SOURCE_INDEX_ID;

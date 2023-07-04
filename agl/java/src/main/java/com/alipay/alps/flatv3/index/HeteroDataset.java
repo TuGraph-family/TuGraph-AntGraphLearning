@@ -136,6 +136,8 @@ public class HeteroDataset implements Serializable {
             addLongAttributeList(key, (List<Long>) values);
         } else if (firstValue instanceof String) {
             addStringAttributeList(key, (List<String>) values);
+        } else {
+            throw new IllegalArgumentException("Value type can only be Float/Long/String, but got " + firstValue);
         }
         // arraySize = values.size();
         assert arraySize == values.size();

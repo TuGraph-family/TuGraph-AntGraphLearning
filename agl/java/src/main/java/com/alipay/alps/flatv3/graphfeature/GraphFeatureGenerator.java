@@ -16,8 +16,10 @@ import com.antfin.agl.proto.graph_feature.SubGraphSpec;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.io.IOUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -124,9 +127,39 @@ public class GraphFeatureGenerator {
             throw new RuntimeException("missing edge:" + edgeId + " node1Id:" + node1Id + " node2Id:" + node2Id, e);
         }
     }
-    public String getGraphFeature(List<String> roots, boolean compress) {
+
+//    public byte[] getGraphFeatureBytes(List<String> roots) {
+//        Map<String, List<Integer>> rootTypeIndices = new HashMap<>();
+//        GraphFeature.Builder graphFeatureBuilder = generateGraphFeature(roots, rootTypeIndices);
+//        GraphFeature.Root.Builder rootBuilder = GraphFeature.Root.newBuilder();
+//        GraphFeature.Root.MultiItems.Builder multiItemsBuilder = GraphFeature.Root.MultiItems.newBuilder();
+//        multiItemsBuilder.setIsNode(true);
+//        for (String nodeType : rootTypeIndices.keySet()) {
+//            Int64List.Builder indicesBuilder = Int64List.newBuilder();
+//            for (Integer index : rootTypeIndices.get(nodeType)) {
+//                indicesBuilder.addValue(index);
+//            }
+//            multiItemsBuilder.putIndices(nodeType, indicesBuilder.build());
+//        }
+//        rootBuilder.setSubgraph(multiItemsBuilder);
+//        graphFeatureBuilder.setRoot(rootBuilder);
+//        GraphFeature graphFeaturex = graphFeatureBuilder.build();
+//        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//        GZIPOutputStream gzip = null;
+//        try {
+//            gzip = new GZIPOutputStream(out);
+//            gzip.write(graphFeaturex.toByteArray());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            IOUtils.closeQuietly(gzip);
+//        }
+//        return out.toByteArray();
+//    }
+
+    public String getGraphFeature(List<String> roots, boolean compress, boolean needIDs) {
         Map<String, List<Integer>> rootTypeIndices = new HashMap<>();
-        GraphFeature.Builder graphFeatureBuilder = generateGraphFeature(roots, rootTypeIndices);
+        GraphFeature.Builder graphFeatureBuilder = generateGraphFeature(roots, rootTypeIndices, needIDs);
         GraphFeature.Root.Builder rootBuilder = GraphFeature.Root.newBuilder();
         GraphFeature.Root.MultiItems.Builder multiItemsBuilder = GraphFeature.Root.MultiItems.newBuilder();
         multiItemsBuilder.setIsNode(true);
@@ -143,28 +176,33 @@ public class GraphFeatureGenerator {
         return serializeGraphFeature(graphFeatureBuilder.build(), compress);
     }
 
+    public String getGraphFeature(List<String> roots, boolean needIDs) {
+        return getGraphFeature(roots, true, needIDs);
+    }
+
     public String getGraphFeature(List<String> roots) {
-        return getGraphFeature(roots, false);
+        return getGraphFeature(roots, true);
     }
 
     public String getGraphFeature(String root) {
         List<String> rootIds = new ArrayList<>();
         rootIds.add(root);
-        Map<String, List<Integer>> rootTypeIndices = new HashMap<>();
-        GraphFeature.Builder graphFeatureBuilder = generateGraphFeature(rootIds, rootTypeIndices);
-
-        GraphFeature.Root.Builder rootBuilder = GraphFeature.Root.newBuilder();
-        GraphFeature.Root.OneItem.Builder oneItemBuilder = GraphFeature.Root.OneItem.newBuilder();
-        String rootType = rootTypeIndices.keySet().iterator().next();
-        oneItemBuilder.setIdx(rootTypeIndices.get(rootType).get(0));
-        oneItemBuilder.setName(rootType);
-        rootBuilder.setNidx(oneItemBuilder);
-        graphFeatureBuilder.setRoot(rootBuilder);
-
-        return serializeGraphFeature(graphFeatureBuilder.build(), false);
+        return getGraphFeature(rootIds, true, true);
+//        Map<String, List<Integer>> rootTypeIndices = new HashMap<>();
+//        GraphFeature.Builder graphFeatureBuilder = generateGraphFeature(rootIds, rootTypeIndices);
+//
+//        GraphFeature.Root.Builder rootBuilder = GraphFeature.Root.newBuilder();
+//        GraphFeature.Root.OneItem.Builder oneItemBuilder = GraphFeature.Root.OneItem.newBuilder();
+//        String rootType = rootTypeIndices.keySet().iterator().next();
+//        oneItemBuilder.setIdx(rootTypeIndices.get(rootType).get(0));
+//        oneItemBuilder.setName(rootType);
+//        rootBuilder.setNidx(oneItemBuilder);
+//        graphFeatureBuilder.setRoot(rootBuilder);
+//
+//        return serializeGraphFeature(graphFeatureBuilder.build(), false);
     }
 
-    private GraphFeature.Builder generateGraphFeature(List<String> rootIds, Map<String, List<Integer>> rootTypeIndices) {
+    private GraphFeature.Builder generateGraphFeature(List<String> rootIds, Map<String, List<Integer>> rootTypeIndices, boolean needIDs) {
         // iterate all node types and generate Nodes for each type.
         Map<String, Nodes.Builder> nodesMap = new HashMap<>();
         List<String> allNodeTypes = subGraphSpecs.getAllNodeTypes();
@@ -185,8 +223,10 @@ public class GraphFeatureGenerator {
                     rootTypeIndices.get(nodeType).add(nodesOfType.indexOf(root));
                 }
             }
-            // add merged ids to mergedNodesBuilder
-            mergedNodesBuilder.setNids(IDs.newBuilder().setStr(BytesList.newBuilder().addAllValue(mergedNodeIdBytes).build()));
+            if (needIDs) {
+                // add merged ids to mergedNodesBuilder
+                mergedNodesBuilder.setNids(IDs.newBuilder().setStr(BytesList.newBuilder().addAllValue(mergedNodeIdBytes).build())); //???
+            }
             // add merged features to mergedNodesBuilder
             mergedNodesBuilder.setFeatures(mergedNodeFeatureBuilder.build());
             nodesMap.put(nodeType, mergedNodesBuilder);
@@ -219,8 +259,10 @@ public class GraphFeatureGenerator {
             List<ByteString> mergedEdgeIdBytes = new ArrayList<>();
             Features.Builder mergedEdgeFeatureBuilder = Features.newBuilder();
             mergeIdsAndFeatures(mergedEdgeIdBytes, mergedEdgeFeatureBuilder, edgeIdsOfType, edgeIndices, edgeFeatures);
-            // add merged ids to mergedEdgesBuilder
-            mergedEdgesBuilder.setEids(IDs.newBuilder().setStr(BytesList.newBuilder().addAllValue(mergedEdgeIdBytes).build()));
+            if (needIDs) {
+                // add merged ids to mergedEdgesBuilder
+                mergedEdgesBuilder.setEids(IDs.newBuilder().setStr(BytesList.newBuilder().addAllValue(mergedEdgeIdBytes).build()));  ///?????
+            }
 
             if (ADJ_FORMAT.compareToIgnoreCase("CSR") == 0) {
                 // add CSR n1_indices and n2_indices to mergedEdgesBuilder
@@ -441,6 +483,36 @@ public class GraphFeatureGenerator {
             dstInt64ListBuilder.addAllValue(int64List.getValueList());
         } else {
             throw new RuntimeException("SparseKVFeatures values not match");
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        String base64SerializedString = args[0];
+        Boolean isCompress = false;
+        if (args.length > 1) {
+            isCompress = Boolean.parseBoolean(args[1]);
+        }
+        System.out.println("base64SerializedString.len:" + base64SerializedString.length() + " isCompress:" + isCompress + " args.length:" + args.length + " args1:" + args[1]);
+        GraphFeature subGraph = null;
+        try {
+            byte[] compressed = BaseEncoding.base64().decode(base64SerializedString);
+            if (isCompress) {
+                 GZIPInputStream gzipIn = null;
+//                 byte[] a = null;
+                 try {
+                     gzipIn = new GZIPInputStream(new ByteArrayInputStream(compressed));
+                     compressed = IOUtils.toByteArray(gzipIn);
+                 } catch (IOException e) {
+                 } finally {
+                     IOUtils.closeQuietly(gzipIn);
+                 }
+                System.out.println("compressed.length:" + compressed.length);
+            }
+            subGraph = GraphFeature.parseFrom(compressed);
+            System.out.println("subGraph:" + subGraph);
+        } catch (Exception e) {
+            System.out.println("Exception:" + e.getMessage());
+            throw e;
         }
     }
 }

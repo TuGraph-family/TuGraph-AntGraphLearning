@@ -19,6 +19,7 @@ import org.apache.spark.storage.StorageLevel;
 import scala.Int;
 import scala.Tuple2;
 import scala.Tuple4;
+import scala.Tuple5;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -75,7 +76,7 @@ public class SubgraphSamplingInteger {
 //        seedDS.printSchema();
 
         Dataset<Row> neighborDF = Utils.inputData(spark, inputEdge)
-                .repartition(col("node1_id")).sortWithinPartitions("node2_id")
+//                .repartition(col("node1_id")).sortWithinPartitions("node2_id")
                 .groupBy("node1_id").agg(
                         collect_list("node2_id").as("collected_node2_id"),
                         collect_list("edge_id").as("collected_edge_id")).cache();
@@ -85,14 +86,15 @@ public class SubgraphSamplingInteger {
         Dataset<Row> resultGraphElement = seedDS.map((MapFunction<Row, Row>) row -> {
             long nodeId = row.getLong(0);
             long seed = row.getLong(1);
-            return RowFactory.create(seed, Constants.ROOT_INT, nodeId, nodeId, nodeId, null);
+            return RowFactory.create(seed, Constants.ROOT_INT, nodeId, nodeId, nodeId, null, 0);
         }, RowEncoder.apply(new StructType()
                 .add("seed", DataTypes.LongType)
                 .add("entryType", DataTypes.IntegerType)
                 .add("node1", DataTypes.LongType)
                 .add("node2", DataTypes.LongType)
                 .add("id", DataTypes.LongType)
-                .add("feature", DataTypes.StringType)));
+                .add("feature", DataTypes.StringType)
+                .add("hop", DataTypes.IntegerType)));
         ;
         Dataset<Row> seedAgg = seedDS.groupBy("node_id")
                 .agg(collect_list("seed").as("collected_seed"));
@@ -105,7 +107,8 @@ public class SubgraphSamplingInteger {
                             .add("node1", DataTypes.LongType)
                             .add("node2", DataTypes.LongType)
                             .add("id", DataTypes.LongType)
-                            .add("feature", DataTypes.StringType)));
+                            .add("feature", DataTypes.StringType)
+                            .add("hop", DataTypes.IntegerType)));
 //            seedPropagationResults.show();
 //            seedPropagationResults.printSchema();
             resultGraphElement = resultGraphElement.union(seedPropagationResults);
@@ -132,14 +135,15 @@ public class SubgraphSamplingInteger {
             Dataset<Row> rawNodeFeatureDF = Utils.inputData(spark, inputNodeFeature);
             nodeFeatureDF = rawNodeFeatureDF
                     .join(nodeStructure, rawNodeFeatureDF.col("node_id").equalTo(nodeStructure.col("id")), "right_outer")
-                    .select("seed", "entryType", "node1", "node2", "id", "node_feature")
+                    .select("seed", "entryType", "node1", "node2", "id", "node_feature", "hop")
                     .map((MapFunction<Row, Row>) (Row row) -> {
                                 Long seed = row.getLong(0);
                                 Integer entryType = row.getInt(1);
 //                                Long node1 = row.getLong(2);
 //                                Long node2 = row.getLong(3);
                                 Long id = row.getLong(4);
-                                return RowFactory.create(seed, entryType, null, null, id, row.getString(5));
+                                Integer hop = row.getInt(6);
+                                return RowFactory.create(seed, entryType, null, null, id, row.getString(5), hop);
 //                                return RowFactory.create(row.getLong(0), row.getInt(1), row.getLong(2), row.getLong(3), row.getLong(4), row.getString(5));
                             },
                             RowEncoder.apply(new StructType()
@@ -148,28 +152,36 @@ public class SubgraphSamplingInteger {
                                     .add("node1", DataTypes.LongType)
                                     .add("node2", DataTypes.LongType)
                                     .add("id", DataTypes.LongType)
-                                    .add("feature", DataTypes.StringType)));
+                                    .add("feature", DataTypes.StringType)
+                                    .add("hop", DataTypes.IntegerType)));
         }
 
         Dataset<Row> edgeStructure = resultGraphElement.filter("entryType = 1");
         Dataset<Row> edgeFeatureDF = edgeStructure;
-        if (inputEdgeFeature.trim().length() > 0) {
-            Dataset<Row> rawEdgeFeatureDF = Utils.inputData(spark, inputEdgeFeature);
-            edgeFeatureDF = rawEdgeFeatureDF.join(edgeStructure, edgeStructure.col("id").equalTo(rawEdgeFeatureDF.col("edge_id")), "inner")
-                    .select("seed", "entryType", "node1", "node2", "id", "edge_feature")
-                    .map((MapFunction<Row, Row>) row -> RowFactory.create(row.getLong(0), row.getInt(1), row.getLong(2), row.getLong(3), row.getLong(4), row.getString(5)),
-                            RowEncoder.apply(new StructType()
-                                    .add("seed", DataTypes.LongType)
-                                    .add("entryType", DataTypes.IntegerType)
-                                    .add("node1", DataTypes.LongType)
-                                    .add("node2", DataTypes.LongType)
-                                    .add("id", DataTypes.LongType)
-                                    .add("feature", DataTypes.StringType))); // 5
-        }
+//        if (inputEdgeFeature.trim().length() > 0) {
+//            Dataset<Row> rawEdgeFeatureDF = Utils.inputData(spark, inputEdgeFeature);
+//            edgeFeatureDF = rawEdgeFeatureDF.join(edgeStructure, edgeStructure.col("id").equalTo(rawEdgeFeatureDF.col("edge_id")), "inner")
+//                    .select("seed", "entryType", "node1", "node2", "id", "edge_feature")
+//                    .map((MapFunction<Row, Row>) row -> RowFactory.create(row.getLong(0), row.getInt(1), row.getLong(2), row.getLong(3), row.getLong(4), row.getString(5)),
+//                            RowEncoder.apply(new StructType()
+//                                    .add("seed", DataTypes.LongType)
+//                                    .add("entryType", DataTypes.IntegerType)
+//                                    .add("node1", DataTypes.LongType)
+//                                    .add("node2", DataTypes.LongType)
+//                                    .add("id", DataTypes.LongType)
+//                                    .add("feature", DataTypes.StringType)
+//                                    .add("hop", DataTypes.IntegerType))); // 5
+//        }
 
         // group node features and edge features by seed
         Dataset<Row> subgraph = nodeFeatureDF.union(edgeFeatureDF).groupByKey((MapFunction<Row, Long>) row -> row.getLong(0), Encoders.LONG())
-                .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs), Encoders.tuple(Encoders.STRING(), Encoders.STRING())).toDF("seed", "graph_feature");
+                .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs),
+                        RowEncoder.apply(new StructType()
+                                .add("seed", DataTypes.StringType)
+//                                .add("graph_feature_bytes", DataTypes.BinaryType)
+//                                .add("graph_feature_len", DataTypes.StringType)
+                                .add("graph_feature", DataTypes.StringType)
+                        ));
 
         Utils.outputData(spark, subgraph, outputResults);
 //        subgraph.show();
@@ -202,19 +214,20 @@ public class SubgraphSamplingInteger {
                         SampleCondition sampleCondition = new SampleCondition(sampleCond);
                         for (int seedIdx = 0; seedIdx < seedList.size(); seedIdx++) {
                             Long seed = seedList.get(seedIdx);
+//                            sampleCondition.setSeed(seed.intValue());
 //                            sampleCondition.setSeed(1);
-//                            AbstractSampler sampler = SamplerFactory.createSampler(sampleCondition, null);
-//                            List<Integer> neighborIndices = sampler.sample(new RangeResult(null, sortedIntervals));
-                            List<Integer> neighborIndices = new ArrayList<>();
-                            for (int k = 0; k < sampleCondition.getLimit() && k < node2IDs.size(); k++) {
-                                neighborIndices.add(k);
-                            }
+                            AbstractSampler sampler = SamplerFactory.createSampler(sampleCondition, null);
+                            List<Integer> neighborIndices = sampler.sample(new RangeResult(null, sortedIntervals));
+//                            List<Integer> neighborIndices = new ArrayList<>();
+//                            for (int k = 0; k < sampleCondition.getLimit() && k < node2IDs.size(); k++) {
+//                                neighborIndices.add(k);
+//                            }
                             for (int i : neighborIndices) {
                                 Long node2ID = node2IDs.get(i);
                                 Long edgeID = edgeIDs.get(i);
-                                Row subGraphNodeElement = RowFactory.create(seed, Constants.NODE_INT, null, null, node2ID, null);
+                                Row subGraphNodeElement = RowFactory.create(seed, Constants.NODE_INT, null, null, node2ID, null, hop+1);
                                 ans.add(subGraphNodeElement);
-                                Row subGraphEdgeElement = RowFactory.create(seed, Constants.EDGE_INT, node1ID, node2ID, edgeID, null);
+                                Row subGraphEdgeElement = RowFactory.create(seed, Constants.EDGE_INT, node1ID, node2ID, edgeID, null, hop+1);
                                 ans.add(subGraphEdgeElement);
                             }
                         }
@@ -223,39 +236,51 @@ public class SubgraphSamplingInteger {
                 };
     }
 
-    public static MapGroupsFunction<Long, Row, Tuple2<String, String>> getGenerateGraphFeatureFunc(SubGraphSpecs subGraphSpecs) {
-        return new MapGroupsFunction<Long, Row, Tuple2<String, String>>() {
+    public static MapGroupsFunction<Long, Row, Row> getGenerateGraphFeatureFunc(SubGraphSpecs subGraphSpecs) {
+        return new MapGroupsFunction<Long, Row, Row>() {
             @Override
-            public Tuple2<String, String> call(Long key, Iterator<Row> values) throws Exception {
+            public Row call(Long key, Iterator<Row> values) throws Exception {
                 Long seed = key;
                 GraphFeatureGenerator graphFeatureGenerator = new GraphFeatureGenerator(subGraphSpecs);
                 graphFeatureGenerator.init();
                 List<String> rootIds = new ArrayList<>();
-                List<Tuple4<String, String, String, String>> edgeFeatures = new ArrayList<>();
+                List<Tuple5<String, String, String, String, String>> edgeFeatures = new ArrayList<>();
+                Tuple5<String, String, String, String, String> addingEdgeFeature = null;
                 while (values.hasNext()) {
                     Row row = values.next();
                     if (row.getInt(1) == Constants.ROOT_INT) {
                         rootIds.add(String.valueOf(row.getLong(4)));
-                        graphFeatureGenerator.addNodeInfo(String.valueOf(row.getLong(4)), "default", row.getString(5) == null ? "" : row.getString(5));
+                        graphFeatureGenerator.addNodeInfo(String.valueOf(row.getLong(4)), "default", row.getString(5));
                     } else if (row.getInt(1) == Constants.NODE_INT) {
-                        graphFeatureGenerator.addNodeInfo(String.valueOf(row.getLong(4)), "default", row.getString(5) == null ? "" : row.getString(5));
+                        graphFeatureGenerator.addNodeInfo(String.valueOf(row.getLong(4)), "default", row.getString(5));
                     } else if (row.getInt(1) == Constants.EDGE_INT) {
-                        edgeFeatures.add(new Tuple4<>(String.valueOf(row.getLong(2)), String.valueOf(row.getLong(3)), String.valueOf(row.getLong(4)), row.getString(5)));
+                        edgeFeatures.add(new Tuple5<>(String.valueOf(row.getLong(2)), String.valueOf(row.getLong(3)), String.valueOf(row.getLong(4)), row.getString(5), String.valueOf(row.getInt(6))));
                     } else {
                         throw new Exception("invalid entry type: " + row.getInt(1));
                     }
                 }
                 try {
-                    for (Tuple4<String, String, String, String> edgeFeature : edgeFeatures) {
-                        graphFeatureGenerator.addEdgeInfo(edgeFeature._1(), edgeFeature._2(), edgeFeature._3(), "default", edgeFeature._4() == null ? "1:0" : edgeFeature._4());
+                    for (int k = 0; k < edgeFeatures.size(); k++) {
+                        addingEdgeFeature = edgeFeatures.get(k);
+                        graphFeatureGenerator.addEdgeInfo(addingEdgeFeature._1(), addingEdgeFeature._2(), addingEdgeFeature._3(), "default", addingEdgeFeature._4());
                     }
                 } catch (Exception e) {
                     throw new RuntimeException("========failed for seed:" + seed + " nodeIndices:" + Arrays.toString(graphFeatureGenerator.nodeIndices.entrySet().toArray())
                             + "\nedgeIndices:" + Arrays.toString(edgeFeatures.toArray())
-                            + "\nnode2IDs:" + Arrays.toString(graphFeatureGenerator.node1Edges.toArray()), e);
+                            + "\nnode2IDs:" + Arrays.toString(graphFeatureGenerator.node1Edges.toArray())
+                            + "\naddingEdgeFeature:" + addingEdgeFeature, e);
                 }
                 Collections.sort(rootIds);
-                return new Tuple2<>(String.valueOf(seed), graphFeatureGenerator.getGraphFeature(rootIds, true));
+//                byte [] graphFeatureBytes = graphFeatureGenerator.getGraphFeatureBytes(rootIds);
+//                if (graphFeatureBytes.length <= 7000000) {
+//                    return RowFactory.create(String.valueOf(seed), graphFeatureBytes);
+//                }
+//                return RowFactory.create(String.valueOf(seed), Arrays.copyOfRange(graphFeatureBytes, 0, 7000000));
+                String graphFeatureStr = graphFeatureGenerator.getGraphFeature(rootIds, true);
+                if (graphFeatureStr.length() > 8000000) {
+                    graphFeatureStr = graphFeatureStr.substring(0, 8000000);
+                }
+                return RowFactory.create(String.valueOf(seed), graphFeatureStr);
             }
         };
     }

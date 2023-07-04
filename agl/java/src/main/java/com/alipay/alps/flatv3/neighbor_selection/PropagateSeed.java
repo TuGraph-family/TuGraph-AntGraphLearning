@@ -2,12 +2,16 @@ package com.alipay.alps.flatv3.neighbor_selection;
 
 import com.alipay.alps.flatv3.filter.Filter;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HeteroDataset;
 import com.alipay.alps.flatv3.sampler.AbstractSampler;
 import com.alipay.alps.flatv3.sampler.SampleCondition;
 import com.alipay.alps.flatv3.sampler.SamplerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -51,5 +55,23 @@ public class PropagateSeed {
             samplerOutput.addSampledNeighbors(neighborIndices);
         }
         return samplerOutput;
+    }
+
+    public static void main(String[] args) throws Exception {
+        // Create the list of seed IDs as strings.
+        for (int i = 0; i < 10; i++) {
+            List<String> seedIds = Arrays.asList("1", "2", "3", "4", "5");
+            int node2IDSize = 100;
+            List<RangeUnit> sortedIntervals = new ArrayList<>();
+            sortedIntervals.add(new RangeUnit(0, node2IDSize - 1));
+
+            SampleCondition sampleCondition = new SampleCondition("random_sampler(limit=15, seed=34, replacement=false)");
+            for (String seed : seedIds) {
+                sampleCondition.setSeed(1);
+                AbstractSampler sampler = SamplerFactory.createSampler(sampleCondition, null);
+                List<Integer> neighborIndices = sampler.sample(new RangeResult(null, sortedIntervals));
+                System.out.println("--i:" + i + " seed:" + seed + " sampledN2:" + Arrays.toString(neighborIndices.toArray()));
+            }
+        }
     }
 }

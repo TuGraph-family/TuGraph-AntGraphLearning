@@ -64,4 +64,34 @@ public class IndexFactory {
         index.buildIndex(neighborDataset);
         return index;
     }
+
+    public BaseIndex loadIndex(String indexMeta, byte[] buf) {
+        String t[] = indexMeta.split(":");
+        String indexColumn = NO_FILTER;
+        String indexDtype = "";
+        if (t.length > 2) {
+            indexColumn = t[1];
+            indexDtype = t[2];
+        }
+        return getOrCreate(t[0], indexColumn, indexDtype, buf);
+    }
+
+    private BaseIndex getOrCreate(String indexType, String indexColumn, String indexDtype, byte[] buf) {
+        BaseIndex index = null;
+        switch (indexType) {
+            case HASH_INDEX:
+                index = new HashIndex(indexType, indexColumn, indexDtype);
+                break;
+            case RANGE_INDEX:
+                index = new RangeIndex(indexType, indexColumn, indexDtype);
+                break;
+            case NO_FILTER:
+                index = new BaseIndex(NO_FILTER, indexColumn, indexDtype);
+                break;
+            default:
+                throw new RuntimeException("Not support hash_range_index yet");
+        }
+        index.load(buf);
+        return index;
+    }
 }

@@ -135,33 +135,34 @@ public class SubGraphSpecs implements Serializable {
 
     private Features generateFeatures(String rawFeatureList, List<SubGraphSpec.FeatureSpec> featureSpecList) {
         Features.Builder featuresBuilder = Features.newBuilder();
-        String[] rawFeatureArray = rawFeatureList.split("\t");
-        String featureSpliter = " ";
-        if (rawFeatureList.contains(",")) {
-            featureSpliter = ",";
-        }
-        for (int fi = 0; fi < featureSpecList.size(); fi++) {
-            SubGraphSpec.FeatureSpec featureSpec = featureSpecList.get(fi);
-            String rawFeature = rawFeatureArray[fi];
-            rawFeature = rawFeature.trim();
-            String values[] = rawFeature.split(featureSpliter);
-            if (rawFeature.trim().isEmpty()) {
-                values = new String[0];
+        if (!featureSpecList.isEmpty()) {
+            String[] rawFeatureArray = rawFeatureList.split("\t");
+            String featureSpliter = " ";
+            if (rawFeatureList.contains(",")) {
+                featureSpliter = ",";
             }
-
-            String featureName = featureSpec.getName();
-            String featureType = featureSpec.getType();
-            switch (featureType.toLowerCase()) {
-                case DENSE:
-                    featuresBuilder.putDfs(featureName, generateDenseFeatures(values, featureSpec));
-                    break;
-                case SPARSE_KV:
-                case KV:
-                    featuresBuilder.putSpKvs(featureName, generateSpareKVFeatures(values, featureSpec));
-                    break;
-                case SPARSE_K:
-                    featuresBuilder.putSpKs(featureName, generateSpareKFeatures(values, featureSpec));
-                    break;
+            for (int fi = 0; fi < featureSpecList.size(); fi++) {
+                SubGraphSpec.FeatureSpec featureSpec = featureSpecList.get(fi);
+                String rawFeature = rawFeatureArray[fi];
+                rawFeature = rawFeature.trim();
+                String values[] = rawFeature.split(featureSpliter);
+                if (rawFeature.trim().isEmpty()) {
+                    values = new String[0];
+                }
+                String featureName = featureSpec.getName();
+                String featureType = featureSpec.getType();
+                switch (featureType.toLowerCase()) {
+                    case DENSE:
+                        featuresBuilder.putDfs(featureName, generateDenseFeatures(values, featureSpec));
+                        break;
+                    case SPARSE_KV:
+                    case KV:
+                        featuresBuilder.putSpKvs(featureName, generateSpareKVFeatures(values, featureSpec));
+                        break;
+                    case SPARSE_K:
+                        featuresBuilder.putSpKs(featureName, generateSpareKFeatures(values, featureSpec));
+                        break;
+                }
             }
         }
         return featuresBuilder.build();
@@ -169,6 +170,9 @@ public class SubGraphSpecs implements Serializable {
 
     private Features.DenseFeatures generateDenseFeatures(String values[], SubGraphSpec.FeatureSpec featureSpec) {
         int featureDim = featureSpec.getDim();
+        if (featureDim != values.length) {
+            throw new RuntimeException("DenseFeatures featureDim:" + featureDim + " != values.length:" + values.length);
+        }
         DType valueDtype = featureSpec.getValueDtype();
 
         Features.DenseFeatures.Builder denseFeaturesBuilder = Features.DenseFeatures.newBuilder();
@@ -210,16 +214,22 @@ public class SubGraphSpecs implements Serializable {
 
     private Features.SparseKVFeatures generateSpareKVFeatures(String values[], SubGraphSpec.FeatureSpec featureSpec) {
         DType valueDtype = featureSpec.getValueDtype();
+        long maxDim = featureSpec.getDim();
 
         Features.SparseKVFeatures.Builder sparseKVFeaturesBuilder = Features.SparseKVFeatures.newBuilder();
         Int64List.Builder lensBuilder = Int64List.newBuilder();
         Int64List.Builder keysBuilder = Int64List.newBuilder();
+        long key = -1;
         switch (valueDtype.getNumber()) {
             case DType.FLOAT_VALUE:
                 FloatList.Builder f32sBuilder = FloatList.newBuilder();
                 for (int i = 0; i < values.length; i++) {
                     String[] kv = values[i].split(":");
-                    keysBuilder.addValue(Long.parseLong(kv[0]));
+                    key = Long.parseLong(kv[0]);
+                    if (key >= maxDim) {
+                        break;
+                    }
+                    keysBuilder.addValue(key);
                     f32sBuilder.addValue(Float.parseFloat(kv[1]));
                 }
                 lensBuilder.addValue(values.length);
@@ -231,7 +241,11 @@ public class SubGraphSpecs implements Serializable {
                 Float64List.Builder f64sBuilder = Float64List.newBuilder();
                 for (int i = 0; i < values.length; i++) {
                     String[] kv = values[i].split(":");
-                    keysBuilder.addValue(Long.parseLong(kv[0]));
+                    key = Long.parseLong(kv[0]);
+                    if (key >= maxDim) {
+                        break;
+                    }
+                    keysBuilder.addValue(key);
                     f64sBuilder.addValue(Double.parseDouble(kv[1]));
                 }
                 lensBuilder.addValue(values.length);
@@ -243,7 +257,11 @@ public class SubGraphSpecs implements Serializable {
                 Int64List.Builder i64sBuilder = Int64List.newBuilder();
                 for (int i = 0; i < values.length; i++) {
                     String[] kv = values[i].split(":");
-                    keysBuilder.addValue(Long.parseLong(kv[0]));
+                    key = Long.parseLong(kv[0]);
+                    if (key >= maxDim) {
+                        break;
+                    }
+                    keysBuilder.addValue(key);
                     i64sBuilder.addValue(Long.parseLong(kv[1]));
                 }
                 lensBuilder.addValue(values.length);
@@ -254,11 +272,15 @@ public class SubGraphSpecs implements Serializable {
             default:
                 throw new RuntimeException("Unsupported value dtype: " + valueDtype);
         }
+        if (key >= maxDim) {
+            throw new RuntimeException("SparseKVFeatures key:" + key + " >= maxDim:" + maxDim);
+        }
         return sparseKVFeaturesBuilder.build();
     }
 
     private Features.SparseKFeatures generateSpareKFeatures(String values[], SubGraphSpec.FeatureSpec featureSpec) {
         DType keyDtype = featureSpec.getKeyDtype();
+        long maxDim = featureSpec.getDim();
 
         Features.SparseKFeatures.Builder sparseKFeaturesBuilder = Features.SparseKFeatures.newBuilder();
         Int64List.Builder lensBuilder = Int64List.newBuilder();
@@ -266,7 +288,11 @@ public class SubGraphSpecs implements Serializable {
         switch (keyDtype.getNumber()) {
             case DType.INT64_VALUE:
                 for (int i = 0; i < values.length; i++) {
-                    keysBuilder.addValue(Long.parseLong(values[i]));
+                    long key = Long.parseLong(values[i]);
+                    if (key >= maxDim) {
+                        throw new RuntimeException("SparseKFeatures key:" + key + " >= maxDim:" + maxDim);
+                    }
+                    keysBuilder.addValue(key);
                 }
                 lensBuilder.addValue(values.length);
                 sparseKFeaturesBuilder.setLens(lensBuilder.build());
@@ -275,7 +301,6 @@ public class SubGraphSpecs implements Serializable {
             case DType.STR_VALUE:
                 BytesList.Builder rawsBuilder = BytesList.newBuilder();
                 for (int i = 0; i < values.length; i++) {
-                    keysBuilder.addValue(Long.parseLong(values[i]));
                     rawsBuilder.addValue(ByteString.copyFrom(values[i].getBytes()));
                 }
                 lensBuilder.addValue(values.length);

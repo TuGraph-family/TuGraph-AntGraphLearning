@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.spark.sql.functions.broadcast;
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.collect_list;
 
@@ -49,6 +50,7 @@ public class SubgraphSampling {
             sampleCond[i] = i < sampleCondStr.length ? sampleCondStr[i] : sampleCondStr[sampleCondStr.length-1];
         }
         String subgraphSpec = arguments.get(Constants.SUBGRAPH_SPEC);
+        Boolean needIDs = Boolean.parseBoolean(arguments.getOrDefault(Constants.NEED_IDS, Constants.NEED_IDS_DEFAULT));
 
         // input data
         String inputLabel = arguments.getOrDefault(Constants.INPUT_LABEL, "");
@@ -66,6 +68,8 @@ public class SubgraphSampling {
         SubGraphSpecs subGraphSpecs = new SubGraphSpecs(subgraphSpec);
         Dataset<Row> seedDS = Utils.inputData(spark, inputLabel);
         Dataset<Row> seedLabels = Utils.aggregateConcatWs("seed", seedDS);
+        seedLabels.show();
+        seedLabels.printSchema();
 
         Dataset<Row> neighborDF = Utils.inputData(spark, inputEdge)
                 .repartition(col("node1_id")).sortWithinPartitions("node2_id")
@@ -85,6 +89,8 @@ public class SubgraphSampling {
         for (int hop = 0; hop < maxHop; hop++) {
             Dataset<SubGraphElement> seedPropagationResults = neighborDF.joinWith(seedAgg, neighborDF.col("node1_id").equalTo(seedAgg.col("node_id")), "inner")
                     .flatMap(getPropergateFunction(otherOutputSchema, filter, sampleCond[hop], hop), Encoders.bean(SubGraphElement.class));
+            seedPropagationResults.show();
+            seedPropagationResults.printSchema();
             resultGraphElement = resultGraphElement.union(seedPropagationResults);
             if (hop + 1 < maxHop) {
                 Dataset<SubGraphElement> seedNodes = seedPropagationResults.filter("entryType = 'node'").distinct();
@@ -114,17 +120,21 @@ public class SubgraphSampling {
         Dataset<SubGraphElement> edgeFeatureDF = edgeStructure;
         if (inputEdgeFeature.trim().length() > 0) {
             Dataset<Row> rawEdgeFeatureDF = Utils.inputData(spark, inputEdgeFeature);
-            edgeFeatureDF = rawEdgeFeatureDF.join(edgeStructure, edgeStructure.col("eid").equalTo(rawEdgeFeatureDF.col("eid")), "inner")
-                    .select("seed", "entryType", "node1", "node2", "eid", "edge_feature")
+            edgeFeatureDF = rawEdgeFeatureDF.join(edgeStructure, edgeStructure.col("id").equalTo(rawEdgeFeatureDF.col("edge_id")), "inner")
+                    .select("seed", "entryType", "node1", "node2", "edge_id", "edge_feature")
                     .map((MapFunction<Row, SubGraphElement>) row -> new SubGraphElement(row.getString(0), row.getString(1), row.getString(2), row.getString(3), row.getString(4), row.getString(5), ""),
                             Encoders.bean(SubGraphElement.class));
         }
 
         // group node features and edge features by seed
         Dataset<Row> subgraph = nodeFeatureDF.union(edgeFeatureDF).groupByKey((MapFunction<SubGraphElement, String>) row -> row.getSeed(), Encoders.STRING())
-                .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs), Encoders.tuple(Encoders.STRING(), Encoders.STRING())).toDF("seed", "graph_feature");
+                .mapGroups(getGenerateGraphFeatureFunc(subGraphSpecs, needIDs), Encoders.tuple(Encoders.STRING(), Encoders.STRING())).toDF("seed", "graph_feature");
+        subgraph.show();
+        subgraph.printSchema();
 
-        Dataset<Row> subgraphLabels = subgraph.join(seedLabels, "seed");
+        Dataset<Row> subgraphLabels = subgraph.join(broadcast(seedLabels), "seed");
+        subgraphLabels.show();
+        subgraphLabels.printSchema();
         Utils.outputData(spark, subgraphLabels, outputResults);
     }
 
@@ -166,7 +176,7 @@ public class SubgraphSampling {
                 };
     }
 
-    public static MapGroupsFunction<String, SubGraphElement, Tuple2<String, String>> getGenerateGraphFeatureFunc(SubGraphSpecs subGraphSpecs) {
+    public static MapGroupsFunction<String, SubGraphElement, Tuple2<String, String>> getGenerateGraphFeatureFunc(SubGraphSpecs subGraphSpecs, boolean needIDs) {
         return new MapGroupsFunction<String, SubGraphElement, Tuple2<String, String>>() {
             @Override
             public Tuple2<String, String> call(String key, Iterator<SubGraphElement> values) throws Exception {
@@ -190,7 +200,7 @@ public class SubgraphSampling {
                 }
                 try {
                     for (Tuple4<String, String, String, String> edgeFeature : edgeFeatures) {
-                        graphFeatureGenerator.addEdgeInfo(edgeFeature._1(), edgeFeature._2(), edgeFeature._3(), "default", edgeFeature._4() == null ? "1:0" : edgeFeature._4());
+                        graphFeatureGenerator.addEdgeInfo(edgeFeature._1(), edgeFeature._2(), edgeFeature._3(), "default", edgeFeature._4() == null ? "" : edgeFeature._4());
                     }
                 } catch (Exception e) {
                     throw new RuntimeException("========failed for seed:" + seed + " nodeIndices:" + Arrays.toString(graphFeatureGenerator.nodeIndices.entrySet().toArray())
@@ -198,7 +208,7 @@ public class SubgraphSampling {
                             + "\nnode2IDs:" + Arrays.toString(graphFeatureGenerator.node1Edges.toArray()), e);
                 }
                 Collections.sort(rootIds);
-                return new Tuple2<>(seed, graphFeatureGenerator.getGraphFeature(rootIds));
+                return new Tuple2<>(seed, graphFeatureGenerator.getGraphFeature(rootIds, needIDs));
             }
         };
     }
