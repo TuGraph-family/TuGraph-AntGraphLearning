@@ -12,11 +12,13 @@ public class SampleCondition {
     private final String LIMIT = "limit";
     private final String REPLACE = "replacement";
     private final String REVERSE = "reverse";
+    private final String SEED = "seed";
     private String method;
     private String key;
     private int limit;
     private boolean replacement = false;
     private boolean reverse = false;
+    private int seed = 0;
 
     public String getMethod() {
         return method;
@@ -38,6 +40,12 @@ public class SampleCondition {
         return reverse;
     }
 
+    public void setSeed(int seed) {
+        this.seed = seed;
+    }
+    public int getSeed() {
+        return seed;
+    }
     /**
      * Constructs a SampleCondition object.
      *
@@ -47,12 +55,13 @@ public class SampleCondition {
      * @param replacement Whether or not replacement is allowed.
      * @param reverse     Whether or not to reverse the sample.
      */
-    public SampleCondition(String method, String key, int limit, boolean replacement, boolean reverse) {
+    public SampleCondition(String method, String key, int limit, boolean replacement, boolean reverse, int seed) {
         this.method = method;
         this.key = key;
         this.limit = limit;
         this.replacement = replacement;
         this.reverse = reverse;
+        this.seed = seed;
     }
 
     /**
@@ -90,6 +99,8 @@ public class SampleCondition {
                         case REVERSE:
                             this.reverse = Boolean.valueOf(a2);
                             break;
+                        case SEED:
+                            this.seed = Integer.valueOf(a2);
                         default:
                             break;
                     }
@@ -111,6 +122,7 @@ public class SampleCondition {
                 ", limit=" + limit +
                 ", replacement=" + replacement +
                 ", reverse=" + reverse +
+                ", seed=" + seed +
                 '}';
     }
 }

@@ -1,12 +1,12 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.IndexFactory;
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.CommonResult;
-import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.HeteroDataset;
+import com.alipay.alps.flatv3.index.IndexFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,19 +20,19 @@ public class WeightedSamplerTest {
     private BaseIndex baseIndex;
     private BaseIndex typeIndex;
     private BaseIndex weightIndex;
-    private NeighborDataset neighborDataset;
+    private HeteroDataset neighborDataset;
     List<Float> weights = Arrays.asList(1.0F, 2.0F, 3.0F, 4.0F, 5.0F, 6.0F, 7.0F, 8.0F, 9.0F, 10.0F);
 
     @Before
     public void setUp() {
         List<String> ids = Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
         List<String> types = Arrays.asList("item", "shop", "user", "item", "user", "item", "shop", "user", "item", "user");
-        neighborDataset = new NeighborDataset(ids.size());
+        neighborDataset = new HeteroDataset(ids.size());
         neighborDataset.addAttributeList("weight", weights);
         neighborDataset.addAttributeList("type", types);
-        baseIndex = IndexFactory.createIndex("", neighborDataset);
-        typeIndex = IndexFactory.createIndex("range_index:type:string", neighborDataset);
-        weightIndex = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
+        baseIndex = new IndexFactory().createIndex("", neighborDataset);
+        typeIndex = new IndexFactory().createIndex("range_index:type:string", neighborDataset);
+        weightIndex = new IndexFactory().createIndex("range_index:weight:float", neighborDataset);
     }
 
     @Test

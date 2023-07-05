@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
-import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +24,7 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     private Comparator<Integer> comparator = null;
     private ArrayList<Integer> cachedIndex = null;
 
-    public TopKSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+    public TopKSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         super(sampleCondition, neighborDataset);
     }
 
@@ -63,6 +63,7 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
                     }
                 }
             } else {
+                //????
                 List<Integer> sortedIndices = indexResult.getIndices();
                 if (sortedIndices.size() <= sampleCount) {
                     sampledIndex.addAll(sortedIndices);
@@ -84,7 +85,7 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
             // sort neighbors by attribute at runtime
             // if there is no filter condition, the selected samples are always the same, we can cache the result
             if (originIndexColumn == null && cachedIndex != null) {
-                return new ArrayList<>(cachedIndex);
+                return new ArrayList<>(cachedIndex); // 一个节点上复用
             }
             if (weights == null) {
                 weights = getNeighborDataset().getAttributeList(getSampleCondition().getKey());

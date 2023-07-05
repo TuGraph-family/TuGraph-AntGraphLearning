@@ -103,6 +103,9 @@ public class RangeResult extends AbstractResult {
 
     @Override
     public int getOriginIndex(int i) {
+        if (getIndex() == null) {
+            return i;
+        }
         int[] originIndex = getIndex().getOriginIndices();
         return originIndex[i];
     }

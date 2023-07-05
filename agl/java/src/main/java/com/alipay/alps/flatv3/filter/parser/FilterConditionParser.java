@@ -23,7 +23,7 @@ public class FilterConditionParser {
             FilterConditionVisitor visitor = new FilterConditionVisitor();
             logicExps = visitor.visit(parser.start()).build();
         } catch (Throwable e) {
-            throw new RuntimeException("filter syntax error. filter input:" + filterCond + "\n error:" + Arrays.toString(e.getStackTrace()));
+            throw new RuntimeException("filter syntax error. filter input:" + filterCond + "\n error:" + Arrays.toString(e.getStackTrace()) + "\n err:" + e.getMessage());
         }
         return logicExps;
     }

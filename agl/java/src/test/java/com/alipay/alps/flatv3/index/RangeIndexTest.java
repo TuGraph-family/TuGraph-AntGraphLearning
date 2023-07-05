@@ -22,9 +22,9 @@ public class RangeIndexTest {
     @Test
     public void testComparisonFilterWithIndexValue() throws Exception {
         // create a RangeIndex object with some test data
-        NeighborDataset neighborDataset = new NeighborDataset(3);
+        HeteroDataset neighborDataset = new HeteroDataset(3);
         neighborDataset.addAttributeList("weight", Arrays.asList(new Float[]{3.0F, 2.0F, 1.0F}));
-        BaseIndex rangeIndex = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
+        BaseIndex rangeIndex = new IndexFactory().createIndex("range_index:weight:float", neighborDataset);
 
         // check if the index is built correctly
         int[] expectedOriginIndex = new int[]{2, 1, 0};
@@ -39,26 +39,25 @@ public class RangeIndexTest {
         String filterCond = "index.weight < 1.4";
         LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-        AbstractResult indexResult = rangeIndex.search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables);
+        AbstractResult indexResult = rangeIndex.search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables, neighborDataset);
         assertArrayEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
     }
 
     @Test
     public void testComparisonFilterWithIndexAndSeedValues() throws Exception {
-        NeighborDataset neighborDataset = new NeighborDataset(5);
+        HeteroDataset neighborDataset = new HeteroDataset(5);
         neighborDataset.addAttributeList("timestamp", Arrays.asList(new Long[]{3L, 5L, 1L, 2L, 9L}));
-        BaseIndex rangeIndex = IndexFactory.createIndex("range_index:timestamp:long", neighborDataset);
+        BaseIndex rangeIndex = new IndexFactory().createIndex("range_index:timestamp:long", neighborDataset);
 
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         Map<String, Element.Number> seedVariableMap = new HashMap<>();
-        seedVariableMap.put("1", Element.Number.newBuilder().setI(2).build());
+        seedVariableMap.put("timestamp", Element.Number.newBuilder().setI(2).build());
         inputVariables.put(VariableSource.SEED, seedVariableMap);
 
-        String filterCond = "index.timestamp - seed.1 >= 2";
+        String filterCond = "index.timestamp - seed.timestamp >= 2";
         LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-        AbstractResult indexResult = rangeIndex.search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables);
-        System.out.println("------indexResult:" + Arrays.toString(indexResult.getIndices().toArray()));
+        AbstractResult indexResult = rangeIndex.search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables, neighborDataset);
         assertArrayEquals(Arrays.asList(1, 4).toArray(), indexResult.getIndices().toArray());
     }
 }

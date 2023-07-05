@@ -1,8 +1,8 @@
 package com.alipay.alps.flatv3.filter.result;
 
 import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 import com.alipay.alps.flatv3.index.IndexFactory;
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ public class RangeUnitIndexResultTest {
             ids.add(i);
             weights.add(1.0F * i);
         }
-        NeighborDataset neighborDataset = new NeighborDataset(ids.size());
+        HeteroDataset neighborDataset = new HeteroDataset(weights.size());
         neighborDataset.addAttributeList("weight", weights);
-        BaseIndex index = IndexFactory.createIndex("range_index:weight:float", neighborDataset);
+        BaseIndex index = new IndexFactory().createIndex("range_index:weight:float", neighborDataset);
 
         List<RangeUnit> ranges1 = new ArrayList<>();
         RangeUnit range1 = new RangeUnit(1, 3);

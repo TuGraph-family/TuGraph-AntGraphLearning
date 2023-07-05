@@ -20,21 +20,20 @@ public class HashIndexTest {
     @Test
     public void testHashIndex() throws Exception {
         // Create a neighbor dataset
-        List<Integer> node2IDs = Arrays.asList(0, 1, 2, 3, 4);
-        NeighborDataset neighborDataset = new NeighborDataset(node2IDs.size());
+        HeteroDataset neighborDataset = new HeteroDataset(5);
 
         // Add some attributes to the neighbor dataset
         List<String> typeList = Arrays.asList("item", "shop", "user", "item", "user");
         neighborDataset.addAttributeList("node_type", typeList);
 
         // Create a hash index
-        BaseIndex hashIndex = IndexFactory.createIndex("hash_index:node_type:string", neighborDataset);
+        BaseIndex hashIndex = new IndexFactory().createIndex("hash_index:node_type:string", neighborDataset);
 
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
         String filterCond = "index.node_type in (user, shop)";
         LogicExps logicExps = FilterConditionParser.parseFilterCondition(filterCond);
         CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
-        AbstractResult indexResult = hashIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables);
+        AbstractResult indexResult = hashIndex.search(new CategoryCmpWrapper(cmpExp), inputVariables, neighborDataset);
         assertArrayEquals(Arrays.asList(1, 2, 4).toArray(), indexResult.getIndices().toArray());
     }
 }

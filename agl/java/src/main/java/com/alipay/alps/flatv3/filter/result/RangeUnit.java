@@ -4,6 +4,8 @@ package com.alipay.alps.flatv3.filter.result;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 /*
  * RangeUnit is a class that represents a range of integer values. It has the following properties:
  * 1. It has a low and a high integer value. The low and high value are inclusive.
@@ -22,7 +24,7 @@ import lombok.Setter;
  *
  * [2, 9] join [6, 10], we can get [6, 9]
  */
-public class RangeUnit {
+public class RangeUnit implements Serializable {
     @Getter
     @Setter
     private int low;
@@ -30,6 +32,25 @@ public class RangeUnit {
     @Setter
     private int high;
 
+    public void setLow(int low) {
+        this.low = low;
+    }
+
+    public void setHigh(int high) {
+        this.high = high;
+    }
+
+    public int getLow() {
+        return low;
+    }
+
+    public int getHigh() {
+        return high;
+    }
+    public RangeUnit() {
+        this.low = -1;
+        this.high = -1;
+    }
     public RangeUnit(RangeUnit r) {
         this.low = r.low;
         this.high = r.low;

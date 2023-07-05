@@ -3,26 +3,76 @@ package com.alipay.alps.flatv3.index;
 import com.alipay.alps.flatv3.filter.parser.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.filter.parser.CategoryCmpWrapper;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
-import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
+import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class HashIndex extends BaseIndex {
+public class HashIndex extends BaseIndex implements Serializable {
     private Map<String, RangeUnit> typeRanges;
 
-    public HashIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
-        super(indexType, indexColumn, indexDtype, neighborDataset);
+    public HashIndex() {
+    }
+    public HashIndex(String indexType, String indexColumn, String indexDtype) {
+        super(indexType, indexColumn, indexDtype);
     }
 
+    public byte[] dump() {
+        int byteCountForMap = 4;
+        for (String key : typeRanges.keySet()) {
+            byteCountForMap += 4 + key.length() + 4 * 2;
+        }
+        ByteBuffer buffer = ByteBuffer.allocate(byteCountForMap + 4 * (1+originIndices.length));
+        buffer.putInt(typeRanges.size());
+        for (String key : typeRanges.keySet()) {
+            buffer.putInt(key.length());
+            buffer.put(key.getBytes());
+            buffer.putInt(typeRanges.get(key).getLow());
+            buffer.putInt(typeRanges.get(key).getHigh());
+        }
+        buffer.putInt(originIndices.length);
+        for (int idx : originIndices) {
+            buffer.putInt(idx);
+        }
+        return buffer.array();
+    }
+
+    public void load(byte[] data) {
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        int mapSize = buffer.getInt();
+        typeRanges = new HashMap<>();
+        for (int i = 0; i < mapSize; i++) {
+            int keyLen = buffer.getInt();
+            byte buf[] = new byte[keyLen];
+            buffer.get(buf, 0, keyLen);
+            String key = new String(buf);
+            RangeUnit rangeUnit = new RangeUnit(buffer.getInt(), buffer.getInt());
+            typeRanges.put(key, rangeUnit);
+        }
+        int len = buffer.getInt();
+        originIndices = new int[len];
+        for (int i = 0; i < len; i++) {
+            originIndices[i] = buffer.getInt();
+        }
+    }
+
+    public Map<String, RangeUnit> getTypeRanges() {
+        return typeRanges;
+    }
+    public void setTypeRanges(Map<String, RangeUnit> typeRanges) {
+        this.typeRanges = typeRanges;
+    }
+    
     @Override
-    protected int[] buildIndex() {
+    public int[] buildIndex(HeteroDataset neighborDataset) {
         Map<String, List<Integer>> typeIndexes = new TreeMap<>();
         List<String> types = neighborDataset.getAttributeList(getIndexColumn());
         for (int i = 0; i < types.size(); i++) {
@@ -48,13 +98,13 @@ public class HashIndex extends BaseIndex {
     }
 
     @Override
-    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables) throws Exception {
-        List<RangeUnit> ranges = searchType((CategoryCmpWrapper) cmpExpWrapper, inputVariables);
+    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<java.lang.String, Element.Number>> inputVariables, HeteroDataset neighborDataset) throws Exception {
+        List<RangeUnit> ranges = searchType((CategoryCmpWrapper) cmpExpWrapper, inputVariables, neighborDataset);
         RangeResult rangeIndexResult = new RangeResult(this, ranges);
         return rangeIndexResult;
     }
 
-    private List<RangeUnit> searchType(CategoryCmpWrapper cateCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    private List<RangeUnit> searchType(CategoryCmpWrapper cateCmpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables, HeteroDataset neighborDataset) throws Exception {
         String indexKey = getIndexColumn();
         List<RangeUnit> ansList = new ArrayList<>();
         Map<String, Element.Number> indexVariableMap = new HashMap<>();
@@ -62,6 +112,7 @@ public class HashIndex extends BaseIndex {
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
         for (String type : this.typeRanges.keySet()) {
             inputVariables.get(VariableSource.INDEX).put(indexKey, Element.Number.newBuilder().setS(type).build());
+            System.out.println("----cateCmpWrapper:" + cateCmpWrapper.getCmpExp() + "\n    indexKey:"+indexKey+" type:"+type+" inputVariables:" + inputVariables.get(VariableSource.INDEX).get(indexKey));
             if (cateCmpWrapper.eval(inputVariables)) {
                 ansList.add(this.typeRanges.get(type));
             }

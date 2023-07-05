@@ -8,12 +8,13 @@ import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class BaseIndex implements Serializable {
-    protected NeighborDataset neighborDataset = null;
+//    protected HeteroDataset neighborDataset = null;
     protected int[] originIndices = null;
 
     /*
@@ -24,50 +25,86 @@ public class BaseIndex implements Serializable {
     private String indexType;
     private String indexDtype;
     private String indexColumn;
-    
-    public BaseIndex(String indexType, String indexColumn, String indexDtype, NeighborDataset neighborDataset) {
+
+    public BaseIndex() {
+    }
+
+    public BaseIndex(String indexType, String indexColumn, String indexDtype) {
         this.indexType = indexType;
         this.indexColumn = indexColumn;
         this.indexDtype = indexDtype;
-        this.neighborDataset = neighborDataset;
-        originIndices = buildIndex();
+//        this.neighborDataset = neighborDataset;
+//        originIndices = buildIndex();
+    }
+
+    public byte[] dump() {
+        ByteBuffer buffer = ByteBuffer.allocate(4 * (1+originIndices.length));
+        buffer.putInt(originIndices.length);
+        for (int idx : originIndices) {
+            buffer.putInt(idx);
+        }
+        return buffer.array();
+    }
+
+    public void load(byte[] data) {
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        int len = buffer.getInt();
+        originIndices = new int[len];
+        for (int i = 0; i < len; i++) {
+            originIndices[i] = buffer.getInt();
+        }
     }
 
     public int[] getOriginIndices() {
         return originIndices;
     }
+    public void setOriginIndices(int[] originIndices) {
+        this.originIndices = originIndices;
+    }
 
     public String getIndexType() {
         return indexType;
+    }
+    public void setIndexType(String indexType) {
+        this.indexType = indexType;
     }
 
     public String getIndexColumn() {
         return indexColumn;
     }
+    public void setIndexColumn(String indexColumn) {
+        this.indexColumn = indexColumn;
+    }
 
     public String getIndexDtype() {
         return indexDtype;
     }
-
-    public NeighborDataset getNeighborDataset() {
-        return neighborDataset;
+    public void setIndexDtype(String indexDtype) {
+        this.indexDtype = indexDtype;
     }
 
-    public String getDtype(String column) {
-        return neighborDataset.getDtype(column);
-    }
+//    public HeteroDataset getNeighborDataset() {
+//        return neighborDataset;
+//    }
+//    public void setNeighborDataset(HeteroDataset neighborDataset) {
+//        this.neighborDataset = neighborDataset;
+//    }
+//
+//    public String getDType(String column) {
+//        return neighborDataset.getDtype(column);
+//    }
 
-    protected int[] buildIndex() {
-        originIndices = new int[neighborDataset.getNeighborCount()];
-        for (int i = 0; i < neighborDataset.getNeighborCount(); i++) {
+    public int[] buildIndex(HeteroDataset neighborDataset) {
+        originIndices = new int[neighborDataset.getArraySize()];
+        for (int i = 0; i < neighborDataset.getArraySize(); i++) {
             originIndices[i] = i;
         }
         return originIndices;
     }
 
-    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables) throws Exception {
+    public AbstractResult search(AbstractCmpWrapper cmpExpWrapper, Map<VariableSource, Map<String, Element.Number>> inputVariables, HeteroDataset neighborDataset) throws Exception {
         List<RangeUnit> ranges = new ArrayList<>();
-        ranges.add(new RangeUnit(0, neighborDataset.getNeighborCount() - 1));
+        ranges.add(new RangeUnit(0, originIndices.length - 1));
         RangeResult rangeIndexResult = new RangeResult(this, ranges);
         return rangeIndexResult;
     }

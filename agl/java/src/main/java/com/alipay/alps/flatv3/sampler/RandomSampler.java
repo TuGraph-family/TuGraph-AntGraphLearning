@@ -1,14 +1,15 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.NeighborDataset;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.CommonResult;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 /**
  * This class represents a random sampler that performs random sampling on an input IndexResult object.
@@ -16,7 +17,7 @@ import java.util.List;
  * It uses a random number generator to select a subset of the IndexResult object based on the provided SampleCondition.
  */
 public class RandomSampler extends AbstractSampler {
-    public RandomSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+    public RandomSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         super(sampleCondition, neighborDataset);
     }
 
@@ -54,41 +55,51 @@ public class RandomSampler extends AbstractSampler {
 
     private List<Integer> sampleWithCount(int candidateCount, int sampleCount) {
         if (getSampleCondition().isReplacement()) {
-            List<Integer> samples = new ArrayList<>(sampleCount);
+            List<Integer> out = new ArrayList<>(sampleCount);
             for (int i = 0; i < sampleCount; i++) {
-                samples.add(getNextRandomInt(candidateCount));
+                out.add(getNextRandomInt(candidateCount));
             }
-            return samples;
+            return out;
         }
         if (sampleCount >= candidateCount) {
-            List<Integer> samples = new ArrayList<>(candidateCount);
+            List<Integer> out = new ArrayList<>(candidateCount);
             for (int i = 0; i < candidateCount; i++) {
-                samples.add(i);
+                out.add(i);
             }
-            return samples;
+            return out;
         }
+        List<Integer> out = new ArrayList<>(sampleCount);
         if (sampleCount <= candidateCount * sampleCountToCandidateCountRatio) {
-            HashSet<Integer> sampledIndex = new HashSet<>();
-            while (sampledIndex.size() < sampleCount) {
-                int rnd = getNextRandomInt(candidateCount);
-                if (!sampledIndex.contains(rnd)) {
-                    sampledIndex.add(rnd);
+            if (sampleCount < 64) {
+                for (int i = 0; i < sampleCount; i++) {
+                    int value = getNextRandomInt(candidateCount);
+                    if (out.contains(value)) {
+                        i--;
+                    } else {
+                        out.add(value);
+                    }
                 }
+            } else {
+                Set<Integer> selected = new HashSet<>();
+                while (selected.size() < sampleCount) {
+                    selected.add(getNextRandomInt(candidateCount));
+                }
+                out.addAll(selected);
             }
-            return new ArrayList<>(sampledIndex);
-        }
+        } else {
+            int[] seq = IntStream.range(0, candidateCount).toArray();
+            for (int i = 0; i < sampleCount; i++) {
+                int j = i + getNextRandomInt(candidateCount - i);
+                int temp = seq[i];
+                seq[i] = seq[j];
+                seq[j] = temp;
+            }
+            for (int i = 0; i < sampleCount; i++) {
+                out.add(seq[i]);
+            }
 
-        return sampleByShuffle(candidateCount, sampleCount);
-    }
-
-    // implement random sampling k elements without replacement out of n elements
-    private List<Integer> sampleByShuffle(int n, int k) {
-        List<Integer> sampledIndex = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            sampledIndex.add(i);
         }
-        Collections.shuffle(sampledIndex);
-        return sampledIndex.subList(0, k);
+        return out;
     }
 }
 

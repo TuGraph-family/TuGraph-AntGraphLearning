@@ -1,9 +1,9 @@
 package com.alipay.alps.flatv3.sampler;
 
-import com.alipay.alps.flatv3.index.NeighborDataset;
-import com.alipay.alps.flatv3.index.RangeIndex;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.index.HeteroDataset;
+import com.alipay.alps.flatv3.index.RangeIndex;
 import com.alipay.alps.flatv3.sampler.utils.AliasMethod;
 import com.alipay.alps.flatv3.sampler.utils.PrefixSumSelection;
 import com.alipay.alps.flatv3.sampler.utils.WeightedSelectionTree;
@@ -19,7 +19,7 @@ public class WeightedSampler extends AbstractSampler {
     private AliasMethod aliasMethod = null;
     private PrefixSumSelection prefixSumSelection = null;
 
-    public WeightedSampler(SampleCondition sampleCondition, NeighborDataset neighborDataset) {
+    public WeightedSampler(SampleCondition sampleCondition, HeteroDataset neighborDataset) {
         super(sampleCondition, neighborDataset);
     }
 

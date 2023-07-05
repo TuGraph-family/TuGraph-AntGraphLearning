@@ -5,73 +5,70 @@ import com.alipay.alps.flatv3.filter.parser.CmpWrapperFactory;
 import com.alipay.alps.flatv3.filter.parser.FilterConditionParser;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.index.BaseIndex;
+import com.alipay.alps.flatv3.index.HashIndex;
+import com.alipay.alps.flatv3.index.HeteroDataset;
 import com.alipay.alps.flatv3.index.IndexFactory;
-import com.alipay.alps.flatv3.index.NeighborDataset;
+import com.alipay.alps.flatv3.index.RangeIndex;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.LogicOp;
 import com.antfin.agl.proto.sampler.VariableSource;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
-public class Filter {
+public class Filter implements Serializable {
     private LogicExps logicExps = null;
 
     /*
      * Construct a filter.
-     * @param indexMetas: a list of index metas, it will introduce multiple indexes
-     * @param filterCond: filter condition
-     * @param neighborDataset: neighbor dataset
+     * @param filterCond: filter condition string
      */
-    public Filter(List<String> indexMetas, String filterCond, NeighborDataset neighborDataset) throws Exception {
-        if (indexMetas == null || indexMetas.size() == 0) {
-            IndexFactory.createIndex("", neighborDataset);
-        } else {
-            for (String indexMeta : indexMetas) {
-                IndexFactory.createIndex(indexMeta, neighborDataset);
-            }
-        }
+    public Filter(String filterCond) throws Exception {
         logicExps = FilterConditionParser.parseFilterCondition(filterCond);
     }
 
-    private BaseIndex getIndex(String indexColumn) {
-        if (!IndexFactory.indexesMap.containsKey(indexColumn)) {
-            throw new RuntimeException("Index not found: " + indexColumn);
+    public Map<VariableSource, Set<String>> getReferColumns() {
+        Map<VariableSource, Set<String>> referColumns = new HashMap<>();
+        for (LogicExps.ExpOrOp expOrOp : logicExps.getExpRPNList()) {
+            if (expOrOp.hasExp()) {
+                CmpExp cmpExp = expOrOp.getExp();
+                List<Element> elements = new ArrayList<>(cmpExp.getLhsRPNList());
+                elements.addAll(cmpExp.getRhsRPNList());
+                for (Element element : elements) {
+                    if (element.hasVar()) {
+                        Element.Variable variable = element.getVar();
+                        VariableSource variableSource = variable.getSource();
+                        if (!referColumns.containsKey(variableSource)) {
+                            referColumns.put(variableSource, new HashSet<String>());
+                        }
+                        referColumns.get(variableSource).add(variable.getName());
+                    }
+                }
+            }
         }
-        return IndexFactory.indexesMap.get(indexColumn);
+        return referColumns;
     }
 
     /*
      * @param seedValues: values of one seed
+     * @param indexesMap: a map of indexes
      * @return: neighbor indices conforming to the filter condition
      */
-    public AbstractResult filter(List<Object> seedValues) throws Exception {
+    public AbstractResult filter(int seedIndex, HeteroDataset seedValues, HeteroDataset neighborValues, Map<String, BaseIndex> indexesMap) throws Exception {
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
-        Map<String, Element.Number> seedVariableMap = new HashMap<>();
-        for (int i = 0; i < seedValues.size(); i++) {
-            Object value = seedValues.get(i);
-            Element.Number.Builder numberBuilder = Element.Number.newBuilder();
-            if (value instanceof Number) {
-                if (value instanceof Float || value instanceof Double) {
-                    numberBuilder.setF(((Number) value).floatValue());
-                } else {
-                    numberBuilder.setI(((Number) value).longValue());
-                }
-            } else if (value instanceof String) {
-                numberBuilder.setS((String) value);
-            } else {
-                throw new IllegalArgumentException("Unsupported seed value type: " + value.getClass());
-            }
-            seedVariableMap.put(String.valueOf(i + 1), numberBuilder.build());
-        }
+        Map<String, Element.Number> seedVariableMap = seedValues.fillVariables(seedIndex);
         inputVariables.put(VariableSource.SEED, seedVariableMap);
         // in case of empty filter condition, we are using the base_index, NO_FILTER is the index column
         if (logicExps.getExpRPNCount() == 0) {
-            return getIndex(IndexFactory.NO_FILTER).search(null, inputVariables);
+            return indexesMap.get(IndexFactory.NO_FILTER).search(null, inputVariables, neighborValues);
         }
         Stack<AbstractResult> indexResultStack = new Stack<>();
         for (int i = 0; i < logicExps.getExpRPNCount(); i++) {
@@ -90,8 +87,8 @@ public class Filter {
                 CmpExp cmpExp = expOrOp.getExp();
                 AbstractCmpWrapper expWrapper = CmpWrapperFactory.createCmpWrapper(cmpExp);
                 String indexColumn = expWrapper.getIndexColumn();
-                BaseIndex index = getIndex(indexColumn);
-                indexResult = index.search(expWrapper, inputVariables);
+                BaseIndex index = indexesMap.get(indexColumn);
+                indexResult = index.search(expWrapper, inputVariables, neighborValues);
             }
             indexResultStack.add(indexResult);
         }
