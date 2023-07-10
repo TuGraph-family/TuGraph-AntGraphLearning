@@ -20,3 +20,4 @@ include(cmake/pybind11.cmake)
 include(cmake/protobuf.cmake)
 
 add_subdirectory(agl/cpp)
+add_subdirectory(test)

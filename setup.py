@@ -1,10 +1,11 @@
 import getpass
 import os
+import sys
 import subprocess
 from datetime import datetime
 from string import Template
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 # Read Version
@@ -50,6 +51,63 @@ BUILD_USER:{VersionInfo.BUILD_USER}
                     BUILD_DATE=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     wf.write(content)
 
+include_dirs = []
+extra_compile_args = []
+extra_link_args = []
+extensions = []
+library_dirs = []
+libraries = []
+
+ROOT_PATH = os.path.abspath(os.path.join(os.getcwd()))
+CUT_PATH = sys.path[0]
+
+py11_include_str = os.popen("python3 -m pybind11 --includes").read().strip().split()
+py11_include = [inc_str.split("-I")[1] for inc_str in py11_include_str]
+
+include_dirs.extend(py11_include)
+include_dirs.append(ROOT_PATH + "/agl/cpp/")
+include_dirs.append(ROOT_PATH + "/agl/cpp/graph/")
+include_dirs.append(ROOT_PATH + "/agl/cpp/graph/base_data_structure/")
+include_dirs.append(ROOT_PATH + "/agl/cpp/graph/features")
+include_dirs.append(ROOT_PATH + "/agl/py_api/tools")
+include_dirs.append(ROOT_PATH + "/third_party/boost/boost_install/include")
+include_dirs.append(ROOT_PATH + "/third_party/output/protobuf/include")
+
+extra_compile_args.append('-std=c++11')
+# todo 需要先把 libagl.so copy  ROOT_PATH + '/agl/python/lib/' 里面，考虑在 CMakefile 里面做这件事
+extra_link_args.append('-Wl,-rpath=' + ROOT_PATH + '/agl/python/lib/')
+library_dirs.append(ROOT_PATH + '/output/lib/')
+libraries.append('agl')
+
+sources = [ROOT_PATH + '/agl/cpp/py_api/pybind11_wrapper.cc']
+
+try_extension = Extension(
+    'pyagl',
+    sources,
+    extra_compile_args=extra_compile_args,
+    extra_link_args=extra_link_args,
+    include_dirs=include_dirs,
+    library_dirs=library_dirs,
+    libraries=libraries
+)
+extensions.append(try_extension)
+
+agl_data = []
+try:
+    f = "libagl.so"
+    fname = f"{cwd}/output/lib/{f}"
+    assert os.path.exists(fname), f"Compile cxx first, {fname}"
+    cmd = f"cp -f {fname} {cwd}/agl/python/lib/{f}"
+    print(f"Do {cmd}")
+    subprocess.check_output(cmd, shell=True)
+    agl_data.append(f"{cwd}/agl/python/lib/{f}")
+except Exception as e:
+    print(e)
+    print("*so not found, build python only")
+
+print(f">>>>>>>> agl_data: {agl_data}")
+
+
 setup(name="agl",
       version=version,
       description="AGL (Ant Graph Learning)",
@@ -59,6 +117,9 @@ setup(name="agl",
           where=".",
           exclude=['.*test.py', 'tests', 'tests.*', "configs", "configs.*", "test", "test.*", '*.tests', '*.tests.*',
                    "*.pyc"]),
-      package_data={"agl": []},
       install_requires=[r.strip() for r in open("requirements.txt", "r") if not r.strip().startswith("#")],
+      package_dir={'pyagl': '.'},
+      package_data={'agl': agl_data},
+      ext_package='pyagl',
+      ext_modules=extensions,
       )
