@@ -33,8 +33,9 @@ void CheckFeatureValid(
     const unordered_map<string, shared_ptr<SparseKVSpec>>& sp_kv_spec,
     const unordered_map<string, shared_ptr<SparseKSpec>>& sp_k_spec,
     const Features& features, const string& unit_name) {
-  // todo (zdl) 目前约定如果缺失 node/edge unit, proto 里面会有一个空的 Nodes, Edges
-  // 因此特征的 check 遵循以下原则：proto 中存在的必须做check, proto 不存在的则作为数据缺失处理
+  // todo (zdl) 目前约定如果缺失 node/edge unit, proto 里面会有一个空的 Nodes,
+  // Edges 因此特征的 check 遵循以下原则：proto 中存在的必须做check, proto
+  // 不存在的则作为数据缺失处理
   // 1. check dense
   for (const auto& df_pair : features.dfs()) {
     // 1.2 proto 中每种 dense 特征都必须在 spec 中找到
@@ -126,21 +127,22 @@ void CheckUnitValid(
     // 1.3 check 点的 id dtype 和 spec 中的一致，否则报错
     const auto& n_spec_ptr = find_n_k->second;
     const auto& nodes_k = pair.second;
-    if(nodes_k.has_nids()) {
-      if(n_spec_ptr->GetNodeIdDtype() == AGLDType::INT64) {
-        AGL_CHECK(nodes_k.nids().has_u64())
+    if (nodes_k.has_nids()) {
+      // Note: 目前允许不存原始id
+      if (n_spec_ptr->GetNodeIdDtype() == AGLDType::INT64) {
+        AGL_CHECK(!nodes_k.nids().has_str())
             << "node name:" << pair.first
-            << " id dtype in spec is: AGLDType::INT64, but pb do not has int64 ids";
+            << " id dtype in spec is: AGLDType::INT64, but pb has str ids";
       } else if (n_spec_ptr->GetNodeIdDtype() == AGLDType::STR) {
-        AGL_CHECK(nodes_k.nids().has_str())
+        AGL_CHECK(!nodes_k.nids().has_u64())
             << "node name:" << pair.first
-            << " id dtype in spec is: AGLDType::STR, but pb do not has str ids";
+            << " id dtype in spec is: AGLDType::STR, but pb has u64 ids";
       }
     }
 
     // 1.4:  pb中每种点（pb 含有的）的特征 和 node_spec 完全一致
-    //const auto& n_spec_ptr = find_n_k->second;
-    if(pair.second.has_features()) {
+    // const auto& n_spec_ptr = find_n_k->second;
+    if (pair.second.has_features()) {
       // 如果有 feature 则需要验证
       CheckFeatureValid(
           n_spec_ptr->GetDenseFeatureSpec(), n_spec_ptr->GetSparseKVSpec(),
@@ -160,13 +162,13 @@ void CheckUnitValid(
     const auto& edges_k = pair.second;
     if (edges_k.has_eids()) {
       if (n_spec_ptr->GetEidDtype() == AGLDType::INT64) {
-        AGL_CHECK(edges_k.eids().has_u64())
+        AGL_CHECK(!edges_k.eids().has_str())
             << "edge name:" << pair.first
-            << " id dtype in spce is AGLDType::INT64, but pb do not has int64 ids";
+            << " id dtype in spce is AGLDType::INT64, but pb has str ids";
       } else if (n_spec_ptr->GetEidDtype() == AGLDType::STR) {
-        AGL_CHECK(edges_k.eids().has_str())
+        AGL_CHECK(!edges_k.eids().has_u64())
             << "edge name:" << pair.first
-            << " id dtype in spce is AGLDType::STR, but pb do not has str ids";
+            << " id dtype in spce is AGLDType::STR, but pb  has u64 ids";
       }
     }
     // 2.3 proto 中 edge 对应的两个边信息需要和spec中的一致
@@ -231,7 +233,7 @@ void CreateNodeAndEdgeInfoContainer(
 }
 
 void AddFeatureIniterToTheadPool(
-    //ThreadPool& pool,
+    // ThreadPool& pool,
     const unordered_map<string, shared_ptr<DenseFeatureSpec>>& dense_spec,
     const unordered_map<string, shared_ptr<SparseKVSpec>>& sp_kv_spec,
     const unordered_map<string, shared_ptr<SparseKSpec>>& sp_k_spec,
@@ -244,8 +246,7 @@ void AddFeatureIniterToTheadPool(
         spkv_f_array,
     std::unordered_map<std::string, std::shared_ptr<SparseKFeatureArray>>&
         spk_f_array,
-    int element_count,
-    vector<shared_ptr<FeatureArrayIniter>>& initers) {
+    int element_count, vector<shared_ptr<FeatureArrayIniter>>& initers) {
   // dense
   for (auto& d_t : dense_count) {
     auto& f_name = d_t.first;
@@ -255,8 +256,9 @@ void AddFeatureIniterToTheadPool(
     auto df_spec_find = dense_spec.find(f_name);
     AGL_CHECK(df_spec_find != dense_spec.end());
     auto& curr_df_spec = df_spec_find->second;
-    auto builder_ptr = std::make_shared<DenseFeatureArrayIniter>(df_array_ptr, element_count, curr_df_spec->GetDim(),
-                                                                 curr_df_spec->GetFeatureDtype());
+    auto builder_ptr = std::make_shared<DenseFeatureArrayIniter>(
+        df_array_ptr, element_count, curr_df_spec->GetDim(),
+        curr_df_spec->GetFeatureDtype());
     initers.push_back(builder_ptr);
   }
 
@@ -269,8 +271,9 @@ void AddFeatureIniterToTheadPool(
     auto spkv_spec_find = sp_kv_spec.find(f_name);
     AGL_CHECK(spkv_spec_find != sp_kv_spec.end());
     auto& curr_spkv_spec = spkv_spec_find->second;
-    auto builder_ptr = std::make_shared<SparseKVFeatureArrayIniter>(spkv_array_ptr, element_count, total_f_count,
-                                                                    curr_spkv_spec->GetKeyDtype(), curr_spkv_spec->GetValDtype());
+    auto builder_ptr = std::make_shared<SparseKVFeatureArrayIniter>(
+        spkv_array_ptr, element_count, total_f_count,
+        curr_spkv_spec->GetKeyDtype(), curr_spkv_spec->GetValDtype());
     initers.push_back(builder_ptr);
   }
 
@@ -283,8 +286,9 @@ void AddFeatureIniterToTheadPool(
     auto spk_spec_find = sp_k_spec.find(f_name);
     AGL_CHECK(spk_spec_find != sp_k_spec.end());
     auto& curr_spk_spec = spk_spec_find->second;
-    auto builder_ptr = std::make_shared<SparseKFeatureArrayIniter>(spk_array_ptr, element_count, total_f_count,
-                                                                   curr_spk_spec->GetKeyDtype());
+    auto builder_ptr = std::make_shared<SparseKFeatureArrayIniter>(
+        spk_array_ptr, element_count, total_f_count,
+        curr_spk_spec->GetKeyDtype());
     initers.push_back(builder_ptr);
   }
 }
@@ -293,8 +297,7 @@ void FillNodeEdgeNumPerSample(
     const unordered_map<std::string, shared_ptr<NonMergeNodeInfo>>& nodes,
     const unordered_map<std::string, shared_ptr<NonMergeEdgeInfo>>& edges,
     std::unordered_map<std::string, std::vector<int>>& n_num_per_sample,
-    std::unordered_map<std::string, std::vector<int>>& e_num_per_sample
-    ) {
+    std::unordered_map<std::string, std::vector<int>>& e_num_per_sample) {
   for (auto& node_t : nodes) {
     auto& name = node_t.first;
     auto& node_info = node_t.second;
@@ -312,8 +315,8 @@ void ComputeOffsetAndAllocateMemory(
     unordered_map<std::string, shared_ptr<NonMergeEdgeInfo>>& edges,
     const unordered_map<string, shared_ptr<NodeSpec>>& node_specs,
     const unordered_map<string, shared_ptr<EdgeSpec>>& edge_specs) {
-
-  vector<shared_ptr<FeatureArrayIniter>> initers; // hold the life cycle of initers
+  vector<shared_ptr<FeatureArrayIniter>>
+      initers;  // hold the life cycle of initers
   for (auto& n_item : nodes) {
     auto& n_ptr = n_item.second;
     n_ptr->ComputeOffset();
@@ -323,7 +326,7 @@ void ComputeOffsetAndAllocateMemory(
     int total_element_count =
         n_ptr->element_num_[n_ptr->element_num_.size() - 1];
     AddFeatureIniterToTheadPool(
-         n_spec->GetDenseFeatureSpec(), n_spec->GetSparseKVSpec(),
+        n_spec->GetDenseFeatureSpec(), n_spec->GetSparseKVSpec(),
         n_spec->GetSparseKSpec(), n_ptr->dense_count_, n_ptr->sparse_kv_count_,
         n_ptr->sparse_k_count_, n_ptr->d_f_array_, n_ptr->spkv_f_array_,
         n_ptr->spk_f_array_, total_element_count, initers);
@@ -345,7 +348,7 @@ void ComputeOffsetAndAllocateMemory(
         e_ptr->spk_f_array_, total_element_count, initers);
   }
   ThreadPool pool(RUNNUMBER);  // todo hard code 10 thread
-  for(auto& b_ptr : initers) {
+  for (auto& b_ptr : initers) {
     pool.AddTask([&b_ptr]() { b_ptr->Init(); });
   }
   pool.CloseAndJoin();
@@ -371,18 +374,19 @@ void ComputeOffsetAndAllocateMemory(
     AGL_CHECK(find_n2 != nodes.end());
     auto& n2_info = find_n2->second;
     int n2_total_num = n2_info->element_num_[n2_info->element_num_.size() - 1];
-    auto adj_initer = std::make_shared<CSRIniter>(n1_total_num, n2_total_num, total_element_count, e_ptr->adj_);
+    auto adj_initer = std::make_shared<CSRIniter>(
+        n1_total_num, n2_total_num, total_element_count, e_ptr->adj_);
     adj_initers.push_back(adj_initer);
   }
   ThreadPool adj_pool(RUNNUMBER);  // 每种类型一个adj， 因此线程数可以不用太多
-  for(auto& adj_b_ptr: adj_initers){
+  for (auto& adj_b_ptr : adj_initers) {
     adj_pool.AddTask([&adj_b_ptr]() { adj_b_ptr->Init(); });
   }
   adj_pool.CloseAndJoin();
 }
 
 void CreateAddFillerToPool(
-    //ThreadPool& pool,
+    // ThreadPool& pool,
     const unordered_map<string, shared_ptr<DenseFeatureSpec>>& dense_spec,
     const unordered_map<string, shared_ptr<SparseKVSpec>>& sp_kv_spec,
     const unordered_map<string, shared_ptr<SparseKSpec>>& sp_k_spec,
@@ -396,8 +400,7 @@ void CreateAddFillerToPool(
         spkv_f_array,
     std::unordered_map<std::string, std::shared_ptr<SparseKFeatureArray>>&
         spk_f_array,
-    Features* f_pb, size_t pb_order,
-    vector<shared_ptr<Filler>>& fillers) {
+    Features* f_pb, size_t pb_order, vector<shared_ptr<Filler>>& fillers) {
   if (f_pb->dfs_size() > 0) {
     for (auto& df_pair : *(f_pb->mutable_dfs())) {
       auto& df_name = df_pair.first;
@@ -410,12 +413,13 @@ void CreateAddFillerToPool(
       auto find_count = dense_count.find(df_name);
       AGL_CHECK(find_count != dense_count.end());
       auto count = find_count->second;
-      int offset = pb_order == 0 ? 0 : count[pb_order-1]; //count[pb_order];
+      int offset = pb_order == 0 ? 0 : count[pb_order - 1];  // count[pb_order];
       // find df_array
       auto find_array = d_f_array.find(df_name);
       AGL_CHECK(find_array != d_f_array.end());
       auto array = find_array->second;
-      auto builder_ptr = std::make_shared<DenseFeatureFiller>(array, offset, &df, spec->GetFeatureDtype());
+      auto builder_ptr = std::make_shared<DenseFeatureFiller>(
+          array, offset, &df, spec->GetFeatureDtype());
       fillers.push_back(builder_ptr);
     }
   }
@@ -431,14 +435,16 @@ void CreateAddFillerToPool(
       auto find_count = sp_kv_count.find(name);
       AGL_CHECK(find_count != sp_kv_count.end());
       auto count = find_count->second;
-      int f_offset = pb_order == 0 ? 0 : count[pb_order-1]; //count[pb_order];
+      int f_offset =
+          pb_order == 0 ? 0 : count[pb_order - 1];  // count[pb_order];
       // find spkv array
       auto find_array = spkv_f_array.find(name);
       AGL_CHECK(find_array != spkv_f_array.end());
       auto array = find_array->second;
-      auto index_offset_i = pb_order == 0 ? 0 : index_offset[pb_order-1];
-      auto builder_ptr = std::make_shared<SparseKVFeatureFiller>(array, index_offset_i, f_offset, spec->GetMaxDim(),
-                                                                 &sp_kv, spec->GetKeyDtype(), spec->GetValDtype());
+      auto index_offset_i = pb_order == 0 ? 0 : index_offset[pb_order - 1];
+      auto builder_ptr = std::make_shared<SparseKVFeatureFiller>(
+          array, index_offset_i, f_offset, spec->GetMaxDim(), &sp_kv,
+          spec->GetKeyDtype(), spec->GetValDtype());
       fillers.push_back(builder_ptr);
     }
   }
@@ -454,14 +460,15 @@ void CreateAddFillerToPool(
       auto find_count = sp_k_count.find(name);
       AGL_CHECK(find_count != sp_k_count.end());
       auto count = find_count->second;
-      int offset = pb_order == 0 ? 0 : count[pb_order-1];//count[pb_order];
+      int offset = pb_order == 0 ? 0 : count[pb_order - 1];  // count[pb_order];
       // find spk array
       auto find_array = spk_f_array.find(name);
       AGL_CHECK(find_array != spk_f_array.end());
       auto array = find_array->second;
-      auto index_offset_i = pb_order == 0 ? 0 : index_offset[pb_order-1];
-      auto builder_ptr = std::make_shared<SparseKFeatureFiller>(array, index_offset_i, offset, spec->GetMaxDim(), &spk,
-                                                                spec->GetKeyDtype());
+      auto index_offset_i = pb_order == 0 ? 0 : index_offset[pb_order - 1];
+      auto builder_ptr = std::make_shared<SparseKFeatureFiller>(
+          array, index_offset_i, offset, spec->GetMaxDim(), &spk,
+          spec->GetKeyDtype());
       fillers.push_back(builder_ptr);
     }
   }
@@ -473,7 +480,7 @@ void CopyFeatureFromPBToFeatureArray(
     vector<GraphFeature*>& gfs,
     const unordered_map<string, shared_ptr<NodeSpec>>& node_specs,
     const unordered_map<string, shared_ptr<EdgeSpec>>& edge_specs) {
-  vector<shared_ptr<Filler>> fillers; // hold the lifecycle of fillers
+  vector<shared_ptr<Filler>> fillers;  // hold the lifecycle of fillers
   for (size_t i = 0; i < gfs.size(); ++i) {
     auto* gf = gfs[i];
     // step 1: node related features
@@ -491,12 +498,12 @@ void CopyFeatureFromPBToFeatureArray(
       AGL_CHECK(find_spec != node_specs.end());
       auto node_spec_t = find_spec->second;
       CreateAddFillerToPool(
-           node_spec_t->GetDenseFeatureSpec(),
-          node_spec_t->GetSparseKVSpec(), node_spec_t->GetSparseKSpec(),
-          node_static_t->element_num_, node_static_t->dense_count_,
-          node_static_t->sparse_kv_count_, node_static_t->sparse_k_count_,
-          node_static_t->d_f_array_, node_static_t->spkv_f_array_,
-          node_static_t->spk_f_array_, feat_ptr, i, fillers);
+          node_spec_t->GetDenseFeatureSpec(), node_spec_t->GetSparseKVSpec(),
+          node_spec_t->GetSparseKSpec(), node_static_t->element_num_,
+          node_static_t->dense_count_, node_static_t->sparse_kv_count_,
+          node_static_t->sparse_k_count_, node_static_t->d_f_array_,
+          node_static_t->spkv_f_array_, node_static_t->spk_f_array_, feat_ptr,
+          i, fillers);
     }
     // step 2: edge related features
     auto* edges_pb = gf->mutable_edges();
@@ -513,35 +520,38 @@ void CopyFeatureFromPBToFeatureArray(
       AGL_CHECK(find_spec != edge_specs.end());
       auto e_spec_t = find_spec->second;
       CreateAddFillerToPool(
-           e_spec_t->GetDenseFeatureSpec(), e_spec_t->GetSparseKVSpec(),
+          e_spec_t->GetDenseFeatureSpec(), e_spec_t->GetSparseKVSpec(),
           e_spec_t->GetSparseKSpec(), e_static_t->element_num_,
           e_static_t->dense_count_, e_static_t->sparse_kv_count_,
           e_static_t->sparse_k_count_, e_static_t->d_f_array_,
-          e_static_t->spkv_f_array_, e_static_t->spk_f_array_, feat_ptr, i, fillers);
+          e_static_t->spkv_f_array_, e_static_t->spk_f_array_, feat_ptr, i,
+          fillers);
       // 在填充adj 的时候，并不存在依赖关系，因此可以直接填充即可
       auto& edge_offset_vec = e_static_t->element_num_;
-      int edge_position_offset = i ==0 ? 0 : edge_offset_vec[i-1];//edge_offset_vec[i];
+      int edge_position_offset =
+          i == 0 ? 0 : edge_offset_vec[i - 1];  // edge_offset_vec[i];
       // n1 indices offset
       auto& n1_name = e_spec_t->GetN1Name();
       auto find_n1_static_info = nodes.find(n1_name);
       AGL_CHECK(find_n1_static_info != nodes.end());
       auto& n1_info = find_n1_static_info->second;
-      int n1_offset = i ==0 ? 0 : n1_info->element_num_[i-1];
+      int n1_offset = i == 0 ? 0 : n1_info->element_num_[i - 1];
       // n2 indices offset
       auto& n2_name = e_spec_t->GetN2Name();
       auto find_n2 = nodes.find(n2_name);
       AGL_CHECK(find_n2 != nodes.end());
       auto& n2_info = find_n2->second;
-      int n2_offset = i ==0 ? 0 : n2_info->element_num_[i-1];
+      int n2_offset = i == 0 ? 0 : n2_info->element_num_[i - 1];
       AGL_CHECK(e_content.has_csr()) << "Only support csr struct now!";
 
-      auto builder_ptr = std::make_shared<CSRFiller>(e_static_t->adj_, n1_offset, edge_position_offset,
-                                                     n1_offset, n2_offset, e_content.mutable_csr());
+      auto builder_ptr = std::make_shared<CSRFiller>(
+          e_static_t->adj_, n1_offset, edge_position_offset, n1_offset,
+          n2_offset, e_content.mutable_csr());
       fillers.push_back(builder_ptr);
     }
   }
   ThreadPool pool(RUNNUMBER);  // todo hard code 10 thread
-  for(auto& build_ptr: fillers){
+  for (auto& build_ptr : fillers) {
     pool.AddTask([&build_ptr]() { build_ptr->Fill(); });
   }
   pool.CloseAndJoin();
@@ -553,7 +563,8 @@ void InitNodeAndEdgeUnitByNoMergeContainer(
     std::unordered_map<std::string, std::shared_ptr<NodeUint>>& node_dst,
     std::unordered_map<std::string, std::shared_ptr<EdgeUint>>& edge_dst) {
   // init node unit with non merge node info container
-  //std::cout << "call InitNodeAndEdgeUnitByNoMergeContainer, node info size:" << nodes.size() << " edge info size:" << edges.size() << "\n";
+  // std::cout << "call InitNodeAndEdgeUnitByNoMergeContainer, node info size:"
+  // << nodes.size() << " edge info size:" << edges.size() << "\n";
   for (auto& node_t : nodes) {
     auto& name = node_t.first;
     auto& node_info = node_t.second;
@@ -574,10 +585,10 @@ void ParseRootInfo(
     const GraphFeature_Root& root_info,
     unordered_map<std::string, vector<vector<IdDType>>>& parsed_root,
     int index) {
-  //std::cout << " ==== begin parse root info" << "\n";
+  // std::cout << " ==== begin parse root info" << "\n";
   if (root_info.has_subgraph()) {
-    //std::cout<< "has subgraph" << "\n";
-    // todo 目前暂时只支持 node index 作为root
+    // std::cout<< "has subgraph" << "\n";
+    //  todo 目前暂时只支持 node index 作为root
     AGL_CHECK(root_info.subgraph().is_node())
         << " Now not support edge index as root";
     const auto& root_map = root_info.subgraph().indices();
@@ -595,7 +606,8 @@ void ParseRootInfo(
   } else if (root_info.has_nidx()) {
     const auto& name = root_info.nidx().name();
     const auto& root_ind = root_info.nidx().idx();
-    //std::cout << "parse root name:" << name << " root ind:" << root_ind <<"\n";
+    // std::cout << "parse root name:" << name << " root ind:" << root_ind
+    // <<"\n";
     auto find = parsed_root.find(name);
     AGL_CHECK(find != parsed_root.end())
         << " root info with node name:" << name << " not in node spec!";
@@ -620,7 +632,7 @@ void AddOffsetToRoots(
     for (size_t i = 0; i < root_all.size(); ++i) {
       // 同一个样本中的 root id, 添加相同的偏移量
       auto& vec = root_all[i];
-      int offset = i == 0 ? 0 : node_info->element_num_[i-1];
+      int offset = i == 0 ? 0 : node_info->element_num_[i - 1];
       for (size_t j = 0; j < vec.size(); ++j) {
         vec[j] += offset;
       }
@@ -630,10 +642,10 @@ void AddOffsetToRoots(
 
 }  // anonymous namespace
 
-
 namespace agl {
 
-void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs, const std::vector<size_t>& pb_length,
+void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs,
+                                    const std::vector<size_t>& pb_length,
                                     bool uncompress) {
   int pb_nums = pbs.size();  // 一般也认为是 sample num，方便与 label 对应
   // 解析后，graph feature 指针
@@ -665,7 +677,7 @@ void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs, const s
         // step 1: parse pb from string to pb structure
         // auto* gf_i = gfs[i];.
         GraphFeature* gf_i = nullptr;
-        ParsePB(&gf_i, batch_arena_[i], pbs[i], pb_length[i],uncompress);
+        ParsePB(&gf_i, batch_arena_[i], pbs[i], pb_length[i], uncompress);
         CheckUnitValid(node_specs, edge_specs, *gf_i);
         gfs[i] = gf_i;
 
@@ -742,7 +754,8 @@ void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs, const s
   AddOffsetToRoots(nodes_statistic_info, this->root_ids_);
 }
 
-void SubGraph::CreateFromPB(const std::vector<const char*>& pbs, const std::vector<size_t>& pb_length, bool merge,
+void SubGraph::CreateFromPB(const std::vector<const char*>& pbs,
+                            const std::vector<size_t>& pb_length, bool merge,
                             bool uncompress) {
   merge_ = merge;
   AGL_CHECK(!merge_) << " merge not support now!";

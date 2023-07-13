@@ -45,7 +45,7 @@ label_column = AGLMultiDenseColumn(name="labels", dim=121, dtype=np.int64)
 root_id_column = AGLRowColumn(name="roots_id")
 graph_id_column = AGLRowColumn(name="graph_id")
 my_collate = AGLHomoCollateForPyG(node_spec, edge_spec, columns=[label_column, root_id_column, graph_id_column], 
-                                  label_name="labels", ego_edge_index=True, hops=4)
+                                  label_name="labels", ego_edge_index=True, hops=4, uncompress=False)
 
 # step 3: 构建 dataloader
 # train loader

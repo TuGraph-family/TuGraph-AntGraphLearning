@@ -54,16 +54,22 @@ void ResizeAccordingSpec(
 
 int GetIdNumFromPB(const agl::proto::graph_feature::IDs& ids,
                    const AGLDType& id_dtype) {
-  if (id_dtype == AGLDType::STR) {
-    // 是否正确？
-    AGL_CHECK(ids.has_str());
-    return ids.str().value_size();
-  } else if (id_dtype == AGLDType::UINT64) {
-    AGL_CHECK(ids.has_u64());
-    return ids.u64().value_size();
+  // Note: 可能会不存储 raw id，因此使用 optional inum 记录一个batch 有多少 ids
+  if (ids.has_inum()) {
+    //std::cout << ">>>>>>>> use inum \n";
+    return ids.inum();
   } else {
-    AGL_CHECK(false) << "Only support STR or UINT64 id type, while now is:"
-                     << id_dtype;
+    if (id_dtype == AGLDType::STR) {
+      AGL_CHECK(ids.has_str());
+      //std::cout << ">>>>>>>> use str id \n";
+      return ids.str().value_size();
+    } else if (id_dtype == AGLDType::UINT64) {
+      AGL_CHECK(ids.has_u64());
+      return ids.u64().value_size();
+    } else {
+      AGL_CHECK(false) << "Only support STR or UINT64 id type, while now is:"
+                       << id_dtype;
+    }
   }
 }
 

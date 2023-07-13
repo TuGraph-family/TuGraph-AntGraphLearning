@@ -33,7 +33,8 @@ class AGLHomoCollateForPyG(AGLCollate):
                  label_name: str = "label",
                  need_node_and_edge_num: bool = False,
                  ego_edge_index: bool = False,
-                 hops: int = 2):
+                 hops: int = 2,
+                 uncompress: bool = True):
         super().__init__()
         if ego_edge_index and need_node_and_edge_num:
             raise NotImplementedError(
@@ -47,6 +48,7 @@ class AGLHomoCollateForPyG(AGLCollate):
         self._need_node_and_edge_num = need_node_and_edge_num
         self._ego_edge_index = ego_edge_index
         self._hops = hops
+        self._uncompress = uncompress
 
     def call(self, batch_input):
         
@@ -60,11 +62,11 @@ class AGLHomoCollateForPyG(AGLCollate):
         assert len(gfs) > 0
         if isinstance(gfs[0], bytes):
             gfs_bytearray = [bytearray(gf_t) for gf_t in gfs]
-            sg.from_pb_bytes(gfs_bytearray)
+            sg.from_pb_bytes(gfs_bytearray, uncompress=self._uncompress)
         elif isinstance(gfs[0], bytearray):
-            sg.from_pb_bytes(gfs)
+            sg.from_pb_bytes(gfs, uncompress=self._uncompress)
         elif isinstance(gfs[0], str):
-            sg.from_pb(gfs)
+            sg.from_pb(gfs, uncompress=self._uncompress)
         else:
             raise NotImplementedError("only support string, bytes, bytearray")
         t3 = time.time()
@@ -133,6 +135,9 @@ class AGLHomoCollateForPyG(AGLCollate):
     def format_batch_input(batch_input):
         elem = batch_input[0]
         assert isinstance(elem, dict)
+        if len(batch_input) == 1:
+            # iterable 已经转换好了，map-able的也能正常适配
+            return elem
         tmp_keys = list(elem.keys())
         input_dict = {k: [] for k in tmp_keys}
         for data_ in batch_input:

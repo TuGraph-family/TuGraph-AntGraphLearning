@@ -65,7 +65,7 @@ class DatasetAndCollateFnTest(unittest.TestCase):
 
         label_column = AGLDenseColumn(name="label", dim = 121, dtype=np.int64, sep=" ")
         id_column = AGLRowColumn(name="id")
-        my_collate = AGLHomoCollateForPyG(node_spec, edge_spec, columns=[label_column, id_column])
+        my_collate = AGLHomoCollateForPyG(node_spec, edge_spec, columns=[label_column, id_column], uncompress=False)
         train_loader = DataLoader(dataset=my_test_dataset,
                                   batch_size=5,
                                   shuffle=False,

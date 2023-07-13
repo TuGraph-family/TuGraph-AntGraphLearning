@@ -48,6 +48,7 @@ message IDs {
     BytesList str = 1;
     Int64List u64 = 2;
   }
+  optional int32 inum = 3;
 }
 
 message Features {

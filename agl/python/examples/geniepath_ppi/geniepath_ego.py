@@ -157,7 +157,7 @@ edge_spec.AddSparseKVSpec("sparse_kv", SparseKVSpec("sparse_kv", 1, AGLDType.INT
 
 label_column = AGLDenseColumn(name="label", dim=121, dtype=np.int64, sep=" ")
 id_column = AGLRowColumn(name="id")
-my_collate = AGLHomoCollateForPyG(node_spec, edge_spec, columns=[label_column, id_column], ego_edge_index=True)
+my_collate = AGLHomoCollateForPyG(node_spec, edge_spec, columns=[label_column, id_column], ego_edge_index=True, uncompress=False)
 
 # train loader
 train_loader = DataLoader(dataset=train_data_set,

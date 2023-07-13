@@ -52,7 +52,7 @@ class SubGraphTest(unittest.TestCase):
             print(f"======== f_name:{f_name}, f_spec_name:{spec.GetFeatureName()}")
 
         # ############### test when output is TorchBatchOfSubGraph ###############
-        my_collate = AGLHomoCollateForPyG(self.node_spec, self.edge_spec, columns=[])
+        my_collate = AGLHomoCollateForPyG(self.node_spec, self.edge_spec, columns=[], uncompress=False)
 
         data = my_collate(mock_batch_input_double)
         self.assertTrue(isinstance(data, TorchSubGraphBatchData))
@@ -98,7 +98,7 @@ class SubGraphTest(unittest.TestCase):
         # self.assertListEqual(e_sp_kv_key_gt_two, e_spkv_collate.col_indices().numpy().tolist())
         # self.assertAlmostEqual(np.array(s_sp_kv_val_gt_two).all(), n_spkv_collate.values().numpy().all())
 
-        my_collate2 = AGLHomoCollateForPyG(self.node_spec, self.edge_spec, columns=[], ego_edge_index=True)
+        my_collate2 = AGLHomoCollateForPyG(self.node_spec, self.edge_spec, columns=[], ego_edge_index=True, uncompress=False)
         data2 = my_collate2(mock_batch_input_double)
 
         ego_2_hop_gt = {
@@ -135,17 +135,17 @@ class SubGraphTest(unittest.TestCase):
 
         my_collate = AGLHomoCollateForPyG(node_spec, edge_spec,
                                           columns=[root_id_column, graph_id_column, root_time_column],
-                                          label_name=None, need_node_and_edge_num=True)
+                                          label_name=None, need_node_and_edge_num=True, uncompress=False)
 
         gf = "ChsKB2RlZmF1bHQSEAoMCgoKAjM4CgQ4MjY1EgASZQoHZGVmYXVsdBJaCiIKIAoOMzhfODI2NV8yODA3LjAKDjM4XzgyNjVfMjc4NS4wEgwKBAoCAgISBAoCAQEiB2RlZmF1bHQqB2RlZmF1bHQyFAoSCgR0aW1lEgoIASIGCgT3FeEVGhQaEggBEg4KB2RlZmF1bHQSAwoBAA=="
         seed = "123"
         node_id_list = "123"
         time_list = "1000"
         data = {
-            "graph_feature": gf,
-            "seed": seed,
-            "node_id_list": node_id_list,
-            "time_list": time_list
+            "graph_feature": [gf],
+            "seed": [seed],
+            "node_id_list": [node_id_list],
+            "time_list": [time_list]
         }
         res = my_collate([data])
         print(res)
