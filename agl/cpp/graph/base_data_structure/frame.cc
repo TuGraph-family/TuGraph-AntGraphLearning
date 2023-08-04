@@ -35,7 +35,7 @@ void CountEdges(vector<int>& count_res, const vector<int64_t>& seed_nodes,
         int tmp_end = i_begin + 10;
         int i_end = tmp_end > seed_num ? seed_num : tmp_end;
         for (size_t i = i_begin; i < i_end; ++i) {
-          int n_index = seed_nodes[i]; // 第一位是0
+          int n_index = seed_nodes[i];  // 第一位是0
           AGL_CHECK_GREAT_THAN(row_whole, n_index);
           int offset_begin = offset_ptr[n_index];
           int offset = offset_ptr[n_index + 1] - offset_begin;
@@ -86,7 +86,7 @@ void FillCOOWithEdgeInfo(shared_ptr<NDArray>& n1_nd, shared_ptr<NDArray>& n2_nd,
         int i_end = end_tmp > seed_num ? seed_num : end_tmp;
         for (size_t i = i_begin; i < i_end; ++i) {
           // prepare from src and seed nodes
-          auto n1_id = seed_nodes[i] ; // 偏移量第一位是0
+          auto n1_id = seed_nodes[i];  // 偏移量第一位是0
           AGL_CHECK_LESS_THAN(n1_id, row_whole);
           int64_t n2_src_begin = offset_src_ptr[n1_id];
           int64_t n2_src_end = offset_src_ptr[n1_id + 1];

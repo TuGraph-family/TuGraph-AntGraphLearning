@@ -73,9 +73,9 @@ class EdgeSpec {
 
  private:
   std::string edge_name_;
-  std::shared_ptr<NodeSpec> node1_spec_;     // dst
-  std::shared_ptr<NodeSpec> node2_spec_;     // src
-  AGLDType edge_id_dtype_;  // optional
+  std::shared_ptr<NodeSpec> node1_spec_;  // dst
+  std::shared_ptr<NodeSpec> node2_spec_;  // src
+  AGLDType edge_id_dtype_;                // optional
   std::unordered_map<std::string, std::shared_ptr<DenseFeatureSpec>>
       dense_specs_;
   std::unordered_map<std::string, std::shared_ptr<SparseKVSpec>> sp_kv_specs_;

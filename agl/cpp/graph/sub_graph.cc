@@ -139,23 +139,23 @@ std::shared_ptr<Frame> SubGraph::GetEdgeIndexOneHop(
   return frame_ptr;
 }
 
-std::vector<std::shared_ptr<Frame>> SubGraph::GetEgoFrames(int hops,
-                                                 bool add_seed_to_next) const {
+std::vector<std::shared_ptr<Frame>> SubGraph::GetEgoFrames(
+    int hops, bool add_seed_to_next) const {
   std::vector<std::shared_ptr<Frame>> res(hops);
   std::unordered_map<std::string, std::vector<IdDType>> seeds;
   // prepare seeds
-  for(auto& root_pair: root_ids_) {
+  for (auto& root_pair : root_ids_) {
     auto& name = root_pair.first;
     auto& vec_root = root_pair.second;
     auto& vec_to_fill = seeds[name];
-    for(auto& vec : vec_root) {
-      for(auto index : vec){
+    for (auto& vec : vec_root) {
+      for (auto index : vec) {
         vec_to_fill.push_back(index);
       }
     }
   }
 
-  for(int i=0; i< hops; ++i) {
+  for (int i = 0; i < hops; ++i) {
     auto res_i = GetEdgeIndexOneHop(seeds, add_seed_to_next);
     res[i] = res_i;
     seeds = res_i->GetNextNodes();

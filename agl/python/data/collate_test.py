@@ -4,11 +4,10 @@
 import unittest
 import numpy as np
 
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, SparseKSpec, NodeSpec, EdgeSpec, SubGraph, NDArray
+from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, NodeSpec, EdgeSpec
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn
-from agl.python.subgraph.pyg_inputs import TorchEdgeIndex, TorchFeature, TorchDenseFeature, TorchSparseFeature, \
-    TorchFeatures, TorchEgoBatchData, TorchSubGraphBatchData
+from agl.python.data.subgraph.pyg_inputs import TorchSubGraphBatchData
 
 
 class SubGraphTest(unittest.TestCase):
@@ -26,7 +25,9 @@ class SubGraphTest(unittest.TestCase):
     n_val_dtype = AGLDType.INT64
     node_spec = NodeSpec(n_name, n_id_dtype)
     node_spec.AddDenseSpec(n_df_name, DenseFeatureSpec(n_df_name, n_df_dim, n_df_dtype))
-    node_spec.AddSparseKVSpec(n_spkv_name, SparseKVSpec(n_spkv_name, n_max_dim, n_key_dtype, n_val_dtype))
+    node_spec.AddSparseKVSpec(
+        n_spkv_name, SparseKVSpec(n_spkv_name, n_max_dim, n_key_dtype, n_val_dtype)
+    )
 
     # 2. edge related spec
     e_name = "default"
@@ -39,35 +40,44 @@ class SubGraphTest(unittest.TestCase):
     e_key_dtype = AGLDType.INT64
     e_val_dtype = AGLDType.FLOAT
     edge_spec = EdgeSpec(e_name, node_spec, node_spec, e_id_dtype)
-    edge_spec.AddSparseKVSpec(e_kv_name, SparseKVSpec(e_kv_name, e_max_dim, e_key_dtype, e_val_dtype))
+    edge_spec.AddSparseKVSpec(
+        e_kv_name, SparseKVSpec(e_kv_name, e_max_dim, e_key_dtype, e_val_dtype)
+    )
 
     def test_call_function(self):
         pb_string = [
-            b"CnIKB2RlZmF1bHQSZwoLCgkKATEKATIKATMSWAozCgVkZW5zZRIqCAMSJgokzczMPc3MjD8AAIA/zcxMPs3MDEAAAABAmpmZPjMzU0AAAEBAEiEKAm5mEhsKBQoDAgMGEggKBgEKAgMECioICgYBAQIDAwMScAoHZGVmYXVsdBJlCgwKCgoDMS0yCgMyLTMSDQoFCgMBAgISBAoCAQIiB2RlZmF1bHQqB2RlZmF1bHQyNBIyCgJlZhIsCgQKAgMGEggKBgECCQIDChoaChjNzIw/zcwMQJqZIUHNzAxAMzNTQGZmBkAaCwoJEgdkZWZhdWx0"]
+            b"CnIKB2RlZmF1bHQSZwoLCgkKATEKATIKATMSWAozCgVkZW5zZRIqCAMSJgokzczMPc3MjD8AAIA/zcxMPs3MDEAAAABAmpmZPjMzU0AAAEBAEiEKAm5mEhsKBQoDAgMGEggKBgEKAgMECioICgYBAQIDAwMScAoHZGVmYXVsdBJlCgwKCgoDMS0yCgMyLTMSDQoFCgMBAgISBAoCAQIiB2RlZmF1bHQqB2RlZmF1bHQyNBIyCgJlZhIsCgQKAgMGEggKBgECCQIDChoaChjNzIw/zcwMQJqZIUHNzAxAMzNTQGZmBkAaCwoJEgdkZWZhdWx0"
+        ]
         # pb_string_double = [pb_string[0], pb_string[0]]
-        mock_batch_input = {"graph_feature":pb_string[0]}
+        mock_batch_input = {"graph_feature": pb_string[0]}
         mock_batch_input_double = [mock_batch_input, mock_batch_input]
         sp_kv_specs = self.node_spec.GetSparseKVSpec()
         for f_name, spec in sp_kv_specs.items():
             print(f"======== f_name:{f_name}, f_spec_name:{spec.GetFeatureName()}")
 
         # ############### test when output is TorchBatchOfSubGraph ###############
-        my_collate = AGLHomoCollateForPyG(self.node_spec, self.edge_spec, columns=[], uncompress=False)
+        my_collate = AGLHomoCollateForPyG(
+            self.node_spec, self.edge_spec, columns=[], uncompress=False
+        )
 
         data = my_collate(mock_batch_input_double)
         self.assertTrue(isinstance(data, TorchSubGraphBatchData))
         # verify edge_index and edge indices
-        ego_2_hop_gt = {
-            0: (0, 1),
-            1: (1, 2),
-            2: (3, 4),
-            3: (4, 5)}
+        ego_2_hop_gt = {0: (0, 1), 1: (1, 2), 2: (3, 4), 3: (4, 5)}
         data_edge_index = data.adjs_t.edge_index
         data_edge_indices = data.adjs_t.edge_indices  # data.agl["edge_indices"]
         for i in range(len(data_edge_indices)):
-            print(f"edge index:{data_edge_indices[i]}, n1_index:{data_edge_index[1][i]}, n2_index:{data_edge_index[0][i]}")
-            self.assertEqual(ego_2_hop_gt[data_edge_indices.numpy()[i]][0], data_edge_index.numpy()[1][i])
-            self.assertEqual(ego_2_hop_gt[data_edge_indices.numpy()[i]][1], data_edge_index.numpy()[0][i])
+            print(
+                f"edge index:{data_edge_indices[i]}, n1_index:{data_edge_index[1][i]}, n2_index:{data_edge_index[0][i]}"
+            )
+            self.assertEqual(
+                ego_2_hop_gt[data_edge_indices.numpy()[i]][0],
+                data_edge_index.numpy()[1][i],
+            )
+            self.assertEqual(
+                ego_2_hop_gt[data_edge_indices.numpy()[i]][1],
+                data_edge_index.numpy()[0][i],
+            )
 
         # verify node dense feature
         n_df_one_gt = [[0.1, 1.1, 1], [0.2, 2.2, 2], [0.3, 3.3, 3]]
@@ -98,14 +108,16 @@ class SubGraphTest(unittest.TestCase):
         # self.assertListEqual(e_sp_kv_key_gt_two, e_spkv_collate.col_indices().numpy().tolist())
         # self.assertAlmostEqual(np.array(s_sp_kv_val_gt_two).all(), n_spkv_collate.values().numpy().all())
 
-        my_collate2 = AGLHomoCollateForPyG(self.node_spec, self.edge_spec, columns=[], ego_edge_index=True, uncompress=False)
+        my_collate2 = AGLHomoCollateForPyG(
+            self.node_spec,
+            self.edge_spec,
+            columns=[],
+            ego_edge_index=True,
+            uncompress=False,
+        )
         data2 = my_collate2(mock_batch_input_double)
 
-        ego_2_hop_gt = {
-            0: (0, 1),
-            1: (1, 2),
-            2: (3, 4),
-            3: (4, 5)}
+        ego_2_hop_gt = {0: (0, 1), 1: (1, 2), 2: (3, 4), 3: (4, 5)}
 
         ego_1_hop_gt = {0: {0, 1}, 2: {3, 4}}
 
@@ -120,7 +132,6 @@ class SubGraphTest(unittest.TestCase):
             self.assertEqual(ego_2_hop_gt[e_t][0], e2_hop_adj[1][i])
             self.assertEqual(ego_2_hop_gt[e_t][1], e2_hop_adj[0][i])
 
-
     def test_dynamic_data_parase(self):
         # node 上无特征，边上有时间维度特征，特征长度为1，类型为int64
         node_spec = NodeSpec("default", AGLDType.STR)
@@ -133,9 +144,14 @@ class SubGraphTest(unittest.TestCase):
         graph_id_column = AGLRowColumn(name="node_id_list")
         root_time_column = AGLDenseColumn(name="time_list", dim=1, dtype=np.int64)
 
-        my_collate = AGLHomoCollateForPyG(node_spec, edge_spec,
-                                          columns=[root_id_column, graph_id_column, root_time_column],
-                                          label_name=None, need_node_and_edge_num=True, uncompress=False)
+        my_collate = AGLHomoCollateForPyG(
+            node_spec,
+            edge_spec,
+            columns=[root_id_column, graph_id_column, root_time_column],
+            label_name=None,
+            need_node_and_edge_num=True,
+            uncompress=False,
+        )
 
         gf = "ChsKB2RlZmF1bHQSEAoMCgoKAjM4CgQ4MjY1EgASZQoHZGVmYXVsdBJaCiIKIAoOMzhfODI2NV8yODA3LjAKDjM4XzgyNjVfMjc4NS4wEgwKBAoCAgISBAoCAQEiB2RlZmF1bHQqB2RlZmF1bHQyFAoSCgR0aW1lEgoIASIGCgT3FeEVGhQaEggBEg4KB2RlZmF1bHQSAwoBAA=="
         seed = "123"
@@ -145,12 +161,8 @@ class SubGraphTest(unittest.TestCase):
             "graph_feature": [gf],
             "seed": [seed],
             "node_id_list": [node_id_list],
-            "time_list": [time_list]
+            "time_list": [time_list],
         }
         res = my_collate([data])
         print(res)
         self.assertTrue(isinstance(res, TorchSubGraphBatchData))
-        
-
-
-

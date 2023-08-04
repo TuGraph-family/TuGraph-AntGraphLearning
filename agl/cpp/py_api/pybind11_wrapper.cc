@@ -1,25 +1,25 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <sstream>
+#include <chrono>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
-#include <chrono>
 
 #include "base_data_structure/coo.h"
 #include "base_data_structure/csr.h"
 #include "base_data_structure/dtype.h"
 #include "base_data_structure/nd_array.h"
 #include "common/safe_check.h"
+#include "common/thread_pool.h"
+#include "features/dense_feature_array.h"
+#include "features/sparsek_feature_array.h"
+#include "features/sparsekv_feature_array.h"
+#include "py_api/tools/mutli_dense_parser.h"
 #include "spec/feature_spec.h"
 #include "spec/unit_spec.h"
-#include "features/dense_feature_array.h"
-#include "features/sparsekv_feature_array.h"
-#include "features/sparsek_feature_array.h"
 #include "sub_graph.h"
-#include "common/thread_pool.h"
-#include "py_api/tools/mutli_dense_parser.h"
 
 namespace py = pybind11;
 using namespace agl;
@@ -57,7 +57,6 @@ std::string PyBufferFormatAccodingAGLDtype(AGLDType dtype) {
 std::vector<std::shared_ptr<NDArray>> multi_dense_decode(
     std::vector<const char*>& pbs, std::vector<size_t>& pbs_length,
     char group_sep, char sep, int dim, AGLDType dtype) {
-
   std::vector<std::shared_ptr<NDArray>> final_result(pbs.size());
 
   for (size_t i = 0; i < pbs.size(); ++i) {
@@ -127,35 +126,24 @@ PYBIND11_MODULE(pyagl, m) {
       .def("GetRowNumber", &NDArray::GetRowNumber)
       .def("GetColNumber", &NDArray::GetColNumber)
       .def_buffer([](NDArray& nd) -> py::buffer_info {
-        // todo zdl 考虑是否用buffer的方式支持zero copy，由于这些内容实际上是c++端subgraph的成员变量
-        // 大概率是 readonly 的，而 torch tensor 没有只读的概念。 目前使用numpy array warpper 这个buffer的时候采用copy的方式
-        // 也即 np.array(NDArray) 而没有使用 np.array(NDArray, copy=False)
+        // todo zdl 考虑是否用buffer的方式支持zero
+        // copy，由于这些内容实际上是c++端subgraph的成员变量 大概率是 readonly
+        // 的，而 torch tensor 没有只读的概念。 目前使用numpy array warpper
+        // 这个buffer的时候采用copy的方式 也即 np.array(NDArray) 而没有使用
+        // np.array(NDArray, copy=False)
         return py::buffer_info(
-            nd.data(),                   /* Pointer to buffer */
-            GetDtypeSize(nd.GetDType()), /* Size of one scalar */
+            nd.data(),                                  /* Pointer to buffer */
+            GetDtypeSize(nd.GetDType()),       /* Size of one scalar */
             PyBufferFormatAccodingAGLDtype(
-                nd.GetDType()), /* Python struct-style format descriptor */
-            2,                  /* Number of dimensions */
+                nd.GetDType()),                       /* Python struct-style format descriptor */
+            2,                                         /* Number of dimensions */
             {nd.GetRowNumber(), nd.GetColNumber()}, /* Buffer dimensions */
             {GetDtypeSize(nd.GetDType()) *
-                 nd.GetColNumber(), /* Strides (in bytes) for each index */
+                 nd.GetColNumber(),                         /* Strides (in bytes) for each index */
              GetDtypeSize(nd.GetDType())});
-      })
-      .def("FloatNd", [](std::shared_ptr<NDArray>& my_self) {
-        // todo delete latter, just for test
-        AGL_CHECK(my_self->GetDType() == AGLDType::FLOAT);
-        auto* float_ptr = my_self->Flat<float>();
-        for (size_t f_i = 0; f_i < my_self->GetRowNumber(); ++f_i) {
-          for (size_t f_j = 0; f_j < my_self->GetColNumber(); ++f_j) {
-            float_ptr[f_i * (my_self->GetColNumber()) + f_j] =
-                f_i * (my_self->GetColNumber()) + f_j;
-          }
-        }
       });
 
   // struct CSR
-  // todo：考虑各个数性是否要设置成 readwrite or readonly
-  // 目前是 readonly， 因为这个 CSR只会在 c++创建并传递至python
   py::class_<CSR, std::shared_ptr<CSR>>(m, "CSR")
       .def(py::init<>())
       .def("Init", &CSR::Init)
@@ -171,25 +159,29 @@ PYBIND11_MODULE(pyagl, m) {
 
   // todo：考虑是否直接为 CSRAdj 添加相应的 get fcun
   py::class_<CSRAdj, std::shared_ptr<CSRAdj>>(m, "CSRAdj")
-      .def_property_readonly("row_num", [](std::shared_ptr<CSRAdj>& myself){
-        return myself->GetCSRNDArray()->rows_nums_;
-      })
-      .def_property_readonly("col_num", [](std::shared_ptr<CSRAdj>& myself){
-        return myself->GetCSRNDArray()->col_nums_;
-      })
-      .def_property_readonly("sorted", [](std::shared_ptr<CSRAdj>& myself){
-        return myself->GetCSRNDArray()->sorted_;
-      })
-      .def("GetIndPtr", [](std::shared_ptr<CSRAdj>& myself){
-        return myself->GetCSRNDArray()->ind_;
-      })
-      .def("GetIndices", [](std::shared_ptr<CSRAdj>& myself){
-        return myself->GetCSRNDArray()->indices_;
-      })
-      .def("GetData", [](std::shared_ptr<CSRAdj>& myself){
+      .def_property_readonly("row_num",
+                             [](std::shared_ptr<CSRAdj>& myself) {
+                               return myself->GetCSRNDArray()->rows_nums_;
+                             })
+      .def_property_readonly("col_num",
+                             [](std::shared_ptr<CSRAdj>& myself) {
+                               return myself->GetCSRNDArray()->col_nums_;
+                             })
+      .def_property_readonly("sorted",
+                             [](std::shared_ptr<CSRAdj>& myself) {
+                               return myself->GetCSRNDArray()->sorted_;
+                             })
+      .def("GetIndPtr",
+           [](std::shared_ptr<CSRAdj>& myself) {
+             return myself->GetCSRNDArray()->ind_;
+           })
+      .def("GetIndices",
+           [](std::shared_ptr<CSRAdj>& myself) {
+             return myself->GetCSRNDArray()->indices_;
+           })
+      .def("GetData", [](std::shared_ptr<CSRAdj>& myself) {
         return myself->GetCSRNDArray()->data_;
-      })
-      ;
+      });
 
   // struct COO
   // just pass data to python
@@ -198,52 +190,84 @@ PYBIND11_MODULE(pyagl, m) {
       .def_readonly("col_num", &COO::col_nums_)
       .def_readonly("row_sorted", &COO::row_sorted_)
       .def_readonly("col_sorted", &COO::col_sorted_)
-      .def("GetN1Indices", [](std::shared_ptr<COO>& myself) { return myself->row_; })
-      .def("GetN2Indices", [](std::shared_ptr<COO>& myself) { return myself->col_; })
-      .def("GetEdgeIndex", [](std::shared_ptr<COO>& myself) { return myself->data_; })
-      ;
+      .def("GetN1Indices",
+           [](std::shared_ptr<COO>& myself) { return myself->row_; })
+      .def("GetN2Indices",
+           [](std::shared_ptr<COO>& myself) { return myself->col_; })
+      .def("GetEdgeIndex",
+           [](std::shared_ptr<COO>& myself) { return myself->data_; });
 
   py::class_<COOAdj, std::shared_ptr<COOAdj>>(m, "COOAdj")
-      .def_property_readonly("row_num", [](std::shared_ptr<COOAdj>& myself) {
-        return myself->GetCOONDArray()->row_; })
+      .def_property_readonly("row_num",
+                             [](std::shared_ptr<COOAdj>& myself) {
+                               return myself->GetCOONDArray()->row_;
+                             })
       .def_property_readonly("col_num",
                              [](std::shared_ptr<COOAdj>& myself) {
-                               return myself->GetCOONDArray()->col_; })
-      .def_property_readonly("row_sorted", [](std::shared_ptr<COOAdj>& myself) {
-        return myself->GetCOONDArray()->row_sorted_;})
-      .def_property_readonly("col_sorted", [](std::shared_ptr<COOAdj>& myself) {
-        return myself->GetCOONDArray()->col_sorted_;})
-      .def("GetN1Indices", [](std::shared_ptr<COOAdj>& myself) {
-        return myself->GetCOONDArray()->row_;})
-      .def("GetN2Indices", [](std::shared_ptr<COOAdj>& myself) {
-        return myself->GetCOONDArray()->col_;})
+                               return myself->GetCOONDArray()->col_;
+                             })
+      .def_property_readonly("row_sorted",
+                             [](std::shared_ptr<COOAdj>& myself) {
+                               return myself->GetCOONDArray()->row_sorted_;
+                             })
+      .def_property_readonly("col_sorted",
+                             [](std::shared_ptr<COOAdj>& myself) {
+                               return myself->GetCOONDArray()->col_sorted_;
+                             })
+      .def("GetN1Indices",
+           [](std::shared_ptr<COOAdj>& myself) {
+             return myself->GetCOONDArray()->row_;
+           })
+      .def("GetN2Indices",
+           [](std::shared_ptr<COOAdj>& myself) {
+             return myself->GetCOONDArray()->col_;
+           })
       .def("GetEdgeIndex", [](std::shared_ptr<COOAdj>& myself) {
-        return myself->GetCOONDArray()->data_;});
+        return myself->GetCOONDArray()->data_;
+      });
 
   // dense feature array
-  py::class_<DenseFeatureArray, std::shared_ptr<DenseFeatureArray>>(m, "DenseFeatureArray")
+  py::class_<DenseFeatureArray, std::shared_ptr<DenseFeatureArray>>(
+      m, "DenseFeatureArray")
       .def("GetFeatureArray", &DenseFeatureArray::GetFeatureArray);
 
   // sparse kv feature array
   // -> SparseKVNDArray
-  py::class_<SparseKVNDArray, std::shared_ptr<SparseKVNDArray>>(m, "SparseKVNDArray")
-      .def("GetIndOffset", [](std::shared_ptr<SparseKVNDArray>& myself) { return myself->ind_offset_; })
-      .def("GetKeys", [](std::shared_ptr<SparseKVNDArray>& myself) { return myself->keys_; })
-      .def("GetVals", [](std::shared_ptr<SparseKVNDArray>& myself) { return myself->values_; });
+  py::class_<SparseKVNDArray, std::shared_ptr<SparseKVNDArray>>(
+      m, "SparseKVNDArray")
+      .def("GetIndOffset",
+           [](std::shared_ptr<SparseKVNDArray>& myself) {
+             return myself->ind_offset_;
+           })
+      .def("GetKeys",
+           [](std::shared_ptr<SparseKVNDArray>& myself) {
+             return myself->keys_;
+           })
+      .def("GetVals", [](std::shared_ptr<SparseKVNDArray>& myself) {
+        return myself->values_;
+      });
 
   // -> SparseKVFeatureArray
-  py::class_<SparseKVFeatureArray, std::shared_ptr<SparseKVFeatureArray>>(m, "SparseKVFeatureArray")
+  py::class_<SparseKVFeatureArray, std::shared_ptr<SparseKVFeatureArray>>(
+      m, "SparseKVFeatureArray")
       .def("Init", &SparseKVFeatureArray::Init)
       .def("GetFeatureArray", &SparseKVFeatureArray::GetFeatureArray);
 
   // sparse k feature
   // -> SparseKeyNDArray
-  py::class_<SparseKeyNDArray, std::shared_ptr<SparseKeyNDArray>>(m, "SparseKeyNDArray")
-      .def("GetIndOffset", [](std::shared_ptr<SparseKeyNDArray>& myself) { return myself->ind_offset_; })
-      .def("GetKeys", [](std::shared_ptr<SparseKeyNDArray>& myself) { return myself->keys_; });
+  py::class_<SparseKeyNDArray, std::shared_ptr<SparseKeyNDArray>>(
+      m, "SparseKeyNDArray")
+      .def("GetIndOffset",
+           [](std::shared_ptr<SparseKeyNDArray>& myself) {
+             return myself->ind_offset_;
+           })
+      .def("GetKeys", [](std::shared_ptr<SparseKeyNDArray>& myself) {
+        return myself->keys_;
+      });
 
   // SparseKFeatureArray
-  py::class_<SparseKFeatureArray, std::shared_ptr<SparseKFeatureArray>>(m, "SparseKFeatureArray")
+  py::class_<SparseKFeatureArray, std::shared_ptr<SparseKFeatureArray>>(
+      m, "SparseKFeatureArray")
       .def("Init", &SparseKFeatureArray::Init)
       .def("GetFeatureArray", &SparseKFeatureArray::GetFeatureArray);
 
@@ -318,10 +342,8 @@ PYBIND11_MODULE(pyagl, m) {
               pb_byte_length.push_back(item.size());
             }
             myself->CreateFromPB(pb_char, pb_byte_length, merge, uncompress);
-          }
-          ,
-          py::keep_alive<1, 2>()
-              )
+          },
+          py::keep_alive<1, 2>())
       // edge level get function adj and feature array
       .def("GetEdgeIndexCSR", &SubGraph::GetEdgeIndexCSR)
       .def("GetEdgeDenseFeatureArray", &SubGraph::GetEdgeDenseFeatureArray)
@@ -334,90 +356,64 @@ PYBIND11_MODULE(pyagl, m) {
       .def("GetRootIds", &SubGraph::GetRootIds)
       .def("GetNodeNumPerSample", &SubGraph::GetNodeNumPerSample)
       .def("GetEdgeNumPerSample", &SubGraph::GetEdgeNumPerSample)
-      .def("GetEgoEdgeIndex", [](std::shared_ptr<SubGraph>& myself, int hops){
-          py::gil_scoped_release release;
-          auto res_frame = myself->GetEgoFrames(hops, true);
-          AGL_CHECK(res_frame.size()==hops);
-          std::vector<std::unordered_map<std::string, std::shared_ptr<COOAdj>>> res_coo_adj(hops);
-          for(size_t i = 0; i<hops; ++i) {
-            res_coo_adj[i] = res_frame[i]->GetCOOEdges();
-          }
-          py::gil_scoped_acquire acquire;
-          return res_coo_adj;
-      })
-      .def("CreateFromPBBytesArray", [](std::shared_ptr<SubGraph>& myself, const
-                                        py::list& lst, bool merge, bool uncompress){
-        std::vector<const char*> pbs;
-        std::vector<size_t> pbs_length;
-        for(auto& byte_list: lst){
-          if(PyByteArray_Check(byte_list.ptr())){
-            pbs.emplace_back(PyByteArray_AsString(byte_list.ptr()));
-            pbs_length.emplace_back(PyByteArray_Size(byte_list.ptr()));
-          }
-        }
-        py::gil_scoped_release release;
-        myself->CreateFromPB(pbs, pbs_length, merge, uncompress);
-        py::gil_scoped_acquire acquire;
-      } ,
-          py::keep_alive<1, 2>()
-           )
-      .def("TestGetNodeDenseFeature", [](std::shared_ptr<SubGraph>& myself, const std::string& n_name, const std::string& f_name) {
-        std::cout << "TestGetNodeDenseFeature, node name:" << n_name << ", f name:" << f_name << "\n";
-        auto f_array_ptr = myself->GetNodeDenseFeatureArray(n_name, f_name);
-        auto nd = f_array_ptr->GetFeatureArray();
-        std::cout << "TestGetNodeDenseFeature nd dtype:" << nd->GetDType() << "\n";
-        return nd;
-      })
-        .def("TestString", [](std::shared_ptr<SubGraph>& myself, const
-     std::vector<std::string>& lst) { std::cout<< "vector size：" << lst.size()
-     << "\n";
-        })
-      .def("TestBytesArray", [](std::shared_ptr<SubGraph>& myself, const
-                                py::list& lst){
-          std::vector<const char*> pbs;
-          std::vector<size_t> pbs_length;
-          for(auto& byte_list: lst){
-            if(PyByteArray_Check(byte_list.ptr())){
-              pbs.emplace_back(PyByteArray_AsString(byte_list.ptr()));
-              pbs_length.emplace_back(PyByteArray_Size(byte_list.ptr()));
+      .def("GetEgoEdgeIndex",
+           [](std::shared_ptr<SubGraph>& myself, int hops) {
+             py::gil_scoped_release release;
+             auto res_frame = myself->GetEgoFrames(hops, true);
+             AGL_CHECK(res_frame.size() == hops);
+             std::vector<
+                 std::unordered_map<std::string, std::shared_ptr<COOAdj>>>
+                 res_coo_adj(hops);
+             for (size_t i = 0; i < hops; ++i) {
+               res_coo_adj[i] = res_frame[i]->GetCOOEdges();
+             }
+             py::gil_scoped_acquire acquire;
+             return res_coo_adj;
+           })
+      .def(
+          "CreateFromPBBytesArray",
+          [](std::shared_ptr<SubGraph>& myself, const py::list& lst, bool merge,
+             bool uncompress) {
+            std::vector<const char*> pbs;
+            std::vector<size_t> pbs_length;
+            for (auto& byte_list : lst) {
+              if (PyByteArray_Check(byte_list.ptr())) {
+                pbs.emplace_back(PyByteArray_AsString(byte_list.ptr()));
+                pbs_length.emplace_back(PyByteArray_Size(byte_list.ptr()));
+              }
             }
-          }
-          std::cout<< "pbs size:" << pbs.size() << "\n";
-          std::cout<<"test string:"<<std::string(pbs[0], pbs_length[0]) << "\n";
-      })
-      ;
+            myself->CreateFromPB(pbs, pbs_length, merge, uncompress);
+          });
 
   // m.def("multi_dense_decode", &multi_dense_decode);
-  m.def(
-      "multi_dense_decode_bytes",
-      [](const py::list& lst, char group_sep, char sep, int dim, AGLDType dtype) {
-        std::vector<const char*> pbs;
-        std::vector<size_t> pbs_length;
-        for (auto& byte_list : lst) {
-          if (PyByteArray_Check(byte_list.ptr())) {
-            pbs.emplace_back(PyByteArray_AsString(byte_list.ptr()));
-            pbs_length.emplace_back(PyByteArray_Size(byte_list.ptr()));
-          }
-        }
-        auto result =
-            multi_dense_decode(pbs, pbs_length, group_sep, sep, dim, dtype);
-        return result;
-      });
+  m.def("multi_dense_decode_bytes", [](const py::list& lst, char group_sep,
+                                       char sep, int dim, AGLDType dtype) {
+    std::vector<const char*> pbs;
+    std::vector<size_t> pbs_length;
+    for (auto& byte_list : lst) {
+      if (PyByteArray_Check(byte_list.ptr())) {
+        pbs.emplace_back(PyByteArray_AsString(byte_list.ptr()));
+        pbs_length.emplace_back(PyByteArray_Size(byte_list.ptr()));
+      }
+    }
+    auto result =
+        multi_dense_decode(pbs, pbs_length, group_sep, sep, dim, dtype);
+    return result;
+  });
 
-  m.def(
-      "multi_dense_decode_string",
-      [](const std::vector<std::string>& lst, char group_sep, char sep, int dim,
-         AGLDType dtype) {
-        std::vector<const char*> pb_char;
-        std::vector<size_t> pb_byte_length;
-        pb_char.reserve(lst.size());
-        pb_byte_length.reserve(lst.size());
-        for (const auto& item : lst) {
-          pb_char.push_back(item.c_str());
-          pb_byte_length.push_back(item.size());
-        }
-        auto result = multi_dense_decode(pb_char, pb_byte_length, group_sep,
-                                         sep, dim, dtype);
-        return result;
-      });
+  m.def("multi_dense_decode_string", [](const std::vector<std::string>& lst,
+                                        char group_sep, char sep, int dim,
+                                        AGLDType dtype) {
+    std::vector<const char*> pb_char;
+    std::vector<size_t> pb_byte_length;
+    pb_char.reserve(lst.size());
+    pb_byte_length.reserve(lst.size());
+    for (const auto& item : lst) {
+      pb_char.push_back(item.c_str());
+      pb_byte_length.push_back(item.size());
+    }
+    auto result =
+        multi_dense_decode(pb_char, pb_byte_length, group_sep, sep, dim, dtype);
+    return result;
+  });
 }

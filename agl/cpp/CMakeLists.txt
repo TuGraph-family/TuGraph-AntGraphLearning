@@ -1,5 +1,7 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package (PythonLibs 3.6)
+#set(PYTHON_LIBRARIES "/opt/conda/lib/libpython3.8.so")
+
 
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
 # libpb_cpp.a

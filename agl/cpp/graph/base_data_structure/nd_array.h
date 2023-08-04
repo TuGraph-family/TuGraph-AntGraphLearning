@@ -12,11 +12,10 @@ class NDArray {
  public:
   NDArray(int rows, int cols, AGLDType dtype)
       : m_rows_(rows), m_cols_(cols), dtype_(dtype) {
-      data_ = malloc(rows * cols * GetDtypeSize(dtype));
+    data_ = malloc(rows * cols * GetDtypeSize(dtype));
   };
-  ~NDArray() {
-    free(data_);
-  }
+
+  ~NDArray() { free(data_); }
 
   int GetRowNumber() { return m_rows_; }
 
@@ -24,13 +23,18 @@ class NDArray {
 
   AGLDType GetDType() { return dtype_; }
 
-  void* data() {return data_;}
+  void* data() { return data_; }
 
   template <class T>
   T* Flat() {
     AGL_CHECK(GetDTypeFromT<T>() == dtype_);
     return reinterpret_cast<T*>(data_);
   }
+
+ private:
+  NDArray(const NDArray&) = delete;
+  NDArray(NDArray&&) = delete;
+  NDArray& operator=(const NDArray&) = delete;
 
  private:
   AGLDType dtype_;

@@ -6,7 +6,6 @@
 
 #include "edge_unit.h"
 #include "node_unit.h"
-//#include "root_node_unit.h"
 #include "base_data_structure/frame.h"
 #include "spec/unit_spec.h"
 
@@ -15,14 +14,6 @@ class IDMapping;
 namespace agl {
 class SubGraph {
  public:
-  // todo 是否 ego 放在 get adj 的时候做？
-  // SubGraph(bool is_ego, int hops);
-
-  // 创建相关的逻辑
-  void AddSpecs(const std::unordered_map<std::string,
-                                         std::shared_ptr<NodeSpec>>& node_spec,
-                const std::unordered_map<std::string,
-                                         std::shared_ptr<EdgeSpec>>& edge_spec);
 
   void AddNodeSpec(const std::string& n_name,
                    const std::shared_ptr<NodeSpec>& spec);

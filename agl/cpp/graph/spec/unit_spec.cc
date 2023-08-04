@@ -36,8 +36,10 @@ const AGLDType& NodeSpec::GetNodeIdDtype() { return node_id_dtype_; }
 const std::string& NodeSpec::GetNodeName() { return node_name_; }
 
 /////////////////////////////// EdgeSpec ///////////////////////////////
-EdgeSpec::EdgeSpec(const std::string& name, const std::shared_ptr<NodeSpec>& node1_spec,
-                   const std::shared_ptr<NodeSpec>& node2_spec, AGLDType id_dtype)
+EdgeSpec::EdgeSpec(const std::string& name,
+                   const std::shared_ptr<NodeSpec>& node1_spec,
+                   const std::shared_ptr<NodeSpec>& node2_spec,
+                   AGLDType id_dtype)
     : edge_name_(name),
       node1_spec_(node1_spec),
       node2_spec_(node2_spec),
@@ -78,8 +80,6 @@ const std::string& EdgeSpec::GetN1Name() { return node1_spec_->GetNodeName(); }
 
 const std::string& EdgeSpec::GetN2Name() { return node2_spec_->GetNodeName(); }
 
-const std::string& EdgeSpec::GetEdgeName() {
-  return edge_name_;
-}
+const std::string& EdgeSpec::GetEdgeName() { return edge_name_; }
 
 }  // namespace agl

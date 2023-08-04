@@ -1,12 +1,12 @@
-import os
-import torch
 import time
+import torch
+import os
 import numpy as np
-from torch.utils.data import DataLoader
 from sklearn import metrics
 from typing import Dict
+from torch.utils.data import DataLoader
 
-from agl.python.dataset.dataset import PPITorchDataset
+from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLRowColumn, AGLMultiDenseColumn
 from pyagl.pyagl import (
@@ -118,28 +118,22 @@ class GeniepathLazyEncoder(torch.nn.Module):
 
 
 # step 1: 构建dataset
-
-train_file_name = "ppi_subgraph_merged_0530_train.txt"
-test_file_name = "ppi_subgraph_merged_0530_test.txt"
+train_file_name = "ppi_subgraph_train_0530.txt"
+test_file_name = "ppi_subgraph_test_0530.txt"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 train_file_name = os.path.join(script_dir, train_file_name)
 test_file_name = os.path.join(script_dir, test_file_name)
 
-# train data set and test data set
-train_data_set = PPITorchDataset(
+train_data_set = AGLTorchMapBasedDataset(
     train_file_name,
-    True,
-    script_dir,
-    processed_file_suffix="subgraph_merged_0530_train",
+    format="txt",
     has_schema=False,
     schema=["graph_id", "roots_id", "graph_feature", "labels"],
 )
-test_data_set = PPITorchDataset(
+test_data_set = AGLTorchMapBasedDataset(
     test_file_name,
-    True,
-    script_dir,
-    processed_file_suffix="subgraph_merged_0530_test",
+    format="txt",
     has_schema=False,
     schema=["graph_id", "roots_id", "graph_feature", "labels"],
 )
@@ -189,12 +183,12 @@ model = GeniepathLazyEncoder(
     feats_dims={"dense_feature": 50},
     hidden_dim=256,
     out_dim=121,
-    n_hops=3,
+    n_hops=4,
     residual=True,
 )
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 loss_op = torch.nn.BCEWithLogitsLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.003)
 
 
 def train():
@@ -218,9 +212,6 @@ def train():
 
 def test(loader):
     model.eval()
-
-    total_micro_f1 = 0
-    i = 0
     ys, preds = [], []
     for data in loader:
         with torch.no_grad():

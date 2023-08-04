@@ -8,18 +8,6 @@
 
 namespace agl {
 struct CSR {
-  /*  CSR(int64_t rows_nums, int64_t col_nums,
-                 std::shared_ptr<NDArray>& index_offset,
-                 std::shared_ptr<NDArray>& indices,
-                 std::shared_ptr<NDArray>& data,
-                 bool sorted = false)
-        : rows_nums_(rows_nums),
-          col_nums_(col_nums),
-          ind_(index_offset),
-          indices_(indices),
-          data_(data),
-          sorted_(sorted) {}*/
-
   void Init(int64_t rows_nums, int64_t col_nums,
             std::shared_ptr<NDArray>& index_offset,
             std::shared_ptr<NDArray>& indices, std::shared_ptr<NDArray>& data,
@@ -32,14 +20,14 @@ struct CSR {
     sorted_ = sorted;
   }
 
-  // todo 需要提供 to coo 功能，便于往外输出
   // 用于定义dense shape
-  int64_t rows_nums_;  // n1 的数目
-  int64_t col_nums_;   // n2 的数目
-  std::shared_ptr<NDArray> ind_;
-  std::shared_ptr<NDArray> indices_;
-  std::shared_ptr<NDArray> data_;  // data index array, that is edge index
-  bool sorted_;                    // 指 indices 是否 排序
+  int64_t rows_nums_ = 0;                   // n1 的数目
+  int64_t col_nums_ = 0;                    // n2 的数目
+  std::shared_ptr<NDArray> ind_ = nullptr;  // todo 初始值
+  std::shared_ptr<NDArray> indices_ = nullptr;
+  std::shared_ptr<NDArray> data_ =
+      nullptr;           // data index array, that is edge index
+  bool sorted_ = false;  // 指 indices 是否 排序
 };
 
 class CSRAdj {
@@ -57,7 +45,7 @@ class CSRAdj {
 
  private:
   // csr 格式的 adj matrix
-  std::shared_ptr<CSR> adj_;
+  std::shared_ptr<CSR> adj_ = nullptr;
 };
 
 }  // namespace agl

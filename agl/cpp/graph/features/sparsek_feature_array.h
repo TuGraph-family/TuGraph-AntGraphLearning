@@ -6,7 +6,6 @@
 
 #include "base_data_structure/dtype.h"
 #include "base_data_structure/nd_array.h"
-#include "features/feature_array.h"
 
 namespace agl {
 struct SparseKeyNDArray {
@@ -18,8 +17,6 @@ struct SparseKeyNDArray {
 
 class SparseKFeatureArray {
  public:
-/*  ~SparseKFeatureArray() override = default;*/
-
   void Init(std::shared_ptr<NDArray>& ind_offset,
             std::shared_ptr<NDArray>& keys) {
     sk_array_ptr_ = std::make_shared<SparseKeyNDArray>();
@@ -28,17 +25,6 @@ class SparseKFeatureArray {
   }
 
   std::shared_ptr<SparseKeyNDArray>& GetFeatureArray() { return sk_array_ptr_; }
-
-  // 取一个元素的特征 （是否必要？）
-  std::shared_ptr<SparseKeyNDArray> GetFeature(int index);
-  std::shared_ptr<SparseKeyNDArray> GetFeature(int start, int end);
-  std::shared_ptr<SparseKeyNDArray> GetFeature();  // all feature
-
-  // 取特征dim, max_feature_dim 目前存在 spec中
-  // int GetFeatureDim();
-
-  // 取特征类型
-  AGLDType GetFeatureKeyDtype();
 
  private:
   std::shared_ptr<SparseKeyNDArray> sk_array_ptr_;

@@ -4,8 +4,8 @@
 import unittest
 import numpy as np
 
-from agl.python.subgraph.subgraph import PySubGraph
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, SparseKSpec, NodeSpec, EdgeSpec, SubGraph, NDArray
+from agl.python.data.subgraph.subgraph import PySubGraph
+from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, NodeSpec, EdgeSpec
 
 
 class SubGraphTest(unittest.TestCase):
@@ -23,7 +23,9 @@ class SubGraphTest(unittest.TestCase):
     n_val_dtype = AGLDType.INT64
     node_spec = NodeSpec(n_name, n_id_dtype)
     node_spec.AddDenseSpec(n_df_name, DenseFeatureSpec(n_df_name, n_df_dim, n_df_dtype))
-    node_spec.AddSparseKVSpec(n_spkv_name, SparseKVSpec(n_spkv_name, n_max_dim, n_key_dtype, n_val_dtype))
+    node_spec.AddSparseKVSpec(
+        n_spkv_name, SparseKVSpec(n_spkv_name, n_max_dim, n_key_dtype, n_val_dtype)
+    )
 
     # 2. edge related spec
     e_name = "default"
@@ -36,12 +38,16 @@ class SubGraphTest(unittest.TestCase):
     e_key_dtype = AGLDType.INT64
     e_val_dtype = AGLDType.FLOAT
     edge_spec = EdgeSpec(e_name, node_spec, node_spec, e_id_dtype)
-    edge_spec.AddSparseKVSpec(e_kv_name, SparseKVSpec(e_kv_name, e_max_dim, e_key_dtype, e_val_dtype))
+    edge_spec.AddSparseKVSpec(
+        e_kv_name, SparseKVSpec(e_kv_name, e_max_dim, e_key_dtype, e_val_dtype)
+    )
 
     @staticmethod
     def create_subgraph():
         sg = PySubGraph([SubGraphTest.node_spec], [SubGraphTest.edge_spec])
-        pb_string = [b"CnIKB2RlZmF1bHQSZwoLCgkKATEKATIKATMSWAozCgVkZW5zZRIqCAMSJgokzczMPc3MjD8AAIA/zcxMPs3MDEAAAABAmpmZPjMzU0AAAEBAEiEKAm5mEhsKBQoDAgMGEggKBgEKAgMECioICgYBAQIDAwMScAoHZGVmYXVsdBJlCgwKCgoDMS0yCgMyLTMSDQoFCgMBAgISBAoCAQIiB2RlZmF1bHQqB2RlZmF1bHQyNBIyCgJlZhIsCgQKAgMGEggKBgECCQIDChoaChjNzIw/zcwMQJqZIUHNzAxAMzNTQGZmBkAaCwoJEgdkZWZhdWx0"]
+        pb_string = [
+            b"CnIKB2RlZmF1bHQSZwoLCgkKATEKATIKATMSWAozCgVkZW5zZRIqCAMSJgokzczMPc3MjD8AAIA/zcxMPs3MDEAAAABAmpmZPjMzU0AAAEBAEiEKAm5mEhsKBQoDAgMGEggKBgEKAgMECioICgYBAQIDAwMScAoHZGVmYXVsdBJlCgwKCgoDMS0yCgMyLTMSDQoFCgMBAgISBAoCAQIiB2RlZmF1bHQqB2RlZmF1bHQyNBIyCgJlZhIsCgQKAgMGEggKBgECCQIDChoaChjNzIw/zcwMQJqZIUHNzAxAMzNTQGZmBkAaCwoJEgdkZWZhdWx0"
+        ]
         pb_string_double = [bytearray(pb_string[0]), bytearray(pb_string[0])]
         sg.from_pb_bytes(pb_string_double)
         return sg
@@ -117,10 +123,25 @@ class SubGraphTest(unittest.TestCase):
         print(f"========== edge sparse:{edge_sparse_kv}")
         e_sp_kv_ind_gt_two = [0, 3, 6, 9, 12]
         e_sp_kv_key_gt_two = [1, 2, 9, 2, 3, 10, 1, 2, 9, 2, 3, 10]
-        s_sp_kv_val_gt_two = [1.1, 2.2, 10.1, 2.2, 3.3, 2.1, 1.1, 2.2, 10.1, 2.2, 3.3, 2.1]
+        s_sp_kv_val_gt_two = [
+            1.1,
+            2.2,
+            10.1,
+            2.2,
+            3.3,
+            2.1,
+            1.1,
+            2.2,
+            10.1,
+            2.2,
+            3.3,
+            2.1,
+        ]
         self.assertListEqual(e_sp_kv_ind_gt_two, edge_sparse_kv[0].tolist())
         self.assertListEqual(e_sp_kv_key_gt_two, edge_sparse_kv[1].tolist())
-        self.assertAlmostEqual(np.array(s_sp_kv_val_gt_two).all(), edge_sparse_kv[2].all())
+        self.assertAlmostEqual(
+            np.array(s_sp_kv_val_gt_two).all(), edge_sparse_kv[2].all()
+        )
         # test node_num
         n_num = sg.get_node_num_per_sample()
         print(f"======= n_num per sample:{n_num}")
@@ -134,15 +155,11 @@ class SubGraphTest(unittest.TestCase):
         # test ego graph
         ego_adj = sg.get_ego_edge_index(2)
         print(f"=========== ego adj 2hops: {ego_adj}")
-        ego_2_hop_gt = {
-          0: (0, 1),
-          1: (1, 2),
-          2: (3, 4),
-          3: (4, 5)}
+        ego_2_hop_gt = {0: (0, 1), 1: (1, 2), 2: (3, 4), 3: (4, 5)}
 
         ego_1_hop_gt = {0: {0, 1}, 2: {3, 4}}
         # test 2 -hop
-        n1,n2,e_index = ego_adj[0][self.e_name]
+        n1, n2, e_index = ego_adj[0][self.e_name]
         for i in range(len(e_index)):
             e_t = e_index[i]
             self.assertEqual(ego_2_hop_gt[e_t][0], n1[i])
@@ -155,5 +172,3 @@ class SubGraphTest(unittest.TestCase):
         edge_n2_indices_gt_two = [1, 2, 4, 5]
         self.assertListEqual(edge_adj_gt_two, e_index[self.e_name][0].tolist())
         self.assertListEqual(edge_n2_indices_gt_two, e_index[self.e_name][1].tolist())
-
-

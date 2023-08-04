@@ -585,9 +585,7 @@ void ParseRootInfo(
     const GraphFeature_Root& root_info,
     unordered_map<std::string, vector<vector<IdDType>>>& parsed_root,
     int index) {
-  // std::cout << " ==== begin parse root info" << "\n";
   if (root_info.has_subgraph()) {
-    // std::cout<< "has subgraph" << "\n";
     //  todo 目前暂时只支持 node index 作为root
     AGL_CHECK(root_info.subgraph().is_node())
         << " Now not support edge index as root";
@@ -606,8 +604,6 @@ void ParseRootInfo(
   } else if (root_info.has_nidx()) {
     const auto& name = root_info.nidx().name();
     const auto& root_ind = root_info.nidx().idx();
-    // std::cout << "parse root name:" << name << " root ind:" << root_ind
-    // <<"\n";
     auto find = parsed_root.find(name);
     AGL_CHECK(find != parsed_root.end())
         << " root info with node name:" << name << " not in node spec!";
@@ -672,11 +668,10 @@ void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs,
     try {
       while (status_flag) {
         int i = sample_index.fetch_add(1);
-        if (i >= pb_nums) break;
+        if (i >= pb_nums) break;  // todo 是否加 {}
 
         // step 1: parse pb from string to pb structure
-        // auto* gf_i = gfs[i];.
-        GraphFeature* gf_i = nullptr;
+        GraphFeature* gf_i = nullptr;  // todo 命名规范
         ParsePB(&gf_i, batch_arena_[i], pbs[i], pb_length[i], uncompress);
         CheckUnitValid(node_specs, edge_specs, *gf_i);
         gfs[i] = gf_i;
@@ -718,8 +713,7 @@ void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs,
       }
     } catch (std::exception& e) {
       status_flag = false;
-      // todo add log
-      // LOG(INFO) << e.what();
+      // todo log
     } catch (...) {
       status_flag = false;
     }

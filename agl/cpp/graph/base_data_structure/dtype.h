@@ -56,7 +56,6 @@ inline int GetDtypeSize(const AGLDType& type){
     case DOUBLE:
       return sizeof(double);
     default:
-      // todo raise error and log
       AGL_CHECK(false) << " Not supported AGLDType:" << type;
       return 0;
   }

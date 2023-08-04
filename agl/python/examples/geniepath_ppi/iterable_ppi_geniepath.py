@@ -1,11 +1,10 @@
-import os
-import numpy as np
-import torch
 import time
+import torch
+import numpy as np
 from sklearn import metrics
 from torch.utils.data import DataLoader
 
-from agl.python.dataset.dataset import PPITorchDataset
+from agl.python.dataset.iterable_dataset import AGLIterableDataset
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn
 from pyagl.pyagl import (
@@ -16,27 +15,20 @@ from pyagl.pyagl import (
 )
 from agl.python.model.encoder import GeniepathLazyEncoder
 
-train_file_name = "ppi_hop2_limit50_real_0526_train.txt"
-test_file_name = "ppi_hop2_limit50_real_0526_test.txt"
+train_file_name = (
+    "./noid_output_subgraph_1/part-00000-89b6a5d3-ffa8-4915-ade9-a54117481c0c-c000.csv"
+)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-train_file_name = os.path.join(script_dir, train_file_name)
-test_file_name = os.path.join(script_dir, test_file_name)
+test_file_name = (
+    "./noid_output_subgraph_2/part-00000-7b47f613-5145-4858-a57c-b897b942b4ec-c000.csv"
+)
 
 # train data set and test data set
-train_data_set = PPITorchDataset(
-    train_file_name,
-    True,
-    script_dir,
-    processed_file_suffix="hop2_limit50_real_0526_train",
-    has_schema=False,
+train_data_set = AGLIterableDataset(
+    file=train_file_name, schema=["node_id", "graph_feature", "label"], batch_size=128
 )
-test_data_set = PPITorchDataset(
-    test_file_name,
-    True,
-    script_dir,
-    processed_file_suffix="hop2_limit50_real_0526_test",
-    has_schema=False,
+test_data_set = AGLIterableDataset(
+    file=test_file_name, schema=["node_id", "graph_feature", "label"], batch_size=128
 )
 
 # node related spec
@@ -44,6 +36,7 @@ node_spec = NodeSpec("default", AGLDType.STR)
 node_spec.AddSparseKVSpec(
     "sparse_kv", SparseKVSpec("sparse_kv", 50, AGLDType.INT64, AGLDType.FLOAT)
 )
+
 # edge related spec
 edge_spec = EdgeSpec("default", node_spec, node_spec, AGLDType.STR)
 edge_spec.AddSparseKVSpec(
@@ -51,30 +44,18 @@ edge_spec.AddSparseKVSpec(
 )
 
 label_column = AGLDenseColumn(name="label", dim=121, dtype=np.int64, sep=" ")
-id_column = AGLRowColumn(name="id")
+id_column = AGLRowColumn(name="node_id")
 my_collate = AGLHomoCollateForPyG(
-    node_spec,
-    edge_spec,
-    columns=[label_column, id_column],
-    ego_edge_index=True,
-    uncompress=False,
+    node_spec, edge_spec, columns=[label_column, id_column], ego_edge_index=True
 )
 
 # train loader
 train_loader = DataLoader(
-    dataset=train_data_set,
-    batch_size=128,
-    shuffle=False,
-    collate_fn=my_collate,
-    num_workers=2,
+    dataset=train_data_set, shuffle=False, collate_fn=my_collate, num_workers=2
 )
 
 test_loader = DataLoader(
-    dataset=test_data_set,
-    batch_size=128,
-    shuffle=False,
-    collate_fn=my_collate,
-    num_workers=2,
+    dataset=test_data_set, shuffle=False, collate_fn=my_collate, num_workers=2
 )
 
 model = GeniepathLazyEncoder(

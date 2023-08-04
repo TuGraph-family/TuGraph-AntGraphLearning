@@ -19,19 +19,19 @@ void EdgeUint::Init(
 }
 
 std::shared_ptr<DenseFeatureArray> EdgeUint::GetDenseFeatureArray(
-    const std::string& f_name) const{
+    const std::string& f_name) const {
   auto find = d_f_array_.find(f_name);
   AGL_CHECK(find != d_f_array_.end());
   return find->second;
 }
 std::shared_ptr<SparseKVFeatureArray> EdgeUint::GetSparseKVArray(
-    const std::string& f_name) const{
+    const std::string& f_name) const {
   auto find = spkv_f_array_.find(f_name);
   AGL_CHECK(find != spkv_f_array_.end());
   return find->second;
 }
 std::shared_ptr<SparseKFeatureArray> EdgeUint::GetSparseKArray(
-    const std::string& f_name) const{
+    const std::string& f_name) const {
   auto find = spk_f_array_.find(f_name);
   AGL_CHECK(find != spk_f_array_.end());
   return find->second;

@@ -3,15 +3,20 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+import torch
 import numpy as np
-import torch
 
-import torch
-from torch_geometric.data import Data
-
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, SparseKSpec, NodeSpec, EdgeSpec, SubGraph, NDArray
-from agl.python.subgraph.subgraph import PySubGraph
-from agl.python.data.agl_dtype import np_to_agl_dtype, agl_dtype_to_np
+from pyagl.pyagl import (
+    AGLDType,
+    DenseFeatureSpec,
+    SparseKVSpec,
+    SparseKSpec,
+    NodeSpec,
+    EdgeSpec,
+    SubGraph,
+    NDArray,
+)
+from agl.python.data.agl_dtype import np_to_agl_dtype
 
 built_in_name = ["x", "edge_index", "agl", "edge_attr"]
 
@@ -30,8 +35,28 @@ class AGLColumn(ABC):
 
 
 class AGLMultiDenseColumn(AGLColumn):
-    def __init__(self, name: str, dim: int, dtype: np.dtype, in_sep: str = ",", out_sep: str = " ", concat: bool = True,
-                 enable_c_decode: bool = True):
+    def __init__(
+        self,
+        name: str,
+        dim: int,
+        dtype: np.dtype,
+        in_sep: str = ",",
+        out_sep: str = " ",
+        concat: bool = True,
+        enable_c_decode: bool = True,
+    ):
+        """a data record may store some dense feature in one column.
+        AGLMultiDenseColumn is used to decode data in such format
+
+        Args:
+            name(str):  column name
+            dim(int): dimension of dense feature
+            dtype(np.dtype): data type of the dense feature
+            in_sep(str): separator within a dense feature
+            out_sep(str): separator between different dense feature
+            concat(bool): whether plain concat different dense features
+            enable_c_decode(bool): Decode with c backend if True, otherwise using python decode
+        """
         assert name not in built_in_name
         self._name = name
         self._dim = dim
@@ -46,6 +71,15 @@ class AGLMultiDenseColumn(AGLColumn):
         return self._name
 
     def decode(self, data, **kwargs):
+        """enable_c_decode is True call c decode function, otherwise call python decode
+
+        Args:
+            data:   related column of data records
+            **kwargs: for further usage, not used now
+
+        Returns: np nd array, element_num * feature_dim
+
+        """
         if self._enable_c_decode:
             res = self._c_decode(data, **kwargs)
             return res
@@ -59,16 +93,28 @@ class AGLMultiDenseColumn(AGLColumn):
                 if isinstance(data[0], bytes):
                     # 如果是 bytes (encoded by utf-8 ), 调用 multi_dense_decode_bytes 方法，zero copy 的传入到 c++
                     from pyagl.pyagl import multi_dense_decode_bytes
+
                     data_bytesarray = [bytearray(data_t) for data_t in data]
-                    res = multi_dense_decode_bytes(data_bytesarray, self._out_sep, self._in_sep, self._dim,
-                                                   np_to_agl_dtype[self._dtype])
+                    res = multi_dense_decode_bytes(
+                        data_bytesarray,
+                        self._out_sep,
+                        self._in_sep,
+                        self._dim,
+                        np_to_agl_dtype[self._dtype],
+                    )
                     # list -> batch_size * np.array (element_size * dim)
                     res_np_array_list = [np.array(res_i) for res_i in res]
                 elif isinstance(data[0], str):
                     # 如果是 str, 使用 pybind11 copy 的方式传入到c++. (for 循环 encode 相当于在 python 层copy 效率较低)
                     from pyagl.pyagl import multi_dense_decode_string
-                    res = multi_dense_decode_string(data, self._out_sep, self._in_sep, self._dim,
-                                                    np_to_agl_dtype[self._dtype])
+
+                    res = multi_dense_decode_string(
+                        data,
+                        self._out_sep,
+                        self._in_sep,
+                        self._dim,
+                        np_to_agl_dtype[self._dtype],
+                    )
                     res_np_array_list = [np.array(res_i) for res_i in res]
                 else:
                     raise NotImplementedError("only support str or bytes")
@@ -76,7 +122,9 @@ class AGLMultiDenseColumn(AGLColumn):
                 if self._concat:
                     final_result = np.concatenate(res_np_array_list, axis=0)
                     final_result = final_result.reshape(-1, self._dim)
-                    return torch.as_tensor(final_result)  # as_tensor 如果是numpy 会 call from_numpy. won't copy
+                    return torch.as_tensor(
+                        final_result
+                    )  # as_tensor 如果是numpy 会 call from_numpy. won't copy
                 else:
                     raise NotImplementedError("only support flat concat now!")
 
@@ -93,10 +141,15 @@ class AGLMultiDenseColumn(AGLColumn):
                     # 处理每条样本的逻辑
                     if isinstance(data_t, bytes):
                         # 每条样本里面可能有多个dense, 而且数量不固定
-                        data_splited = data_t.split(self._out_sep.encode('utf-8'))
+                        data_splited = data_t.split(self._out_sep.encode("utf-8"))
                         one_result = []
                         for data_s_t in data_splited:
-                            data_list = list(map(self._dtype, data_s_t.split(self._in_sep.encode('utf-8'))))
+                            data_list = list(
+                                map(
+                                    self._dtype,
+                                    data_s_t.split(self._in_sep.encode("utf-8")),
+                                )
+                            )
                             assert len(data_list) == self._dim
                             one_result.append(data_list)
                         result.append(one_result)
@@ -104,7 +157,9 @@ class AGLMultiDenseColumn(AGLColumn):
                         data_splited = data_t.split(self._out_sep)
                         one_result = []
                         for data_s_t in data_splited:
-                            data_list = list(map(self._dtype, data_s_t.split(self._in_sep)))
+                            data_list = list(
+                                map(self._dtype, data_s_t.split(self._in_sep))
+                            )
                             assert len(data_list) == self._dim
                             one_result.append(data_list)
                         result.append(one_result)
@@ -112,16 +167,27 @@ class AGLMultiDenseColumn(AGLColumn):
                         raise NotImplementedError("only support str or bytes")
                 if self._concat:
                     import itertools
+
                     flattened_lst = list(itertools.chain.from_iterable(result))
                     final_result = np.asarray(flattened_lst)  # won't copy
                     final_result = final_result.reshape(-1, self._dim)
-                    return torch.as_tensor(final_result)  # as_tensor 如果是numpy 会 call from_numpy. won't copy
+                    return torch.as_tensor(
+                        final_result
+                    )  # as_tensor 如果是numpy 会 call from_numpy. won't copy
         else:
             raise NotImplementedError("now only support list")
 
 
 class AGLDenseColumn(AGLColumn):
     def __init__(self, name: str, dim: int, dtype: np.dtype, sep: str = " "):
+        """
+
+        Args:
+            name(str): feature name
+            dim(int):  feature dimension
+            dtype(np.dtype): feature dtype
+            sep(str): separator used split feature
+        """
         assert name not in built_in_name
         self._name = name
         self._dim = dim
@@ -133,12 +199,23 @@ class AGLDenseColumn(AGLColumn):
         return self._name
 
     def decode(self, data, **kwargs):
+        """
+
+        Args:
+            data:   related column of data records
+            **kwargs: for further usage, not used now
+
+        Returns: np nd array, element_num * feature_dim
+
+        """
         if isinstance(data, List):
             if len(data) > 0:
                 result = []
                 for data_t in data:
                     if isinstance(data_t, bytes):
-                        data_list = list(map(self._dtype, data_t.split(self._sep.encode('utf-8'))))
+                        data_list = list(
+                            map(self._dtype, data_t.split(self._sep.encode("utf-8")))
+                        )
                     elif isinstance(data_t, str):
                         data_list = list(map(self._dtype, data_t.split(self._sep)))
                     else:
@@ -146,13 +223,20 @@ class AGLDenseColumn(AGLColumn):
                     assert len(data_list) == self._dim
                     result.append(data_list)
                 result = np.asarray(result)  # won't copy
-                return torch.as_tensor(result)  # as_tensor 如果是numpy 会 call from_numpy. won't copy
+                return torch.as_tensor(
+                    result
+                )  # as_tensor 如果是numpy 会 call from_numpy. won't copy
         else:
             raise NotImplementedError("now only support list")
 
 
 class AGLRowColumn(AGLColumn):
     def __init__(self, name):
+        """
+
+        Args:
+            name:  feature name
+        """
         self._name = name
 
     @property
@@ -160,21 +244,35 @@ class AGLRowColumn(AGLColumn):
         return self._name
 
     def decode(self, data, **kwargs):
+        """
+
+        Args:
+            data:   related column of data records
+            **kwargs: for further usage, not used now
+
+        Returns: return data input directly
+
+        """
         return data
 
 
 # todo AGLHomoGraphFeatureColumn is not ready for use
 class AGLHomoGraphFeatureColumn(AGLColumn):
-    def __init__(self, name: str, node_spec: NodeSpec, edge_spec: EdgeSpec,
-                 x_name: str = None,
-                 edge_attr_name: str = None,
-                 need_node_and_edge_num: bool = False,
-                 ego_edge_index: bool = False
-                 ):
+    def __init__(
+        self,
+        name: str,
+        node_spec: NodeSpec,
+        edge_spec: EdgeSpec,
+        x_name: str = None,
+        edge_attr_name: str = None,
+        need_node_and_edge_num: bool = False,
+        ego_edge_index: bool = False,
+    ):
         assert name not in built_in_name
         if ego_edge_index and need_node_and_edge_num:
             raise NotImplementedError(
-                "now the options ego_edge_index and need_node_and_edge_num are mutually exclusive!")
+                "now the options ego_edge_index and need_node_and_edge_num are mutually exclusive!"
+            )
         self._name = name
         self._node_spec = node_spec
         self._edge_spec = edge_spec

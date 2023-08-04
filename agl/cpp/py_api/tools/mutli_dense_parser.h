@@ -1,12 +1,12 @@
 #ifndef AGL_MUTLI_DENSE_PARSER_H
 #define AGL_MUTLI_DENSE_PARSER_H
 
-#include <sstream>
+#include <chrono>
 #include <iostream>
 #include <memory>
-#include <string>
-#include <chrono>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 
 #include "base_data_structure/dtype.h"
 
@@ -41,7 +41,6 @@ class StringToNumberParser {
             int64_t rs_i = std::stol(num_str);
             auto* dst_ptr = reinterpret_cast<int64_t*>(dst_data_);
             dst_ptr[element_i_ * dim_ + i] = rs_i;
-            // std::cout << ">>>> " << element_i_ * dim_ + i << " res is:" << rs_i << " str is:" << num_str << "\n";
             break;
           }
           case AGLDType::FLOAT: {
@@ -60,11 +59,15 @@ class StringToNumberParser {
             AGL_CHECK(false) << "Not supported dtype, AGLDType::" << dtype_
                              << " str is:" << num_str;
         }
-        // todo 后面需要把 AGL_CHECK 以及 c++ 层的异常转换为python层的异常，防止core 出现
-      } catch(const std::invalid_argument &e) {
+        // todo 后面需要把 AGL_CHECK 以及 c++
+        // 层的异常转换为python层的异常，防止core 出现
+      } catch (const std::invalid_argument& e) {
         // dirty code. 目前的原因是 转换失败报错不够明显
-        AGL_CHECK(false) << " Error: " << e.what() << "， maybe stoi/stol/stof/stod failed. dtype is AGLDType::"<< dtype_ << ", str is:" << num_str << "\n";
-      } catch(const std::string& s) {
+        AGL_CHECK(false)
+            << " Error: " << e.what()
+            << "， maybe stoi/stol/stof/stod failed. dtype is AGLDType::"
+            << dtype_ << ", str is:" << num_str << "\n";
+      } catch (const std::string& s) {
         AGL_CHECK(false) << s << "\n";
       }
       i++;
@@ -81,6 +84,6 @@ class StringToNumberParser {
   AGLDType dtype_;
 };
 
-}
+}  // namespace agl
 
 #endif  // AGL_MUTLI_DENSE_PARSER_H

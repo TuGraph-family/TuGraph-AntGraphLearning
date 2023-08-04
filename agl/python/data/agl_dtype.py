@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # coding: utf-8
 
-import numpy as np
 from enum import Enum
 from collections import namedtuple
 from typing import *
+
+import numpy as np
 
 from pyagl.pyagl import AGLDType
 
@@ -36,8 +37,9 @@ class AGLDTypeHelper(Enum):
         return self.value.c_dtype
 
 
-np_to_agl_dtype: Dict[type, AGLDType] = {item.np_dtype: item.c_dtype for item in AGLDTypeHelper}
-agl_dtype_to_np: Dict[AGLDType, type] = {item.c_dtype: item.np_dtype for item in AGLDTypeHelper}
-
-
-
+np_to_agl_dtype: Dict[type, AGLDType] = {
+    item.np_dtype: item.c_dtype for item in AGLDTypeHelper
+}
+agl_dtype_to_np: Dict[AGLDType, type] = {
+    item.c_dtype: item.np_dtype for item in AGLDTypeHelper
+}
