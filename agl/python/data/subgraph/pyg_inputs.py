@@ -227,7 +227,7 @@ class TorchSparseFeature(TorchFeature, NamedTuple):
     # 必须在 collate function 之外使用
     # dataloader 多进程时 sparse tensor无法 pickle
     def to_dense(self):
-        self.get().to_dense()
+        return self.get().to_dense()
 
     # 考虑将下面几个方法合并成2个 from tensor/ndarray
 
