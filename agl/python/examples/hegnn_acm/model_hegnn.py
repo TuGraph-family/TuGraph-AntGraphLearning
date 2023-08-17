@@ -19,7 +19,7 @@ from agl.python.model.encoder.hegnn_encoder import HeGNNEncoder
 from agl.python.model.layer.linear import AGLLinear
 from agl.python.model.layer.initial_embedding_layer import InitialLayer
 from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
-from agl.python.data.mutli_graph_feature_collate import MultiGraphFeatureCollate
+from agl.python.data.multi_graph_feature_collate import MultiGraphFeatureCollate
 
 
 class SplitGraphFeatures:
