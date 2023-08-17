@@ -58,8 +58,8 @@ class GeniePathPPIModel(torch.nn.Module):
 
 def main():
     # step 1: 构建dataset
-    train_file_name = "ppi_subgraph_train_0530.txt"
-    test_file_name = "ppi_subgraph_test_0530.txt"
+    train_file_name = "ppi_train_docker.csv"
+    test_file_name = "ppi_test_docker.csv"
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     train_file_name = os.path.join(script_dir, train_file_name)
@@ -67,37 +67,52 @@ def main():
 
     train_data_set = AGLTorchMapBasedDataset(
         train_file_name,
-        format="txt",
-        has_schema=False,
-        schema=["graph_id", "roots_id", "graph_feature", "labels"],
+        format="csv",
+        has_schema=True,
+        schema=[
+            "seed",
+            "graph_feature",
+            "node_id_list",
+            "label_list",
+            "train_flag_list",
+        ],
+        column_sep=",",
     )
     test_data_set = AGLTorchMapBasedDataset(
         test_file_name,
-        format="txt",
-        has_schema=False,
-        schema=["graph_id", "roots_id", "graph_feature", "labels"],
+        format="csv",
+        has_schema=True,
+        schema=[
+            "seed",
+            "graph_feature",
+            "node_id_list",
+            "label_list",
+            "train_flag_list",
+        ],
+        column_sep=",",
     )
 
     # step 2: 构建collate function
     # node related spec
     node_spec = NodeSpec("default", AGLDType.STR)
-    node_spec.AddDenseSpec(
-        "dense_feature", DenseFeatureSpec("dense_feature", 50, AGLDType.FLOAT)
-    )
+    node_spec.AddDenseSpec("feature", DenseFeatureSpec("feature", 50, AGLDType.FLOAT))
     # edge related spec
     edge_spec = EdgeSpec("default", node_spec, node_spec, AGLDType.STR)
 
-    label_column = AGLMultiDenseColumn(name="labels", dim=121, dtype=np.int64)
-    root_id_column = AGLRowColumn(name="roots_id")
-    graph_id_column = AGLRowColumn(name="graph_id")
+    label_column = AGLMultiDenseColumn(
+        name="label_list", dim=121, dtype=np.int64, in_sep=" ", out_sep="\t"
+    )
+    root_id_column = AGLRowColumn(name="node_id_list")
+    graph_id_column = AGLRowColumn(name="seed")
+    train_flag_column = AGLRowColumn(name="train_flag_list")
     my_collate = AGLHomoCollateForPyG(
         node_spec,
         edge_spec,
-        columns=[label_column, root_id_column, graph_id_column],
-        label_name="labels",
+        columns=[label_column, root_id_column, graph_id_column, train_flag_column],
+        label_name="label_list",
         ego_edge_index=True,
         hops=3,
-        uncompress=False,
+        uncompress=True,
     )
 
     # step 3: 构建 dataloader
@@ -122,7 +137,7 @@ def main():
 
     # step 4: 模型相关以及训练与测试
     model = GeniePathPPIModel(
-        feats_dims={"dense_feature": 50},
+        feats_dims={"feature": 50},
         hidden_dim=256,
         out_dim=121,
         n_hops=3,
