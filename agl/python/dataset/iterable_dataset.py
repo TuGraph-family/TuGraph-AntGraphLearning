@@ -2,6 +2,8 @@ import numpy as np
 from typing import List
 
 import torch
+import pyarrow as pa
+import pyarrow.csv as csv
 import pyarrow.dataset as ds
 from torch.utils.data import IterableDataset
 from torch.utils.data import get_worker_info
@@ -47,11 +49,25 @@ class AGLIterableDataset(IterableDataset):
         self._file = file
         self._schema = schema
         self._batch_size = batch_size
-        self._dataset = ds.dataset(self._file, format=format)
+        self._dataset = self._build_dataset(format)#ds.dataset(self._file, format=format)
         self._total_rows = self._dataset.count_rows()
         self._valid_columns()
         self._workload_dict = {}
+    def _build_dataset(self, format: str):
+        column_types = {}
+        if self._schema is None:
+            dataset = ds.dataset(self._file, format=format)
+            s = dataset.schema
+            column_types = {field.name: pa.string() for field in s}
+        else:
+            column_types = {field: pa.string() for field in self._schema}
 
+        if format == "csv":
+            convert_options = csv.ConvertOptions(column_types=column_types)
+            custom_csv_format = ds.CsvFileFormat(convert_options=convert_options)
+            return ds.dataset(self._file, format=custom_csv_format)
+        else:
+            raise NotImplementedError
     def _valid_columns(self):
         if self._schema is None:
             pass
