@@ -1,8 +1,5 @@
-import os
-from typing import List, Tuple, Optional, Union, Dict
-import numpy
 import time
-from sklearn import metrics
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -10,32 +7,31 @@ from torch.utils.data import DataLoader
 
 from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.collate import AGLHomoCollateForPyG
-from agl.python.data.column import AGLDenseColumn, AGLRowColumn, AGLMultiDenseColumn
+from agl.python.data.column import AGLDenseColumn, AGLRowColumn
 from agl.python.model.encoder.drgst import DRGSTEncoder
-from agl.python.data.subgraph.pyg_inputs import TorchSubGraphBatchData
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, SparseKSpec, NodeSpec, EdgeSpec, SubGraph, NDArray
+from pyagl.pyagl import (
+    AGLDType,
+    DenseFeatureSpec,
+    SparseKVSpec,
+    SparseKSpec,
+    NodeSpec,
+    EdgeSpec,
+    SubGraph,
+    NDArray,
+)
 
 
 class DRGSTModel(torch.nn.Module):
-    def __init__(
-            self,
-            feats_dim: int,
-            hidden_dim: int,
-            out_dim: int,
-            k_hops: int
-    ):
+    def __init__(self, feats_dim: int, hidden_dim: int, out_dim: int, k_hops: int):
         super().__init__()
 
         # encoder layer
         self._encoder = DRGSTEncoder(
-            feats_dim=feats_dim,
-            hidden_dim=hidden_dim,
-            out_dim=out_dim,
-            k_hops=k_hops
+            feats_dim=feats_dim, hidden_dim=hidden_dim, out_dim=out_dim, k_hops=k_hops
         )
 
     def forward(self, subgraph):
-        features = subgraph.n_feats.features['sparse_kv'].get().to_dense()
+        features = subgraph.n_feats.features["sparse_kv"].get().to_dense()
         output = self._encoder(subgraph, features)
         return output
 
@@ -61,8 +57,8 @@ def weighted_cross_entropy(ig, preds, labels, beta, num_class):
     return loss
 
 
-def information_gain(model, data_loader, ig, config, device, seed_name='seed'):
-    out_list = torch.zeros([config[1], config[0], config[2]])
+def information_gain(model, data_loader, ig, config, device, seed_name="seed"):
+    out_list = torch.zeros([config[1], config[0], config[2]]).to(device)
     model.reset_dropout(config[5])
     out_list = torch.tensor(out_list, dtype=torch.float32)
     with torch.no_grad():
@@ -83,7 +79,9 @@ def information_gain(model, data_loader, ig, config, device, seed_name='seed'):
     return ig
 
 
-def generate_pseudo_label(model, data_loader, pseudo_mask, pseudo_labels, config, device, seed_name='seed'):
+def generate_pseudo_label(
+    model, data_loader, pseudo_mask, pseudo_labels, config, device, seed_name="seed"
+):
     threshold = config[3]
     with torch.no_grad():
         for j, data in enumerate(data_loader):
@@ -116,84 +114,94 @@ def main():
 
     # train data set, val data set and test data set
     train_data_set = AGLTorchMapBasedDataset(
-        train_file_name,
-        has_schema=True,
-        column_sep=','
+        train_file_name, has_schema=True, column_sep=","
     )
     val_data_set = AGLTorchMapBasedDataset(
-        val_file_name,
-        has_schema=True,
-        column_sep=','
+        val_file_name, has_schema=True, column_sep=","
     )
     test_data_set = AGLTorchMapBasedDataset(
-        test_file_name,
-        has_schema=True,
-        column_sep=','
+        test_file_name, has_schema=True, column_sep=","
     )
     unlabel_data_set = AGLTorchMapBasedDataset(
-        unlabel_file_name,
-        has_schema=True,
-        column_sep=','
+        unlabel_file_name, has_schema=True, column_sep=","
     )
 
     # step 2: 构建collate function
     # node related spec
     node_spec = NodeSpec("default", AGLDType.STR)
-    node_spec.AddSparseKVSpec("sparse_kv", SparseKVSpec("sparse_kv", 3703, AGLDType.INT64, AGLDType.FLOAT))
+    node_spec.AddSparseKVSpec(
+        "sparse_kv", SparseKVSpec("sparse_kv", 3703, AGLDType.INT64, AGLDType.FLOAT)
+    )
     # edge related spec
     edge_spec = EdgeSpec("default", node_spec, node_spec, AGLDType.STR)
 
     graph_id_column = AGLDenseColumn(name="seed", dim=1, dtype=np.int64)
     root_id_column = AGLRowColumn(name="node_id")
     label_column = AGLDenseColumn(name="label", dim=6, dtype=np.int64, sep=" ")
-    train_flag_column = AGLRowColumn(name='train_flag')
+    train_flag_column = AGLRowColumn(name="train_flag")
 
-    my_collate = AGLHomoCollateForPyG(node_spec, edge_spec,
-                                      columns=[graph_id_column, root_id_column, label_column, train_flag_column],
-                                      graph_feature_name="graph_feature", label_name="label", hops=2, uncompress=True)
+    my_collate = AGLHomoCollateForPyG(
+        node_spec,
+        edge_spec,
+        columns=[graph_id_column, root_id_column, label_column, train_flag_column],
+        graph_feature_name="graph_feature",
+        label_name="label",
+        hops=2,
+        uncompress=True,
+    )
 
     # step 3: 构建 dataloader
     # train loader
-    train_loader = DataLoader(dataset=train_data_set,
-                              batch_size=128,
-                              shuffle=True,
-                              collate_fn=my_collate,
-                              num_workers=3,
-                              persistent_workers=True)
+    train_loader = DataLoader(
+        dataset=train_data_set,
+        batch_size=128,
+        shuffle=True,
+        collate_fn=my_collate,
+        num_workers=3,
+        persistent_workers=True,
+    )
 
-    val_loader = DataLoader(dataset=val_data_set,
-                            batch_size=500,
-                            shuffle=True,
-                            collate_fn=my_collate,
-                            num_workers=3,
-                            persistent_workers=True)
+    val_loader = DataLoader(
+        dataset=val_data_set,
+        batch_size=500,
+        shuffle=True,
+        collate_fn=my_collate,
+        num_workers=3,
+        persistent_workers=True,
+    )
 
-    test_loader = DataLoader(dataset=test_data_set,
-                             batch_size=1000,
-                             shuffle=False,
-                             collate_fn=my_collate,
-                             num_workers=3,
-                             persistent_workers=True)
+    test_loader = DataLoader(
+        dataset=test_data_set,
+        batch_size=1000,
+        shuffle=False,
+        collate_fn=my_collate,
+        num_workers=3,
+        persistent_workers=True,
+    )
 
-    unlabel_loader = DataLoader(dataset=unlabel_data_set,
-                                batch_size=500,
-                                shuffle=True,
-                                collate_fn=my_collate,
-                                num_workers=3,
-                                persistent_workers=True)
+    unlabel_loader = DataLoader(
+        dataset=unlabel_data_set,
+        batch_size=500,
+        shuffle=True,
+        collate_fn=my_collate,
+        num_workers=3,
+        persistent_workers=True,
+    )
 
     # step 4: 模型相关以及训练与测试
     model = DRGSTModel(feats_dim=3703, hidden_dim=128, out_dim=6, k_hops=2)
     print(model)
-    model_path = 'model.pth'
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    model_path = "model.pth"
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     print("in device: ", device)
     loss_op = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 
     # pseudo label 相关变量
     pseudo_mask = torch.zeros(num_node).to(device)
-    pseudo_labels = torch.tensor([-1 for _ in range(num_node)], dtype=torch.int64).to(device)
+    pseudo_labels = torch.tensor([-1 for _ in range(num_node)], dtype=torch.int64).to(
+        device
+    )
     ig = torch.zeros(num_node).to(device)
 
     def run(data_loader, model, train_sign=False):
@@ -222,15 +230,20 @@ def main():
             model.train()
             for j, data in enumerate(unlabel_loader):
                 data = data.to(device)
-                seed = data.other_feats['seed'].squeeze()
+                seed = data.other_feats["seed"].squeeze()
                 if torch.sum(pseudo_mask[seed]) == 0:
                     break
                 optimizer.zero_grad()
                 preds = model(data)
                 preds = preds[data.root_index][torch.where(pseudo_mask[seed])[0]]
                 label = pseudo_labels[seed][torch.where(pseudo_mask[seed])[0]]
-                loss = weighted_cross_entropy(ig[seed][torch.where(pseudo_mask[seed])[0]], preds, label, config[4],
-                                              num_class)
+                loss = weighted_cross_entropy(
+                    ig[seed][torch.where(pseudo_mask[seed])[0]],
+                    preds,
+                    label,
+                    config[4],
+                    num_class,
+                )
                 loss.backward()
                 optimizer.step()
             train_loss, train_acc, model = run(train_loader, model, True)
@@ -241,7 +254,9 @@ def main():
             # print(f"epoch {epoch}, training loss:{train_loss:.4f}, training acc:{train_acc:.4f},"
             #       f"val loss:{val_loss:.4f}, val acc:{val_acc:.4f}, time_cost:{t2 - t1:.4f}")
             if val_loss < best_loss:
-                torch.save(model.state_dict(), model_path, _use_new_zipfile_serialization=False)
+                torch.save(
+                    model.state_dict(), model_path, _use_new_zipfile_serialization=False
+                )
                 best_loss = val_loss
                 bad_counter = 0
             else:
@@ -267,11 +282,12 @@ def main():
         model.load_state_dict(state_dict)
         model.to(device)
         model.eval()
-        pseudo_mask, pseudo_labels = generate_pseudo_label(model, unlabel_loader, pseudo_mask, pseudo_labels, config,
-                                                           device)
+        pseudo_mask, pseudo_labels = generate_pseudo_label(
+            model, unlabel_loader, pseudo_mask, pseudo_labels, config, device
+        )
         model.train()
         ig = information_gain(model, unlabel_loader, ig, config, device)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
