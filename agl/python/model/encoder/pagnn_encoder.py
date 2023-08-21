@@ -9,6 +9,7 @@ class PaGNNEncoder(torch.nn.Module):
     Paper: Inductive Link Prediction with Interactive Structure Learning on Attributed Graph
             https://2021.ecmlpkdd.org/wp-content/uploads/2021/07/sub_635.pdf
     """
+
     def __init__(self, node_dim: int, edge_dim: int, hidden_dim: int, n_hops: int):
         """ 
         Args:
@@ -57,6 +58,7 @@ class PaGNNBroadcast(torch.nn.Module):
     Broadcast Stage:
         Broadcast nodes to their neighbors through subgraph as to represent the structures(e.g. path counts\common neighbors)
     """
+
     def __init__(self, node_dim: int, edge_dim: int, hidden_dim: int, n_hops: int):
         """ 
         Args:
@@ -132,7 +134,7 @@ class PaGNNBroadcast(torch.nn.Module):
         return keep_embd
 
     def forward(
-        self, subgraph: TorchSubGraphBatchData, node_feat, send_from_source: bool
+            self, subgraph: TorchSubGraphBatchData, node_feat, send_from_source: bool
     ):
         """
         Inputs:
@@ -149,7 +151,9 @@ class PaGNNBroadcast(torch.nn.Module):
         device = node_embd.device
 
         source_nodes = root_nodes[:, 0] if send_from_source else root_nodes[:, 1]
-        bi_edges = edges_index
+        bi_edges = torch.cat(
+            (torch.cat((edges_index[0], edges_index[1]), 0), torch.cat((edges_index[1], edges_index[0]), 0)),
+            -1).reshape(2, -1)
         indices = torch.unique(bi_edges, dim=1)
         values = torch.ones(indices.shape[1]).to(device)
         adj = torch.sparse_coo_tensor(indices, values, [num_nodes, num_nodes])
@@ -178,6 +182,7 @@ class PaGNNAggregation(torch.nn.Module):
     Aggregation Stage:
         Aggregation neighbors representations(updating with broadcast stage) through gnn
     """
+
     def __init__(self, node_dim: int, edge_dim: int, hidden_dim: int, n_hops: int):
         """ 
         Args:
@@ -197,11 +202,11 @@ class PaGNNAggregation(torch.nn.Module):
         )
 
     def forward(
-        self,
-        subgraph: TorchSubGraphBatchData,
-        node_feat,
-        send_embd: torch.Tensor,
-        agg_by_source: bool,
+            self,
+            subgraph: TorchSubGraphBatchData,
+            node_feat,
+            send_embd: torch.Tensor,
+            agg_by_source: bool,
     ):
         """
         Inputs:
