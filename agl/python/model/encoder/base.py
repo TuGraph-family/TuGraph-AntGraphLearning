@@ -11,7 +11,7 @@ class AGLAlgorithm(torch.nn.Module):
         you should call such function in your subclass
 
         Args:
-            subgraph: Union[TorchEgoBatchData, TorchSubGraphBatchData], include edge_index, node_feat, edge_feat et.al.
+            subgraph: Union[TorchEgoBatchData, TorchSubGraphBatchData], include edge_index, node_feat, edge_feat et al.
             node_x: initialized node feat, that is,
                     transformation (such as linear transformation) over original node feats
             edge_x: initialized edge feat, that is,

@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #ifndef AGL_OPENSOURCE_NDARRAY_H
 #define AGL_OPENSOURCE_NDARRAY_H
 
@@ -8,6 +21,9 @@
 
 namespace agl {
 
+// A simple yet fundamental container used to store graph information such as
+// adjacency and feature data. It is also used for transferring data between C++
+// and Python based on the buffer protocol in Pybind11.
 class NDArray {
  public:
   NDArray(int rows, int cols, AGLDType dtype)
@@ -37,9 +53,14 @@ class NDArray {
   NDArray& operator=(const NDArray&) = delete;
 
  private:
+  // data type
   AGLDType dtype_;
+  // a continues memory block with size
+  // m_rows_*m_cols_*GetDtypeSize(dtype_)
   void* data_;
+  // num of rows
   int m_rows_;
+  // num of cols
   int m_cols_;
 };
 

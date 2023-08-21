@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #include "internal/feature_initer.h"
 
 namespace agl {
@@ -31,7 +44,8 @@ void SparseKVFeatureArrayIniter::Init() {
   indptr_data[0] = 0;
 
   if (total_feat_count == 0) {
-    total_feat_count = 1;  // 特殊处理，如果一个key val 也没有，填充0，0的元素
+    // bad case: if there's no any key val, fill 0,0
+    total_feat_count = 1;
   }
 
   auto keys = std::make_shared<NDArray>(total_feat_count, 1, key_type);
@@ -55,8 +69,8 @@ SparseKFeatureArrayIniter::SparseKFeatureArrayIniter(
       key_type(key_type) {}
 
 void SparseKFeatureArrayIniter::Init() {
-  // todo, 如果key是非数值类型暂时不支持
-  AGL_CHECK(key_type != AGLDType::STR);
+  AGL_CHECK(key_type != AGLDType::STR)
+      << "do not support string key now";
   // note index offset should keep the same as torch/numpy
   auto indptr =
       std::make_shared<NDArray>(element_count + 1, 1, GetDTypeFromT<IdDType>());
@@ -79,7 +93,7 @@ void CSRIniter::Init() {
   indptr_data[0] = 0;
   auto indices =
       std::make_shared<NDArray>(nnz_num, 1, GetDTypeFromT<IdDType>());
-  auto data = std::shared_ptr<NDArray>(nullptr);  // 暂时不需要提供
+  auto data = std::shared_ptr<NDArray>(nullptr);
   adj->Init(rows, cols, ind_ptr, indices, data);
 }
 

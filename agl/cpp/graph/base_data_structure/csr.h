@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #ifndef AGL_CSR_H
 #define AGL_CSR_H
 #include <memory>
@@ -20,20 +33,27 @@ struct CSR {
     sorted_ = sorted;
   }
 
-  // 用于定义dense shape
-  int64_t rows_nums_ = 0;                   // n1 的数目
-  int64_t col_nums_ = 0;                    // n2 的数目
-  std::shared_ptr<NDArray> ind_ = nullptr;  // todo 初始值
+  // rows_nums_ and col_nums used to define the dense shape
+  int64_t rows_nums_ = 0;                   // n1 num
+  int64_t col_nums_ = 0;                    // n2 num
+  std::shared_ptr<NDArray> ind_ = nullptr;  // ind_ptr
   std::shared_ptr<NDArray> indices_ = nullptr;
   std::shared_ptr<NDArray> data_ =
-      nullptr;           // data index array, that is edge index
-  bool sorted_ = false;  // 指 indices 是否 排序
+      nullptr;           // data index array, such as  edge indices
+  bool sorted_ = false;  // whether indices is sorted or not
 };
 
 class CSRAdj {
-  // 对于adj 来说，ind, indices, data 都需要是 IdDType 类型
  public:
+  /**
+   * for adj matrix, data_ refers to edge indices.
+   * As a result, ind, indices and data should be IdDType
+   * @param adj : adjacency information in CSR format
+   */
   explicit CSRAdj(std::shared_ptr<CSR>& adj) : adj_(adj) {
+    AGL_CHECK(adj != nullptr);
+    AGL_CHECK(adj->ind_ != nullptr);
+    AGL_CHECK(adj->indices_ != nullptr);
     AGL_CHECK_EQUAL(adj->ind_->GetDType(), GetDTypeFromT<IdDType>());
     AGL_CHECK_EQUAL(adj->indices_->GetDType(), GetDTypeFromT<IdDType>());
     if (adj->data_ != nullptr) {
@@ -44,7 +64,7 @@ class CSRAdj {
   std::shared_ptr<CSR>& GetCSRNDArray() { return adj_; }
 
  private:
-  // csr 格式的 adj matrix
+  // adj matrix in csr format
   std::shared_ptr<CSR> adj_ = nullptr;
 };
 

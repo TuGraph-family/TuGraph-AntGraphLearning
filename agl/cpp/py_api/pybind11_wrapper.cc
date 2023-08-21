@@ -1,11 +1,22 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <chrono>
 #include <iostream>
 #include <memory>
-#include <sstream>
-#include <string>
 
 #include "base_data_structure/coo.h"
 #include "base_data_structure/csr.h"
@@ -60,7 +71,7 @@ std::vector<std::shared_ptr<NDArray>> multi_dense_decode(
   std::vector<std::shared_ptr<NDArray>> final_result(pbs.size());
 
   for (size_t i = 0; i < pbs.size(); ++i) {
-    // 第一次循环，找到element num
+    // first loop, compute element num
     std::string str(pbs[i], pbs_length[i]);
     std::istringstream iss(str);
     std::string token;
@@ -69,17 +80,17 @@ std::vector<std::shared_ptr<NDArray>> multi_dense_decode(
       element_num++;
     }
 
-    // 创建结果的 NDarray, 创建parser, 每个 element_num 一个 parser (会触发copy,
-    // 有一些overhead)
+    // create NDArray for final result with element_num computed above.
     final_result[i] = std::make_shared<NDArray>(element_num, dim, dtype);
     auto* data = final_result[i]->data();
     std::vector<std::shared_ptr<StringToNumberParser>> parsers;
-    // 第二次循环
+    // second loop
     std::string str2(pbs[i], pbs_length[i]);
     std::istringstream iss2(str);
     std::string token2;
     int j = 0;
     while (std::getline(iss2, token2, group_sep)) {
+      // create parser for each element
       parsers.push_back(std::make_shared<StringToNumberParser>(token2, sep, dim,
                                                                j, data, dtype));
       j++;
@@ -126,20 +137,21 @@ PYBIND11_MODULE(pyagl, m) {
       .def("GetRowNumber", &NDArray::GetRowNumber)
       .def("GetColNumber", &NDArray::GetColNumber)
       .def_buffer([](NDArray& nd) -> py::buffer_info {
-        // todo zdl 考虑是否用buffer的方式支持zero
-        // copy，由于这些内容实际上是c++端subgraph的成员变量 大概率是 readonly
-        // 的，而 torch tensor 没有只读的概念。 目前使用numpy array warpper
-        // 这个buffer的时候采用copy的方式 也即 np.array(NDArray) 而没有使用
-        // np.array(NDArray, copy=False)
+        // todo (zdl) now use buffer protocol to exchange data from c++ to
+        // python
         return py::buffer_info(
-            nd.data(),                                  /* Pointer to buffer */
-            GetDtypeSize(nd.GetDType()),       /* Size of one scalar */
-            PyBufferFormatAccodingAGLDtype(
-                nd.GetDType()),                       /* Python struct-style format descriptor */
-            2,                                         /* Number of dimensions */
-            {nd.GetRowNumber(), nd.GetColNumber()}, /* Buffer dimensions */
-            {GetDtypeSize(nd.GetDType()) *
-                 nd.GetColNumber(),                         /* Strides (in bytes) for each index */
+            // Pointer to buffer
+            nd.data(),
+            // Size of one scalar
+            GetDtypeSize(nd.GetDType()),
+            // Python struct-style format descriptor
+            PyBufferFormatAccodingAGLDtype(nd.GetDType()),
+            // Number of dimensions
+            2,
+            // Buffer dimensions
+            {nd.GetRowNumber(), nd.GetColNumber()},
+            // Strides (in bytes) for each index
+            {GetDtypeSize(nd.GetDType()) * nd.GetColNumber(),
              GetDtypeSize(nd.GetDType())});
       });
 
@@ -157,7 +169,7 @@ PYBIND11_MODULE(pyagl, m) {
       .def("GetData",
            [](std::shared_ptr<CSR>& myself) { return myself->data_; });
 
-  // todo：考虑是否直接为 CSRAdj 添加相应的 get fcun
+  // CSRAdj
   py::class_<CSRAdj, std::shared_ptr<CSRAdj>>(m, "CSRAdj")
       .def_property_readonly("row_num",
                              [](std::shared_ptr<CSRAdj>& myself) {
@@ -197,6 +209,7 @@ PYBIND11_MODULE(pyagl, m) {
       .def("GetEdgeIndex",
            [](std::shared_ptr<COO>& myself) { return myself->data_; });
 
+  // COOAdj
   py::class_<COOAdj, std::shared_ptr<COOAdj>>(m, "COOAdj")
       .def_property_readonly("row_num",
                              [](std::shared_ptr<COOAdj>& myself) {
@@ -295,8 +308,6 @@ PYBIND11_MODULE(pyagl, m) {
       .def("GetKeyDtype", &SparseKSpec::GetKeyDtype);
 
   // node spec
-  // todo : 考虑 Get 方法是否有必要，目前 unordered_map 通过 pybind11 隐式转换为
-  // Python dict
   py::class_<NodeSpec, std::shared_ptr<NodeSpec>>(m, "NodeSpec")
       .def(py::init<const std::string&, AGLDType>())
       .def("AddDenseSpec", &NodeSpec::AddDenseSpec)
@@ -309,7 +320,6 @@ PYBIND11_MODULE(pyagl, m) {
       .def("GetNodeName", &NodeSpec::GetNodeName);
 
   // edge spec
-  // todo: 考虑是否有必要把 api 都透传到python 层
   py::class_<EdgeSpec, std::shared_ptr<EdgeSpec>>(m, "EdgeSpec")
       .def(py::init<const std::string, const std::shared_ptr<NodeSpec>&,
                     const std::shared_ptr<NodeSpec>&, AGLDType>())
@@ -329,6 +339,18 @@ PYBIND11_MODULE(pyagl, m) {
       .def(py::init<>())
       .def("AddNodeSpec", &SubGraph::AddNodeSpec)
       .def("AddEdgeSpec", &SubGraph::AddEdgeSpec)
+      // edge level get function adj and feature array
+      .def("GetEdgeIndexCSR", &SubGraph::GetEdgeIndexCSR)
+      .def("GetEdgeDenseFeatureArray", &SubGraph::GetEdgeDenseFeatureArray)
+      .def("GetEdgeSparseKVArray", &SubGraph::GetEdgeSparseKVArray)
+      .def("GetEdgeSparseKArray", &SubGraph::GetEdgeSparseKArray)
+      // node level get function
+      .def("GetNodeDenseFeatureArray", &SubGraph::GetNodeDenseFeatureArray)
+      .def("GetNodeSparseKVArray", &SubGraph::GetNodeSparseKVArray)
+      .def("GetNodeSparseKArray", &SubGraph::GetNodeSparseKArray)
+      .def("GetRootIds", &SubGraph::GetRootIds)
+      .def("GetNodeNumPerSample", &SubGraph::GetNodeNumPerSample)
+      .def("GetEdgeNumPerSample", &SubGraph::GetEdgeNumPerSample)
       .def(
           "CreateFromPB",
           [](std::shared_ptr<SubGraph>& myself,
@@ -344,18 +366,6 @@ PYBIND11_MODULE(pyagl, m) {
             myself->CreateFromPB(pb_char, pb_byte_length, merge, uncompress);
           },
           py::keep_alive<1, 2>())
-      // edge level get function adj and feature array
-      .def("GetEdgeIndexCSR", &SubGraph::GetEdgeIndexCSR)
-      .def("GetEdgeDenseFeatureArray", &SubGraph::GetEdgeDenseFeatureArray)
-      .def("GetEdgeSparseKVArray", &SubGraph::GetEdgeSparseKVArray)
-      .def("GetEdgeSparseKArray", &SubGraph::GetEdgeSparseKArray)
-      // node level get function
-      .def("GetNodeDenseFeatureArray", &SubGraph::GetNodeDenseFeatureArray)
-      .def("GetNodeSparseKVArray", &SubGraph::GetNodeSparseKVArray)
-      .def("GetNodeSparseKArray", &SubGraph::GetNodeSparseKArray)
-      .def("GetRootIds", &SubGraph::GetRootIds)
-      .def("GetNodeNumPerSample", &SubGraph::GetNodeNumPerSample)
-      .def("GetEdgeNumPerSample", &SubGraph::GetEdgeNumPerSample)
       .def("GetEgoEdgeIndex",
            [](std::shared_ptr<SubGraph>& myself, int hops) {
              py::gil_scoped_release release;
@@ -370,22 +380,20 @@ PYBIND11_MODULE(pyagl, m) {
              py::gil_scoped_acquire acquire;
              return res_coo_adj;
            })
-      .def(
-          "CreateFromPBBytesArray",
-          [](std::shared_ptr<SubGraph>& myself, const py::list& lst, bool merge,
-             bool uncompress) {
-            std::vector<const char*> pbs;
-            std::vector<size_t> pbs_length;
-            for (auto& byte_list : lst) {
-              if (PyByteArray_Check(byte_list.ptr())) {
-                pbs.emplace_back(PyByteArray_AsString(byte_list.ptr()));
-                pbs_length.emplace_back(PyByteArray_Size(byte_list.ptr()));
-              }
-            }
-            myself->CreateFromPB(pbs, pbs_length, merge, uncompress);
-          });
+      .def("CreateFromPBBytesArray",
+           [](std::shared_ptr<SubGraph>& myself, const py::list& lst,
+              bool merge, bool uncompress) {
+             std::vector<const char*> pbs;
+             std::vector<size_t> pbs_length;
+             for (auto& byte_list : lst) {
+               if (PyByteArray_Check(byte_list.ptr())) {
+                 pbs.emplace_back(PyByteArray_AsString(byte_list.ptr()));
+                 pbs_length.emplace_back(PyByteArray_Size(byte_list.ptr()));
+               }
+             }
+             myself->CreateFromPB(pbs, pbs_length, merge, uncompress);
+           });
 
-  // m.def("multi_dense_decode", &multi_dense_decode);
   m.def("multi_dense_decode_bytes", [](const py::list& lst, char group_sep,
                                        char sep, int dim, AGLDType dtype) {
     std::vector<const char*> pbs;

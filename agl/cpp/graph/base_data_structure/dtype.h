@@ -1,11 +1,30 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #ifndef AGL_DTYPE_H
 #define AGL_DTYPE_H
 
-#include <limits>
 #include <stdint.h>
+
+#include <limits>
+
 #include "common/safe_check.h"
 
 namespace agl {
+// data type of all kind ids for output: int64_t
+// such as index in adj matrix
+#define IdDType int64_t
+
 enum AGLDType : int {
   UNKNOWN = 0,
   INT8 = 1,
@@ -25,15 +44,7 @@ enum AGLDType : int {
   DType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 
-// id 使用的数据类型, e.g.:
-// mapping 后的数据类型
-// adj 中 index 使用的数据类型
-// 特征索引使用的数据类型
-// 对应的 AGLDType 是 AGLDType::INT64
-#define IdDType int64_t
-
-
-inline int GetDtypeSize(const AGLDType& type){
+inline int GetDtypeSize(const AGLDType& type) {
   switch (type) {
     case INT8:
       return sizeof(int8_t);
@@ -61,38 +72,30 @@ inline int GetDtypeSize(const AGLDType& type){
   }
 }
 
-template<class T>
+template <class T>
 AGLDType GetDTypeFromT() {
   if (std::is_same<T, std::string>::value) {
     return AGLDType::STR;
-  }
-  else if (std::is_same<T, uint64_t>::value) {
+  } else if (std::is_same<T, uint64_t>::value) {
     return AGLDType::UINT64;
-  }
-  else if (std::is_same<T, int64_t>::value) {
+  } else if (std::is_same<T, int64_t>::value) {
     return AGLDType::INT64;
-  }
-  else if (std::is_same<T, int32_t>::value) {
+  } else if (std::is_same<T, int32_t>::value) {
     return AGLDType::INT32;
-  }
-  else if (std::is_same<T, uint32_t>::value) {
+  } else if (std::is_same<T, uint32_t>::value) {
     return AGLDType::UINT32;
-  }
-  else if (std::is_same<T, int16_t>::value) {
+  } else if (std::is_same<T, int16_t>::value) {
     return AGLDType::INT16;
-  }
-  else if (std::is_same<T, uint16_t>::value) {
+  } else if (std::is_same<T, uint16_t>::value) {
     return AGLDType::UINT16;
-  }
-  else if (std::is_same<T, double>::value) {
-      return AGLDType::DOUBLE;
-  }
-  else if (std::is_same<T, float>::value) {
+  } else if (std::is_same<T, double>::value) {
+    return AGLDType::DOUBLE;
+  } else if (std::is_same<T, float>::value) {
     return AGLDType::FLOAT;
   }
   AGL_CHECK(false) << "Can not get dtype";
 }
 
-}
+}  // namespace agl
 
 #endif  // AGL_DTYPE_H

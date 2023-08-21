@@ -13,12 +13,12 @@ bash "${PROJECT_DIR}"/third_party/dependency.sh
 bash "${PROJECT_DIR}"/script/cpp_build.sh
 
 # setp 3: build wheel
-time sh "${PROJECT_DIR}"/script/python_build.sh
+time bash "${PROJECT_DIR}"/script/python_build.sh
 
 # and install wheel
-time sh "${PROJECT_DIR}"/script/python_install.sh
+time bash "${PROJECT_DIR}"/script/python_install.sh
 
 # cpp and python ut
-time sh "${PROJECT_DIR}"/script/cpp_ut.sh 2>&1 | tee "$TEST_RESULT_DIR"/cpp_ut.log
+time bash "${PROJECT_DIR}"/script/cpp_ut.sh 2>&1 | tee "$TEST_RESULT_DIR"/cpp_ut.log
 
-time sh "${PROJECT_DIR}"/script/python_ut.sh 2>&1 | tee "$TEST_RESULT_DIR"/python_ut.log
+time bash "${PROJECT_DIR}"/script/python_ut.sh 2>&1 | tee "$TEST_RESULT_DIR"/python_ut.log

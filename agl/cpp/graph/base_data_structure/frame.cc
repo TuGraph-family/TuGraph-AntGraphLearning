@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #include "base_data_structure/frame.h"
 
 #include <algorithm>
@@ -80,7 +93,8 @@ void FillCOOWithEdgeInfo(shared_ptr<NDArray>& n1_nd, shared_ptr<NDArray>& n2_nd,
     int seed_num = seed_nodes.size();
     try {
       while (status_flag) {
-        int i_begin = index.fetch_add(10);  // 每个线程计算10个偏移量
+        // every ten offset computation as a task
+        int i_begin = index.fetch_add(10);
         if (i_begin > seed_num) break;
         int end_tmp = i_begin + 10;
         int i_end = end_tmp > seed_num ? seed_num : end_tmp;
@@ -96,7 +110,7 @@ void FillCOOWithEdgeInfo(shared_ptr<NDArray>& n1_nd, shared_ptr<NDArray>& n2_nd,
                           dst_offset_end - dst_offset_begin);
           // copy from src to dst
           for (size_t j = 0; j < n2_src_end - n2_src_begin; ++j) {
-            int64_t src_index = n2_src_begin + j;  // 也是 edge index
+            int64_t src_index = n2_src_begin + j;  // also means edge index
             int dst_index = dst_offset_begin + j;
             n1_nd_dst[dst_index] = n1_id;
             n2_nd_dst[dst_index] = n2_src_ptr[src_index];
@@ -143,12 +157,11 @@ void UnitFrame::Init() {
   int64_t row_whole = csr_nd_whole->rows_nums_;
   int64_t col_whole = csr_nd_whole->col_nums_;
   vector<int> num_of_edges(total_n1_num, 0);
-  // step 1: 计算和 seed nodes 相关的 edge 数目
-  // todo 是否不用多线程也可以? 需要计算的内容非常简单
+  // step 1: compute number of neighbor edges for each seed nodes
   CountEdges(num_of_edges, seed_vec, csr_nd_whole, row_whole, col_whole);
-  // step 2: 根据num of edges 计算偏移量，方便生成 COO matrix
+  // step 2: compute offset of neighbor edges for each seed nodes
   ComputeVectorOffset(num_of_edges);
-  // step 3: 根据 csr 进行一跳的遍历，填充当前Frame
+  // step 3: fill the unit frame according to csr adjacent matrix
   int total = num_of_edges[num_of_edges.size() - 1];
   auto nd_n1_ind =
       std::make_shared<NDArray>(total, 1, GetDTypeFromT<IdDType>());
@@ -156,14 +169,14 @@ void UnitFrame::Init() {
       std::make_shared<NDArray>(total, 1, GetDTypeFromT<IdDType>());
   auto nd_edge_ind =
       std::make_shared<NDArray>(total, 1, GetDTypeFromT<IdDType>());
-  // step 3.1: 填充 COO matrix
+  // step 3.1: fill edge information for this hop, three NDArray
   FillCOOWithEdgeInfo(nd_n1_ind, nd_n2_ind, nd_edge_ind, seed_vec, csr_nd_whole,
                       num_of_edges, row_whole);
-  // step 3.2 创建COO对象
+  // step 3.2 Create COO according to those NDArrays
   auto coo_res = std::make_shared<COO>(row_whole, col_whole, nd_n1_ind,
                                        nd_n2_ind, nd_edge_ind);
   edges_for_seeds_ = coo_res;
-  // step 3.2 对dst 节点进行去重操作
+  // step 3.2 unique the n2_node for next hop
   unordered_set<int64_t> unique_set;
   n2_nodes_ = std::make_shared<std::vector<int64_t>>();
   auto& unique_vec = *n2_nodes_;
@@ -194,25 +207,23 @@ Frame::Frame(
     edges_[e_name] = std::shared_ptr<COOAdj>(new COOAdj(coo));
   }
 
-  // todo: 生成 next_nodes 可能有性能问题：
-  // (1) unique_set bucket, 用小锁 + 多线程进行加速
-  unordered_set<std::string> condidate_next_name;
+  unordered_set<std::string> candidate_next_name;
   for (auto& n2_uf_pair : n2_to_uf) {
     auto& n2_name = n2_uf_pair.first;
-    condidate_next_name.insert(n2_name);
+    candidate_next_name.insert(n2_name);
   }
 
   if (add_seed_to_next) {
     for (auto& seed_pair : seed_nodes_) {
       auto& name = seed_pair.first;
-      condidate_next_name.insert(name);
+      candidate_next_name.insert(name);
     }
   }
 
-  for (auto& n_name : condidate_next_name) {
+  for (auto& n_name : candidate_next_name) {
     auto& unique_vec = next_nodes_[n_name];
     unordered_set<int64_t> unique_set;
-    // 将 seed 里面的id 添加进去， 如果需要
+    // add seed as part of seed in next round if need
     if (add_seed_to_next) {
       auto find_seed = seed_nodes_.find(n_name);
       if (find_seed != seed_nodes_.end()) {
@@ -221,7 +232,7 @@ Frame::Frame(
       }
     }
 
-    // 将 n2 node的id 添加进去
+    // add n2 id
     auto find_n2 = n2_to_uf.find(n_name);
     if (find_n2 != n2_to_uf.end()) {
       auto& uf_ptr_vec = find_n2->second;

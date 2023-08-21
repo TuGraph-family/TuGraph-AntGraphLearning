@@ -1,26 +1,19 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-find_package (PythonLibs 3.6)
-#set(PYTHON_LIBRARIES "/opt/conda/lib/libpython3.8.so")
-
-
+# find python package
+find_package(PythonLibs 3.6)
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
 # libpb_cpp.a
-include(ExternalProject)
-ExternalProject_Get_property(protobuf BINARY_DIR)
-ExternalProject_Get_property(protobuf SOURCE_DIR)
-ExternalProject_Get_property(protobuf INSTALL_DIR)
-set(protobuf_BINARY_DIR ${BINARY_DIR})
-set(protobuf_SOURCE_DIR ${SOURCE_DIR})
-set(protobuf_INSTALL_DIR ${INSTALL_DIR})
-message(STATUS "bindir:${protobuf_BINARY_DIR}, srcdir:${protobuf_SOURCE_DIR}, install_dir:${protobuf_INSTALL_DIR}")
+set(THIRDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party")
+set(protobuf_INSTALL_DIR "${THIRDPARTY_DIR}/protobuf/protobuf_install")
+message(STATUS "protobuf_INSTALL_DIR = ${protobuf_INSTALL_DIR}")
 
 set(PROTO_FILE_DIR "${PROJECT_SOURCE_DIR}/agl/proto")
 FILE(GLOB PROTO_FILES "${PROTO_FILE_DIR}/*.proto")
 
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/agl/cpp/proto)
-    # 如果不存在 cpp/proto 目录，则创建该目录
+if (NOT EXISTS ${PROJECT_SOURCE_DIR}/agl/cpp/proto)
+    # if cpp/proto does not exist, then create it.
     FILE(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/agl/cpp/proto)
-endif()
+endif ()
 
 FOREACH (PROTO_FILE ${PROTO_FILES})
     STRING(REGEX REPLACE "[.]proto$" ".pb.cc" OUTPUT_SOURCE ${PROTO_FILE})
@@ -32,18 +25,18 @@ ENDFOREACH ()
 add_custom_command(OUTPUT ${OUTPUT_SOURCES}
         COMMAND ${protobuf_INSTALL_DIR}/bin/protoc -I ${PROTO_FILE_DIR} --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/proto ${PROTO_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS protobuf ${PROTO_FILES})
+        DEPENDS ${PROTO_FILES})
 add_library(pb_cpp STATIC ${OUTPUT_SOURCES})
 target_include_directories(
         pb_cpp PUBLIC
         ${protobuf_INSTALL_DIR}/include
 )
+
 target_link_directories(
         pb_cpp PUBLIC
-        ${protobuf_INSTALL_DIR}/lib64
+        ${protobuf_INSTALL_DIR}/lib
 )
 
-set(THIRDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party")
 
 set(DEPENDENCE_DYNAMIC_LIB dl z)
 
@@ -66,7 +59,7 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/graph/base_data_structure
         ${CMAKE_CURRENT_SOURCE_DIR}/graph/features
         ${THIRDPARTY_DIR}/boost/boost_install/include
-        ${THIRDPARTY_DIR}/output/protobuf/include
+        ${protobuf_INSTALL_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/py_api/tools/
         ${pybind11_INCLUDE_DIRS}
 )
@@ -74,7 +67,7 @@ target_link_directories(
         agl PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${THIRDPARTY_DIR}/boost/boost_install/lib
-        ${THIRDPARTY_DIR}/output/protobuf/lib64
+        ${protobuf_INSTALL_DIR}/lib
 )
-add_dependencies(agl pb_cpp protobuf)
+add_dependencies(agl pb_cpp)
 

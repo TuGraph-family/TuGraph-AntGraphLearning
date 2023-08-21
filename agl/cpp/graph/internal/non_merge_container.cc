@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #include "internal/non_merge_container.h"
 
 namespace {
@@ -37,7 +50,8 @@ void ResizeAccordingSpec(
 
 int GetIdNumFromPB(const agl::proto::graph_feature::IDs& ids,
                    const AGLDType& id_dtype) {
-  // Note: 可能会不存储 raw id，因此使用 optional inum 记录一个batch 有多少 ids
+  // Note: raw id may not be stored in protobuf, therefore, we use an optional
+  // variable inum to record how many ids in this pb
   if (ids.has_inum()) {
     return ids.inum();
   } else {
@@ -93,7 +107,6 @@ void SetFeatureCountWithPBInfo(
   for (auto& df_pair : features.dfs()) {
     auto& f_name = df_pair.first;
     auto& feat = df_pair.second;
-    // todo check feat dim 和 dense spec 中的是否一致 ?
     auto find_df_spec = dense_spec.find(f_name);
     auto& spec = find_df_spec->second;
     auto find_df = dense_count.find(f_name);
@@ -104,32 +117,39 @@ void SetFeatureCountWithPBInfo(
   for (auto& sp_kv_pair : features.sp_kvs()) {
     auto& f_name = sp_kv_pair.first;
     auto& feat = sp_kv_pair.second;
-    // todo 是否需要spec 进行check
     auto find_sp_kv = sp_kv_count.find(f_name);
     auto& count = find_sp_kv->second;
     auto& offset = feat.lens();
-    count[index] =
-        offset.value(offset.value_size() - 1);  // 最后一个元素表示整体的长度
+    // the last element of offset means the total length
+    count[index] = offset.value(offset.value_size() - 1);
   }
   // step 3: sparse k
   for (auto& sp_k_pair : features.sp_ks()) {
     auto& f_name = sp_k_pair.first;
     auto& feat = sp_k_pair.second;
-    // todo 是否需要spec 进行check
     auto find_sp_k = sp_k_count.find(f_name);
     auto& count = find_sp_k->second;
     auto& offset = feat.lens();
-    count[index] =
-        offset.value(offset.value_size() - 1);  // 最后一个元素表示整体的长度
+    // the last element of offset means the total length
+    count[index] = offset.value(offset.value_size() - 1);
   }
 }
 
+/**
+ * transform length of each element as offset of each element
+ * @param src : vector<int> length for each element
+ */
 void ComputeVectorOffset(std::vector<int>& src) {
   for (size_t i = 1; i < src.size(); ++i) {
     src[i] = src[i] + src[i - 1];
   }
 }
 
+/**
+ * for every key(string) val(vector<int>) pair
+ * transform length of each element as offset of each element
+ * @param map_src : string -> vector<int>,  length for each element
+ */
 void CountMapOffset(
     std::unordered_map<std::string, std::vector<int>>& map_src) {
   for (auto& pair : map_src) {
@@ -145,6 +165,7 @@ NonMergeNodeInfo::NonMergeNodeInfo(
   auto dense_spec = my_node_spec->GetDenseFeatureSpec();
   auto sp_kv_spec = my_node_spec->GetSparseKVSpec();
   auto sp_k_spec = my_node_spec->GetSparseKSpec();
+  // To avoid using locks, resize the container initially.
   ResizeAccordingSpec(pb_nums, dense_spec, sp_kv_spec, sp_k_spec, element_num_,
                       dense_count_, sparse_kv_count_, sparse_k_count_,
                       d_f_array_, spkv_f_array_, spk_f_array_);
@@ -152,7 +173,7 @@ NonMergeNodeInfo::NonMergeNodeInfo(
 
 void NonMergeNodeInfo::SetElementNum(const agl::proto::graph_feature::IDs& ids,
                                      const AGLDType& id_dtype, int index) {
-  // 根据 index 区分，无需加锁
+  // As the container is initially resized, there is no need to use locks.
   element_num_[index] = GetIdNumFromPB(ids, id_dtype);
 }
 
@@ -190,19 +211,17 @@ NonMergeEdgeInfo::NonMergeEdgeInfo(
 void NonMergeEdgeInfo::SetElementNum(
     const agl::proto::graph_feature::Edges& edges, const AGLDType& id_dtype,
     int index) {
-  // 根据 index 区分，无需加锁
   if (edges.has_eids()) {
-    // 如果有 eids, 直接根据 eids 的长度进行确认
+    // if protobuf has eids, directly use its length as edge num
     element_num_[index] = GetIdNumFromPB(edges.eids(), id_dtype);
-  } else {
-    if (edges.has_coo()) {
-      // 如果是 coo 格式，n1_indices 和 n2_indices 都是一样的
-      element_num_[index] = edges.coo().n1_indices().value_size();
-    } else if (edges.has_csr()) {
-      // 如果是 csr 格式，根据 nbrs_indices的长度确定，也可以根据 indptr
-      // 最后一位确认
-      element_num_[index] = edges.csr().nbrs_indices().value_size();
-    }
+  } else if (edges.has_coo()) {
+    // if protobuf don't have eids but have coo edges
+    // compute edge num according to n1_indices' size
+    element_num_[index] = edges.coo().n1_indices().value_size();
+  } else if (edges.has_csr()) {
+    // if protobuf don't have eids and the edge format is CSR,
+    // compute edge num according to nbrs_indices' size
+    element_num_[index] = edges.csr().nbrs_indices().value_size();
   }
 }
 

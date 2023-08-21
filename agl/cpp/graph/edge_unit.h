@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #ifndef AGL_EDGE_UNIT_H
 #define AGL_EDGE_UNIT_H
 #include <memory>
@@ -13,10 +26,10 @@
 
 namespace agl {
 
-/**
- * 一种类型（异构类型）边的特征容器，取特征的index就是mapping 后边的id
- * @tparam T
- */
+// The minimal unit for a specific category of edges.
+// It mainly contains adjacency data and feature arrays for this kind of edges.
+// IDs are re-mapped and serve as the subscript of features.
+// Now we don't store either raw IDs or ID mappings.
 class EdgeUint {
  public:
   void Init(
@@ -38,16 +51,8 @@ class EdgeUint {
   std::shared_ptr<CSRAdj> GetCSRAdj();
 
  private:
-  // 如果 csr是排序好的，那么由csr 生成的 coo
-  // 一定是排好序的，因此，考虑只支持csr格式的外部数据
   std::shared_ptr<CSRAdj> csr_ptr_;
-  // coo_ptr 进行 lazy init
-  std::shared_ptr<COOAdj> coo_ptr_;
 
-  // 特征们按照 CSR中的顺序排布
-  // csr 第一维 是从 0 ~ dst_nodes_num 数目个偏移量
-  // 第二维是 nnz 数目个src nodes, 第一，二维展开后的结果的顺序就是边的编号
-  // 然后边的特征顺序排布按照这个顺序
   std::unordered_map<std::string, std::shared_ptr<DenseFeatureArray>>
       d_f_array_;
   std::unordered_map<std::string, std::shared_ptr<SparseKVFeatureArray>>

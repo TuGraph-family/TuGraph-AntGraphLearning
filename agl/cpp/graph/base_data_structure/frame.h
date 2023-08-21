@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #ifndef AGL_FRAME_H
 #define AGL_FRAME_H
 #include <memory>
@@ -10,9 +23,12 @@
 
 namespace agl {
 
-// 一种类型的边对应的 Frame
-// 记录一种边对应的 seeds nodes, 根据 seeds nodes 进行 bfs 得到的边，以及 unique
-// n2 nodes
+// Neighborhoods that span only one hop based on a specific kind of edges with
+// seed nodes of a certain type.
+// contains:
+// (1) seed nodes, (n1 nodes)
+// (2) one hop edges (a certain kind) of those seed nodes
+// (3) neighbor nodes of those seed nodes (maybe seed nodes for next hop)
 class UnitFrame {
  public:
   UnitFrame(const std::string& n1_name, const std::string& n2_name,
@@ -31,30 +47,39 @@ class UnitFrame {
   std::shared_ptr<std::vector<IdDType>>& GetN2Nodes() { return n2_nodes_; }
 
  private:
-  // init with follow:
+  // init with follows:
   std::string n1_name_;
   std::string n2_name_;
   std::string edge_name_;
-  std::shared_ptr<std::vector<IdDType>> seed_nodes_;  // n1
-  std::shared_ptr<CSRAdj> edges_whole_;
+  std::shared_ptr<std::vector<IdDType>> seed_nodes_;  // n1 nodes
+  std::shared_ptr<CSRAdj> edges_whole_;  // all edges with name edge_name_
 
-  // generate follow:
+  // generate follows:
+  // unique neighbor nodes of seed nodes
   std::shared_ptr<std::vector<IdDType>> n2_nodes_;
-  // 只筛选出特定数目的 edge, 再使用 csr 似乎没有必要
+  // neighbor edges of seed nodes spanned on $edge_name_$ edge
   std::shared_ptr<COO> edges_for_seeds_;
 };
 
-// 用于描述 one hop graph
-// 包含:
-// (1)当前graph 的 root nodes (n1 nodes)
-// (2)当前 graph 的各种 edges
-// (3)当前graph 的 n2 nodes (可以作为下一跳的 root nodes)
-
-// 是否需要每种类型的边，一个 Frame?
-// 当前的考虑是不用，主要原因是一种类型的seed nodes 可能产生多种类型的边，
-// 如果每种一个Frame, seed nodes 可能会存储多份
+// One hop Graph with different type of seed nodes and edges.
+// contains:
+// (1) different kinds of seed nodes
+// (2) one hop edges of those seed nodes
+// (3) neighbor nodes of those seed nodes (maybe seed nodes for next hop)
 class Frame {
  public:
+  /***
+   * usage: first, generate UnitFrame, record edge_name_to_unit_frame
+   * and node2_name_to_unit_frame to merge different unit_frames
+   *
+   * @param seed_nodes : different kinds of seed nodes
+   * @param e_to_uf : edge_name -> unit frame. for edge with type $edge name$,
+   *                  we may have a unit frame.
+   * @param n2_to_uf : node2_name -> unit frame.  Note different unit frame
+   *                   may have same n2_name, we would merge them at first.
+   * @param add_seed_to_next : bool, whether adding seed nodes as seed for next
+   * hop
+   */
   Frame(std::unordered_map<std::string, std::vector<IdDType>> seed_nodes,
         std::unordered_map<std::string, std::shared_ptr<UnitFrame>>& e_to_uf,
         std::unordered_map<std::string,

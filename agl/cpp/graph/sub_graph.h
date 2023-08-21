@@ -1,35 +1,55 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #ifndef AGL_SUB_GRAPH_H
 #define AGL_SUB_GRAPH_H
 #include <memory>
 #include <string>
 #include <unordered_map>
 
+#include "base_data_structure/frame.h"
 #include "edge_unit.h"
 #include "node_unit.h"
-#include "base_data_structure/frame.h"
 #include "spec/unit_spec.h"
 
-class IDMapping;
-
 namespace agl {
+// a container contains different type nodes, edges, and their features.
+// you may use it as follows:
+//  auto sg_ptr = unique_ptr<SubGraph>(new SubGraph());
+//  sg_ptr->AddNodeSpec(n_name, node_spec);
+//  sg_ptr->AddEdgeSpec(e_name, edge_spec);
+//  sg_ptr->CreateFromPB(xxx)
+// Then you can use get function to get information like adj,
+// node feature, edge feature from it.
 class SubGraph {
  public:
-
   void AddNodeSpec(const std::string& n_name,
                    const std::shared_ptr<NodeSpec>& spec);
   void AddEdgeSpec(const std::string& e_name,
                    const std::shared_ptr<EdgeSpec>& spec);
 
   /**
-   * 简化版 merge case, 全融合（去重）的方式进行解析或者 全不去重的方式解析
-   * @param pbs ： pbs
-   * @param merge : 是否要做去重处理
-   * @param uncompress: 是否需要解压
+   * create subgraph from pb strings
+   * @param pbs : protobuf strings,  use vector<char*> to avoid copy
+   * @param pb_length : length for each pb strings
+   * @param merge : now only support disjoint merge. that is merge = false
+   * @param uncompress : whether we should uncompress those strings at first
    */
-  void CreateFromPB(const std::vector<const char*>& pbs, const std::vector<size_t>& pb_length, bool merge,
+  void CreateFromPB(const std::vector<const char*>& pbs,
+                    const std::vector<size_t>& pb_length, bool merge,
                     bool uncompress);
 
-  // 一系列的 Get 逻辑
+  // a set of get functions
   std::shared_ptr<CSRAdj> GetEdgeIndexCSR(const std::string& e_name) const;
 
   std::shared_ptr<Frame> GetEdgeIndexOneHop(
@@ -70,7 +90,8 @@ class SubGraph {
       const;
 
  private:
-  void CreateFromPBNonMerge(const std::vector<const char*>& pbs, const std::vector<size_t>& pb_length,
+  void CreateFromPBNonMerge(const std::vector<const char*>& pbs,
+                            const std::vector<size_t>& pb_length,
                             bool uncompress);
 
  private:
@@ -78,23 +99,19 @@ class SubGraph {
   int ego_hops_;
 
   bool merge_ = false;
-  // node and edge unit, id是经过mapping后的，特征是存储在连续内存块的
+  // node and edge unit, features are stored in continuous memory blocks,
+  // and IDs serve as the subscript of features
+  // todo(zdl) Now we don't store either raw IDs or ID mappings.
   // node name -> node unit
   std::unordered_map<std::string, std::shared_ptr<NodeUint>> nodes_;
   // edge name -> edge unit
   std::unordered_map<std::string, std::shared_ptr<EdgeUint>> edges_;
 
-  // root ids:
-  // std::unordered_map<std::string, std::shared_ptr<RootNodeUnit>> root_ids_;
-  // n_name -> pb_nums -> root_num
+  // root IDs:
+  // n_name -> sample (pb) -> root IDs
   std::unordered_map<std::string, std::vector<std::vector<IdDType>>> root_ids_;
 
-  // id mapping, 在某些情况下，可能是需要原始id的
-  std::unordered_map<std::string, std::shared_ptr<IDMapping>> node_id_mappings_;
-  std::unordered_map<std::string, std::shared_ptr<IDMapping>>
-      edge_id_mappings_;  // optional
-
-  // node and edge spec， 用于做解析使用, 以及后续的check
+  // node and edge spec， for parsing protos and related valid check
   std::unordered_map<std::string, std::shared_ptr<NodeSpec>> node_specs_;
   std::unordered_map<std::string, std::shared_ptr<EdgeSpec>> edge_specs_;
   // topo node1_name <- {{node_2_name1, edge_name1}, {node_2_nameXXX,
@@ -103,9 +120,8 @@ class SubGraph {
                      std::vector<std::pair<std::string, std::string>>>
       topo_;
 
-  // if merge_ == false， 存在以下内容
-  // 主要提供以下内容，不融合的case下，每个样本中 点的数目 和 边的数目
-  // 或者偏移量
+  // if merge_ == false，
+  // provide node/edge num per sample
   std::unordered_map<std::string, std::vector<int>> n_num_per_sample_;
   std::unordered_map<std::string, std::vector<int>> e_num_per_sample_;
 };

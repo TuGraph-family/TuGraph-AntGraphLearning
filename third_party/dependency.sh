@@ -20,7 +20,8 @@ boost_dir=${base}/boost
 if [ ! -e ${boost_dir}/boost_install/success ]; then
   echo "start to compile boost"
 
-  rpm -qa | grep -qw python3-devel || yum install python3-devel -y >/dev/null 2>&1
+  # rpm -qa | grep -qw python3-devel || yum install python3-devel -y >/dev/null 2>&1
+  # apt-get install python3-devel -y >/dev/null 2>&1
 
   #C_INCLUDE_PATH=$C_INCLUDE_PATH:/usr/include/python3.6m
   #export C_INCLUDE_PATH
@@ -34,7 +35,8 @@ if [ ! -e ${boost_dir}/boost_install/success ]; then
   cd ${boost_dir}
   boost_untar_dir="${boost_dir}/boost_1_72_0"
   boost_tar="boost_1_72_0.tar.gz"
-  download_src ${boost_tar} ./
+  #download_src ${boost_tar} ./
+  wget -q https://boostorg.jfrog.io/artifactory/main/release/1.72.0/source/boost_1_72_0.tar.gz -O ${boost_tar}
   tar -zxf ${boost_tar}
   rm ${boost_tar}
   cd ${boost_untar_dir}
@@ -61,8 +63,8 @@ if [ ! -e "${gtest_dir}/success" ]; then
   if [ -f ${base}/pre_download/googletest.tar.gz ]; then
     cp ${base}/pre_download/googletest.tar.gz googletest.tar.gz
   else
-    # wget -q https://github.com/google/googletest/archive/release-1.8.1.tar.gz -O googletest.tar.gz
-    download_src googletest.tar.gz ./
+    wget -q https://github.com/google/googletest/archive/release-1.8.1.tar.gz -O googletest.tar.gz
+    #download_src googletest.tar.gz ./
   fi
   tar -zxf googletest.tar.gz
   mv googletest-release-1.8.1 googletest_source
@@ -83,3 +85,46 @@ if [ ! -e "${gtest_dir}/success" ]; then
   cd ${base}
 fi
 echo $'gtest\t\t ok'
+
+PB_NS="agl_protobuf"
+protobuf_dir=${base}/protobuf
+if [ ! -e ${protobuf_dir}/protobuf_install/success ]; then
+  echo "start to compile protobuf"
+  if [ -d ${protobuf_dir} ]; then
+    rm -rf ${protobuf_dir}
+  fi
+  mkdir ${protobuf_dir}
+  cd ${protobuf_dir}
+  protobuf_url="http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/open_agl_deps%2Fprotobuf%2Fv3.20.3.tar.gz"
+  # "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.20.3.tar.gz" # network problem
+  protobuf_untar_dir="${protobuf_dir}/protobuf-3.20.3"
+  if [ -f ${base}/pre_download/protobuf.tar.gz ]; then
+    cp ${base}/pre_download/protobuf.tar.gz protobuf.tar.gz
+  else
+    wget ${protobuf_url} -O protobuf.tar.gz
+    #download_src protobuf.tar.gz ./
+  fi
+  tar -zxf protobuf.tar.gz
+  rm protobuf.tar.gz
+  cd ${protobuf_untar_dir}
+
+  mkdir -p ${protobuf_dir}/protobuf_install/build
+  cd ${protobuf_dir}/protobuf_install/build
+
+  cmake -Dprotobuf_BUILD_SHARED_LIBS:BOOL=OFF \
+    -Dprotobuf_BUILD_TESTS:BOOL=OFF \
+    -Dprotobuf_WITH_ZLIB:BOOL=ON \
+    -Dprotobuf_MSVC_STATIC_RUNTIME:BOOL=OFF \
+    -DCMAKE_INSTALL_PREFIX:PATH=${protobuf_dir}/protobuf_install \
+    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
+    -DCMAKE_CXX_STANDARD=11 \
+    -DCMAKE_CXX_FLAGS="-Dprotobuf=${PB_NS}" \
+    ${protobuf_untar_dir}/cmake
+  make -j8
+  make install
+  ln -s ${protobuf_dir}/protobuf_install/lib64 ${protobuf_dir}/protobuf_install/lib
+  touch ${protobuf_dir}/protobuf_install/success
+  rm -rf ${protobuf_untar_dir}
+  cd ${base}
+fi
+echo $'protobuf\t ok'

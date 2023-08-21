@@ -46,13 +46,15 @@ class AGLIterableDataset(IterableDataset):
         and thus should not be set in Dataloader
 
         """
+        assert format == "csv"
         self._file = file
         self._schema = schema
         self._batch_size = batch_size
-        self._dataset = self._build_dataset(format)#ds.dataset(self._file, format=format)
+        self._dataset = self._build_dataset(format)
         self._total_rows = self._dataset.count_rows()
         self._valid_columns()
         self._workload_dict = {}
+
     def _build_dataset(self, format: str):
         column_types = {}
         if self._schema is None:
@@ -68,6 +70,7 @@ class AGLIterableDataset(IterableDataset):
             return ds.dataset(self._file, format=custom_csv_format)
         else:
             raise NotImplementedError
+
     def _valid_columns(self):
         if self._schema is None:
             pass

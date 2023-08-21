@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #include "sub_graph.h"
 
 namespace agl {
@@ -16,11 +29,11 @@ void SubGraph::AddEdgeSpec(const std::string& e_name,
   auto find = edge_specs_.find(e_name);
   AGL_CHECK(find == edge_specs_.end())
       << "edge spec with name:" << e_name << " already exists!";
-  // 保存spec
+  // add spec to edge_specs_
   edge_specs_[e_name] = spec;
-  // 创建 e_name 对应的 edge unit
+  // create empty edge unit w.r.t. e_name
   edges_[e_name] = std::make_shared<EdgeUint>();
-  // 根据spec信息创建topo
+  // add edge topology to topo_
   const auto& n1_name = spec->GetN1Name();
   const auto& n2_name = spec->GetN2Name();
   topo_[n1_name].push_back({n2_name, e_name});
@@ -125,11 +138,12 @@ std::shared_ptr<Frame> SubGraph::GetEdgeIndexOneHop(
       auto csr_adj = GetEdgeIndexCSR(edge_name);
       auto u_frame_ptr = std::make_shared<UnitFrame>(name, n2_name, edge_name,
                                                      seed_vec_ptr, csr_adj);
-      // todo 后续考虑多线程（进程）处理。
-      // 目前异构类型较少的情况下，直接for循环，init（）本身是多线程的
+      // todo(zdl) may use multi-thead to speed up following process
+      // Note: Init() now is implemented with multi-thead
       u_frame_ptr->Init();
       e_to_unit_frame[edge_name] = u_frame_ptr;
-      // 方便具有相同 dst 节点的 unit frame, 需要对 next seed nodes 做去重
+      // for unit frame with same n2_name, use a map to collect them
+      // to unique seed nodes for the next hop
       n2_to_unit_frame[n2_name].push_back(u_frame_ptr);
     }
   }

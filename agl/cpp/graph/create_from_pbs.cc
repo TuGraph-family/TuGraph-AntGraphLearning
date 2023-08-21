@@ -1,3 +1,16 @@
+/**
+ * Copyright 2023 AntGroup CO., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
 #include <google/protobuf/arena.h>
 
 #include <atomic>
@@ -33,17 +46,19 @@ void CheckFeatureValid(
     const unordered_map<string, shared_ptr<SparseKVSpec>>& sp_kv_spec,
     const unordered_map<string, shared_ptr<SparseKSpec>>& sp_k_spec,
     const Features& features, const string& unit_name) {
-  // todo (zdl) 目前约定如果缺失 node/edge unit, proto 里面会有一个空的 Nodes,
-  // Edges 因此特征的 check 遵循以下原则：proto 中存在的必须做check, proto
-  // 不存在的则作为数据缺失处理
-  // 1. check dense
+  // Check Rule:
+  // if a feature exists in proto, we should check it with spec information.
+  // if a feature does not exist in proto but appears in spec, we treat is as
+  // data missing case.
+  // 1. check dense feature
   for (const auto& df_pair : features.dfs()) {
-    // 1.2 proto 中每种 dense 特征都必须在 spec 中找到
+    // 1.1 every dense feature in proto should be found in spec
     auto find_df = dense_spec.find(df_pair.first);
     AGL_CHECK(find_df != dense_spec.end())
         << "dense feature:" << df_pair.first << " of unit:" << unit_name
         << " in porto but not in spec";
-    // 1.3 proto 中 对应dense 的 dim 和 dtype 需要和 spec 中的match
+    // 1.2 the dimension and data type of dense feature in proto should match
+    // those information in spec
     auto& df = df_pair.second;
     auto& spec = find_df->second;
     AGL_CHECK_EQUAL(df.dim(), spec->GetDim());
@@ -90,8 +105,8 @@ void CheckFeatureValid(
       }
     }
   }
-  // 2 check sp kv
-  // proto 中的 spkv 在 spec 中必须存在
+  // 2. check sparse kv feature
+  // every sparse kv feature in proto should be found in spec
   for (const auto& sp_kv_pair : features.sp_kvs()) {
     auto find_sp_kv = sp_kv_spec.find(sp_kv_pair.first);
     AGL_CHECK(find_sp_kv != sp_kv_spec.end())
@@ -99,9 +114,9 @@ void CheckFeatureValid(
         << " in proto but not in spec";
     // todo should check dtype like dense feature
   }
-  // 3 check sp k
+  // 3. check sparse key feature
+  // every sparse key feature in proto should be found in spec
   for (const auto& sp_k_pair : features.sp_ks()) {
-    // proto 中的 spk 在 spec 中必须存在
     auto find_sp_k = sp_k_spec.find(sp_k_pair.first);
     AGL_CHECK(find_sp_k != sp_k_spec.end())
         << "sparse key feature:" << sp_k_pair.first << " of unit:" << unit_name
@@ -114,21 +129,26 @@ void CheckUnitValid(
     const unordered_map<string, shared_ptr<NodeSpec>>& node_specs,
     const unordered_map<string, shared_ptr<EdgeSpec>>& edge_specs,
     const GraphFeature& graph_features) {
-  // 检查 pb 和 spec 是否能够对应上
-  // 1: pb 中的点的检查
-  // 1.1： 点的类型的数目 <= node_spec.size()，
+  // Check whether the PB and spec can be matched up.
+  // 1: Check Node information
+  // 1.1: The number of node types in PB should be equal to or less than that in
+  // node specs.
   const auto& node_map = graph_features.nodes();
   AGL_CHECK_LESS_EQUAL(node_map.size(), node_specs.size());
   for (const auto& pair : node_map) {
-    // 1.2 pb中存在的点的类型在 node spec 中都能找到, 如果找不到，则 raise error
+    // 1.2 if a kind of node (hetero type) exists in PB but can not be found in
+    // specs, then we raise error.
     auto find_n_k = node_specs.find(pair.first);
     AGL_CHECK(find_n_k != node_specs.end())
         << "node name:" << pair.first << " in proto but not in node spec";
-    // 1.3 check 点的 id dtype 和 spec 中的一致，否则报错
+    // 1.3 Ensure that the id data type in PB matches that in spec. Otherwise,
+    // raise error.
     const auto& n_spec_ptr = find_n_k->second;
     const auto& nodes_k = pair.second;
     if (nodes_k.has_nids()) {
-      // Note: 目前允许不存原始id
+      // Note: Currently, it is allowed to not store the original ID.
+      // However, if the original ID exists in PB, we should check the id data
+      // type.
       if (n_spec_ptr->GetNodeIdDtype() == AGLDType::INT64) {
         AGL_CHECK(!nodes_k.nids().has_str())
             << "node name:" << pair.first
@@ -140,24 +160,25 @@ void CheckUnitValid(
       }
     }
 
-    // 1.4:  pb中每种点（pb 含有的）的特征 和 node_spec 完全一致
-    // const auto& n_spec_ptr = find_n_k->second;
+    // 1.4:  Check node features in PB with node spec
     if (pair.second.has_features()) {
-      // 如果有 feature 则需要验证
+      // if node has features, then we check its feature with specs
       CheckFeatureValid(
           n_spec_ptr->GetDenseFeatureSpec(), n_spec_ptr->GetSparseKVSpec(),
           n_spec_ptr->GetSparseKSpec(), pair.second.features(), pair.first);
     }
   }
-  // 2: pb 中 边的检查
+  // 2: Check edge information (in PB and edge specs)
   const auto& edge_map = graph_features.edges();
   AGL_CHECK_LESS_EQUAL(edge_map.size(), edge_specs.size());
   for (const auto& pair : edge_map) {
-    // 2.1 pb中存在的点的类型在 node spec 中都能找到, 如果找不到，则raise error
+    // 2.1 The types of the nodes present in the PB should be found in node
+    // specs. Otherwise, raise error
     auto find_n_k = edge_specs.find(pair.first);
     AGL_CHECK(find_n_k != edge_specs.end())
         << "edge name:" << pair.first << " in proto but not in edge spec";
-    // 2.2 edge id dtype 需要和 spec 中配置的一致， 否则raise error
+    // 2.2 If edge id exists in PB, its data type should match that in edge
+    // spec. Otherwise, raise error
     const auto& n_spec_ptr = find_n_k->second;
     const auto& edges_k = pair.second;
     if (edges_k.has_eids()) {
@@ -171,7 +192,8 @@ void CheckUnitValid(
             << " id dtype in spce is AGLDType::STR, but pb  has u64 ids";
       }
     }
-    // 2.3 proto 中 edge 对应的两个边信息需要和spec中的一致
+    // 2.3 the node types for certain kind of edge should match that in edge
+    // spec.
     AGL_CHECK_EQUAL(edges_k.n1_name(), n_spec_ptr->GetN1Name())
         << "edge name:" << pair.first
         << " n1 name in proto is:" << edges_k.n1_name()
@@ -180,8 +202,8 @@ void CheckUnitValid(
         << "edge name:" << pair.first
         << " n2 name in proto is:" << edges_k.n2_name()
         << " != n2 name in spec:" << n_spec_ptr->GetN2Name();
-    // 1.3:  pb中每种边（pb 含有的）的特征 和 edge_spec 完全一致
-    // const auto& n_spec_ptr = find_n_k->second;
+    // 1.3: Check edge features in PB with edge spec. if node has features, then
+    // we check its feature with specs
     if (pair.second.has_features()) {
       CheckFeatureValid(
           n_spec_ptr->GetDenseFeatureSpec(), n_spec_ptr->GetSparseKVSpec(),
@@ -191,28 +213,32 @@ void CheckUnitValid(
 }
 
 void ParsePB(GraphFeature** out_pb, unique_ptr<Arena>& arena,
-             const char* gf_src, const size_t length, bool uncompress_param) {
+             const char* graph_feature_src, const size_t length,
+             bool uncompress_param) {
+  AGL_CHECK(graph_feature_src != nullptr)
+      << "graph_feature_src should not be nullptr";
+  AGL_CHECK(length > 0) << "graph_feature_src length should > 0";
   // step 1: base64 decode
-  string base64_decode_data = base64_decode(gf_src, length);
+  string base64_decode_data = base64_decode(graph_feature_src, length);
   AGL_CHECK(!base64_decode_data.empty())
-      << "base64 decode failed:" << string(gf_src, length);
+      << "base64 decode failed:" << string(graph_feature_src, length);
   string uncompress_pb;
-  // 暂时把base64_decode_data 的指针给 gf
-  string* gf = &base64_decode_data;
-  // step 2: 如果需要解压，则进行解压操作
+  // graph_feature_ptr point to base64_decode_data
+  string* graph_feature_ptr = &base64_decode_data;
+  // step 2: uncompress the graph feature (after base64 decode) if needed
   if (uncompress_param) {
     AGL_CHECK(uncompress(base64_decode_data, uncompress_pb))
-        << "uncompressed failed:" << string(gf_src, length);
-    // 如果需要解压，更新这个gf 指针指向的string
-    gf = &uncompress_pb;
+        << "uncompressed failed:" << string(graph_feature_src, length);
+    // update the pointer graph_feature_ptr
+    graph_feature_ptr = &uncompress_pb;
   }
-  // step 3:
+  // step 3: parse the graph feature
   ArenaOptions option;
-  option.start_block_size = gf->size() * 2;
+  option.start_block_size = graph_feature_ptr->size() * 2;
   arena.reset(new Arena(option));
   *out_pb = Arena::CreateMessage<GraphFeature>(arena.get());
-  AGL_CHECK((*out_pb)->ParseFromString(*gf))
-      << "PB parse failed:" << string(gf_src, length);
+  AGL_CHECK((*out_pb)->ParseFromString(*graph_feature_ptr))
+      << "PB parse failed:" << string(graph_feature_src, length);
 }
 
 void CreateNodeAndEdgeInfoContainer(
@@ -233,7 +259,6 @@ void CreateNodeAndEdgeInfoContainer(
 }
 
 void AddFeatureIniterToTheadPool(
-    // ThreadPool& pool,
     const unordered_map<string, shared_ptr<DenseFeatureSpec>>& dense_spec,
     const unordered_map<string, shared_ptr<SparseKVSpec>>& sp_kv_spec,
     const unordered_map<string, shared_ptr<SparseKSpec>>& sp_k_spec,
@@ -247,7 +272,7 @@ void AddFeatureIniterToTheadPool(
     std::unordered_map<std::string, std::shared_ptr<SparseKFeatureArray>>&
         spk_f_array,
     int element_count, vector<shared_ptr<FeatureArrayIniter>>& initers) {
-  // dense
+  // dense feature initializer
   for (auto& d_t : dense_count) {
     auto& f_name = d_t.first;
     auto& f_count_vec = d_t.second;
@@ -262,7 +287,7 @@ void AddFeatureIniterToTheadPool(
     initers.push_back(builder_ptr);
   }
 
-  // sparse kv
+  // sparse kv feature initializer
   for (auto& spkv_t : sp_kv_count) {
     auto& f_name = spkv_t.first;
     auto& f_count_vec = spkv_t.second;
@@ -277,7 +302,7 @@ void AddFeatureIniterToTheadPool(
     initers.push_back(builder_ptr);
   }
 
-  // sparse k
+  // sparse k feature initializer
   for (auto& spk_t : sp_k_count) {
     auto& f_name = spk_t.first;
     auto& f_count_vec = spk_t.second;
@@ -315,10 +340,13 @@ void ComputeOffsetAndAllocateMemory(
     unordered_map<std::string, shared_ptr<NonMergeEdgeInfo>>& edges,
     const unordered_map<string, shared_ptr<NodeSpec>>& node_specs,
     const unordered_map<string, shared_ptr<EdgeSpec>>& edge_specs) {
+  // step 1: node/edge feature initializer
   vector<shared_ptr<FeatureArrayIniter>>
-      initers;  // hold the life cycle of initers
+      initers;  // hold the life cycle of initializer
   for (auto& n_item : nodes) {
     auto& n_ptr = n_item.second;
+    // compute node offset, include node id, dense feature, sparse kv/k feature
+    // offset.
     n_ptr->ComputeOffset();
     auto spec_find = node_specs.find(n_item.first);
     AGL_CHECK(spec_find != node_specs.end());
@@ -334,11 +362,12 @@ void ComputeOffsetAndAllocateMemory(
 
   for (auto& e_item : edges) {
     auto e_ptr = e_item.second;
+    // compute edge offset, include edge id, dense feature, sparse kv/k feature
+    // offset.
     e_ptr->ComputeOffset();
     auto spec_find = edge_specs.find(e_item.first);
     AGL_CHECK(spec_find != edge_specs.end());
     auto& e_spec = spec_find->second;
-    // 处理特征
     int total_element_count =
         e_ptr->element_num_[e_ptr->element_num_.size() - 1];
     AddFeatureIniterToTheadPool(
@@ -347,13 +376,15 @@ void ComputeOffsetAndAllocateMemory(
         e_ptr->sparse_k_count_, e_ptr->d_f_array_, e_ptr->spkv_f_array_,
         e_ptr->spk_f_array_, total_element_count, initers);
   }
-  ThreadPool pool(RUNNUMBER);  // todo hard code 10 thread
+  ThreadPool pool(RUNNUMBER);  // todo hard code $RUNNUMBER thread
   for (auto& b_ptr : initers) {
     pool.AddTask([&b_ptr]() { b_ptr->Init(); });
   }
   pool.CloseAndJoin();
-  // 处理adj, adj 的计算依赖 offset 都计算完，特别是需要 n1, n2 的 offset
-  // 都计算完， 因此，单独开一个 thead pool 进行计算
+
+  // step 2: adjacency matrix initializer
+  // The calculation of adjacency matrix depends on the completion of offset
+  // calculations, especially the offsets for n1 and n2.
   vector<shared_ptr<FeatureArrayIniter>> adj_initers;
   for (auto& e_item : edges) {
     auto e_ptr = e_item.second;
@@ -378,7 +409,7 @@ void ComputeOffsetAndAllocateMemory(
         n1_total_num, n2_total_num, total_element_count, e_ptr->adj_);
     adj_initers.push_back(adj_initer);
   }
-  ThreadPool adj_pool(RUNNUMBER);  // 每种类型一个adj， 因此线程数可以不用太多
+  ThreadPool adj_pool(RUNNUMBER);
   for (auto& adj_b_ptr : adj_initers) {
     adj_pool.AddTask([&adj_b_ptr]() { adj_b_ptr->Init(); });
   }
@@ -386,7 +417,6 @@ void ComputeOffsetAndAllocateMemory(
 }
 
 void CreateAddFillerToPool(
-    // ThreadPool& pool,
     const unordered_map<string, shared_ptr<DenseFeatureSpec>>& dense_spec,
     const unordered_map<string, shared_ptr<SparseKVSpec>>& sp_kv_spec,
     const unordered_map<string, shared_ptr<SparseKSpec>>& sp_k_spec,
@@ -401,6 +431,7 @@ void CreateAddFillerToPool(
     std::unordered_map<std::string, std::shared_ptr<SparseKFeatureArray>>&
         spk_f_array,
     Features* f_pb, size_t pb_order, vector<shared_ptr<Filler>>& fillers) {
+  // Dense feature filler
   if (f_pb->dfs_size() > 0) {
     for (auto& df_pair : *(f_pb->mutable_dfs())) {
       auto& df_name = df_pair.first;
@@ -423,6 +454,7 @@ void CreateAddFillerToPool(
       fillers.push_back(builder_ptr);
     }
   }
+  // sparse kv feature filler
   if (f_pb->sp_kvs_size() > 0) {
     for (auto& spkv_pair : *(f_pb->mutable_sp_kvs())) {
       auto& name = spkv_pair.first;
@@ -448,6 +480,7 @@ void CreateAddFillerToPool(
       fillers.push_back(builder_ptr);
     }
   }
+  // sparse key feature filler
   if (f_pb->sp_ks_size() > 0) {
     for (auto& spk_pair : *(f_pb->mutable_sp_ks())) {
       auto& name = spk_pair.first;
@@ -477,23 +510,23 @@ void CreateAddFillerToPool(
 void CopyFeatureFromPBToFeatureArray(
     unordered_map<std::string, shared_ptr<NonMergeNodeInfo>>& nodes,
     unordered_map<std::string, shared_ptr<NonMergeEdgeInfo>>& edges,
-    vector<GraphFeature*>& gfs,
+    vector<GraphFeature*>& graph_features,
     const unordered_map<string, shared_ptr<NodeSpec>>& node_specs,
     const unordered_map<string, shared_ptr<EdgeSpec>>& edge_specs) {
   vector<shared_ptr<Filler>> fillers;  // hold the lifecycle of fillers
-  for (size_t i = 0; i < gfs.size(); ++i) {
-    auto* gf = gfs[i];
+  for (size_t i = 0; i < graph_features.size(); ++i) {
+    auto* gf = graph_features[i];
     // step 1: node related features
     auto* nodes_pb = gf->mutable_nodes();
     for (auto& n_pair : *nodes_pb) {
       auto& n_name = n_pair.first;
       auto& node_content = n_pair.second;
       auto* feat_ptr = node_content.mutable_features();
-      // 找到 name 对应的 NonMergeNodeInfo
+      // find NonMergeNodeInfo container with corresponding name
       auto find_static_t = nodes.find(n_name);
       AGL_CHECK(find_static_t != nodes.end());
       auto node_static_t = find_static_t->second;
-      // 找到 name 对应的 NodeSpec
+      // find NodeSpec with corresponding name
       auto find_spec = node_specs.find(n_name);
       AGL_CHECK(find_spec != node_specs.end());
       auto node_spec_t = find_spec->second;
@@ -511,11 +544,11 @@ void CopyFeatureFromPBToFeatureArray(
       auto& e_name = e_pair.first;
       auto& e_content = e_pair.second;
       auto* feat_ptr = e_content.mutable_features();
-      // 找到 name 对应的 NonMergeedgeInfo
+      // find NonMergeEdgeInfo with corresponding name
       auto find_static_t = edges.find(e_name);
       AGL_CHECK(find_static_t != edges.end());
       auto e_static_t = find_static_t->second;
-      // 找到 name 对应的 NodeSpec
+      // find EdgeSpec with corresponding name
       auto find_spec = edge_specs.find(e_name);
       AGL_CHECK(find_spec != edge_specs.end());
       auto e_spec_t = find_spec->second;
@@ -526,10 +559,9 @@ void CopyFeatureFromPBToFeatureArray(
           e_static_t->sparse_k_count_, e_static_t->d_f_array_,
           e_static_t->spkv_f_array_, e_static_t->spk_f_array_, feat_ptr, i,
           fillers);
-      // 在填充adj 的时候，并不存在依赖关系，因此可以直接填充即可
+      // There is no dependency when filling adj.
       auto& edge_offset_vec = e_static_t->element_num_;
-      int edge_position_offset =
-          i == 0 ? 0 : edge_offset_vec[i - 1];  // edge_offset_vec[i];
+      int edge_position_offset = i == 0 ? 0 : edge_offset_vec[i - 1];
       // n1 indices offset
       auto& n1_name = e_spec_t->GetN1Name();
       auto find_n1_static_info = nodes.find(n1_name);
@@ -550,7 +582,7 @@ void CopyFeatureFromPBToFeatureArray(
       fillers.push_back(builder_ptr);
     }
   }
-  ThreadPool pool(RUNNUMBER);  // todo hard code 10 thread
+  ThreadPool pool(RUNNUMBER);  // todo hard code RUNNUMBER thread
   for (auto& build_ptr : fillers) {
     pool.AddTask([&build_ptr]() { build_ptr->Fill(); });
   }
@@ -563,8 +595,6 @@ void InitNodeAndEdgeUnitByNoMergeContainer(
     std::unordered_map<std::string, std::shared_ptr<NodeUint>>& node_dst,
     std::unordered_map<std::string, std::shared_ptr<EdgeUint>>& edge_dst) {
   // init node unit with non merge node info container
-  // std::cout << "call InitNodeAndEdgeUnitByNoMergeContainer, node info size:"
-  // << nodes.size() << " edge info size:" << edges.size() << "\n";
   for (auto& node_t : nodes) {
     auto& name = node_t.first;
     auto& node_info = node_t.second;
@@ -586,7 +616,7 @@ void ParseRootInfo(
     unordered_map<std::string, vector<vector<IdDType>>>& parsed_root,
     int index) {
   if (root_info.has_subgraph()) {
-    //  todo 目前暂时只支持 node index 作为root
+    //  todo(zdl) only support node as root now.
     AGL_CHECK(root_info.subgraph().is_node())
         << " Now not support edge index as root";
     const auto& root_map = root_info.subgraph().indices();
@@ -623,10 +653,10 @@ void AddOffsetToRoots(
     auto find = nodes.find(name);
     AGL_CHECK(find != nodes.end());
     auto& node_info = find->second;
-    AGL_CHECK_EQUAL(root_all.size(),
-                    node_info->element_num_.size());  // 样本数目一致
+    // ensure number of sample should be equal
+    AGL_CHECK_EQUAL(root_all.size(), node_info->element_num_.size());
     for (size_t i = 0; i < root_all.size(); ++i) {
-      // 同一个样本中的 root id, 添加相同的偏移量
+      // root id within a same sample, apply the same offsets (disjoint merge)
       auto& vec = root_all[i];
       int offset = i == 0 ? 0 : node_info->element_num_[i - 1];
       for (size_t j = 0; j < vec.size(); ++j) {
@@ -643,73 +673,79 @@ namespace agl {
 void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs,
                                     const std::vector<size_t>& pb_length,
                                     bool uncompress) {
-  int pb_nums = pbs.size();  // 一般也认为是 sample num，方便与 label 对应
-  // 解析后，graph feature 指针
-  vector<GraphFeature*> gfs(pb_nums);
-  // 管理这些 graph feature 指针的生命周期
-  vector<unique_ptr<Arena>> batch_arena_(pb_nums);
-  // 不融合情况下，每个pb的统计信息
+  // number of pbs, also can be treated as sample num
+  int pb_nums = pbs.size();
+  // graph feature pointers after parsing pb strings into memory
+  vector<GraphFeature*> graph_features(pb_nums);
+  // use unique_ptr of Arena to manage the lifetime of those graph feature
+  // pointers.
+  vector<unique_ptr<Arena>> batch_arena(pb_nums);
+  // statistic information (container) for node and edge units in disjoint merge
+  // case
   unordered_map<std::string, shared_ptr<NonMergeNodeInfo>> nodes_statistic_info;
   unordered_map<std::string, shared_ptr<NonMergeEdgeInfo>> edges_statistic_info;
-  // unordered_map<std::string, vector<vector<IdDType>>> root_id_info;
-  // 根据 spec 信息进行初始化上述统计信息的容器
+  // initialize containers above according to node/edge specs information
   CreateNodeAndEdgeInfoContainer(pb_nums, node_specs_, edge_specs_,
                                  nodes_statistic_info, edges_statistic_info,
                                  this->root_ids_);
   std::atomic<int32_t> sample_index(0);
   std::atomic<bool> status_flag(true);
-  // step 1: 解析 pb, 并且将每个pb的统计信息放在 临时容器中
-  auto countNodeAndEdge = [this, &pbs, &pb_length, &gfs, &batch_arena_,
-                           &nodes_statistic_info, &edges_statistic_info,
-                           &uncompress, &pb_nums, &sample_index,
+  // step 1: parse pb strings and put statistic information into containers
+  // above the statistic information include: node/edge nums, feature length
+  // (dense, sparse kv, sparse key) for each node/edge
+  auto countNodeAndEdge = [this, &pbs, &pb_length, &graph_features,
+                           &batch_arena, &nodes_statistic_info,
+                           &edges_statistic_info, &uncompress, &pb_nums,
+                           &sample_index,
                            &status_flag](int64_t start, int64_t end) {
     const auto& node_specs = this->node_specs_;
     const auto& edge_specs = this->edge_specs_;
     try {
       while (status_flag) {
         int i = sample_index.fetch_add(1);
-        if (i >= pb_nums) break;  // todo 是否加 {}
+        if (i >= pb_nums) {
+          break;
+        }
+        // step 1.1: parse pb from string to pb structure
+        GraphFeature* graph_feature_i = nullptr;
+        ParsePB(&graph_feature_i, batch_arena[i], pbs[i], pb_length[i],
+                uncompress);
+        CheckUnitValid(node_specs, edge_specs, *graph_feature_i);
+        graph_features[i] = graph_feature_i;
 
-        // step 1: parse pb from string to pb structure
-        GraphFeature* gf_i = nullptr;  // todo 命名规范
-        ParsePB(&gf_i, batch_arena_[i], pbs[i], pb_length[i], uncompress);
-        CheckUnitValid(node_specs, edge_specs, *gf_i);
-        gfs[i] = gf_i;
-
-        // step 2: 更新 nodes_statistic_info 中的信息，由于预先 resize 成
-        // pb_nums 大小了，因此不用加锁
-        for (const auto& node_t : gf_i->nodes()) {
-          const auto& n_name_t = node_t.first;
-          const auto& node_info_t = node_t.second;
-          const auto& node_s_info_t = nodes_statistic_info[n_name_t];
-          auto find_spec = node_specs.find(n_name_t);
-          const auto& n_spec_t = find_spec->second;
-          // step 2.1: node num
-          node_s_info_t->SetElementNum(node_info_t.nids(),
-                                       n_spec_t->GetNodeIdDtype(), i);
-          // step 2.2: feature total length
-          node_s_info_t->SetFeatureCount(
-              node_info_t.features(), n_spec_t->GetDenseFeatureSpec(),
-              n_spec_t->GetSparseKVSpec(), n_spec_t->GetSparseKSpec(), i);
+        // step 1.2: put node related information into nodes_statistic_info
+        for (const auto& node_t : graph_feature_i->nodes()) {
+          const auto& node_name_t = node_t.first;
+          const auto& node_info_in_pb_t = node_t.second;
+          const auto& node_statistic_info_t = nodes_statistic_info[node_name_t];
+          auto find_spec = node_specs.find(node_name_t);
+          const auto& node_spec_t = find_spec->second;
+          // step 1.2.1: node num
+          node_statistic_info_t->SetElementNum(
+              node_info_in_pb_t.nids(), node_spec_t->GetNodeIdDtype(), i);
+          // step 1.2.2: feature total length
+          node_statistic_info_t->SetFeatureCount(
+              node_info_in_pb_t.features(), node_spec_t->GetDenseFeatureSpec(),
+              node_spec_t->GetSparseKVSpec(), node_spec_t->GetSparseKSpec(), i);
         }
 
-        // step 3: 更新 edge_static_info 中的信息
-        for (const auto& edge_t : gf_i->edges()) {
-          const auto& e_name_t = edge_t.first;
-          const auto& e_info_t = edge_t.second;
-          const auto& e_statistic_t = edges_statistic_info[e_name_t];
-          auto find_spec = edge_specs.find(e_name_t);
-          const auto& e_spec_t = find_spec->second;
-          // step 3.1: edge_num
-          // step 2.1: node num
-          e_statistic_t->SetElementNum(e_info_t, e_spec_t->GetEidDtype(), i);
-          // step 2.2: feature total length
-          e_statistic_t->SetFeatureCount(
-              e_info_t.features(), e_spec_t->GetDenseFeatureSpec(),
-              e_spec_t->GetSparseKVSpec(), e_spec_t->GetSparseKSpec(), i);
+        // step 1.3: put edge related information into edges_statistic_info
+        for (const auto& edge_t : graph_feature_i->edges()) {
+          const auto& edge_name_t = edge_t.first;
+          const auto& e_info_in_pb_t = edge_t.second;
+          const auto& edge_statistic_info_t = edges_statistic_info[edge_name_t];
+          auto find_spec = edge_specs.find(edge_name_t);
+          const auto& edge_spec_t = find_spec->second;
+          // step 1.3.1: edge_num
+          edge_statistic_info_t->SetElementNum(e_info_in_pb_t,
+                                               edge_spec_t->GetEidDtype(), i);
+          // step 1.3.2: feature total length
+          edge_statistic_info_t->SetFeatureCount(
+              e_info_in_pb_t.features(), edge_spec_t->GetDenseFeatureSpec(),
+              edge_spec_t->GetSparseKVSpec(), edge_spec_t->GetSparseKSpec(), i);
         }
-        // step 4: root node 信息
-        ParseRootInfo(gf_i->root(), this->root_ids_, i);
+        // step 1.4: root node information
+        ParseRootInfo(graph_feature_i->root(), this->root_ids_, i);
       }
     } catch (std::exception& e) {
       status_flag = false;
@@ -724,27 +760,30 @@ void SubGraph::CreateFromPBNonMerge(const std::vector<const char*>& pbs,
   AGL_CHECK(status_flag)
       << "Error occur in countNodeAndEdge func, see error above";
 
-  // step 2: 根据统计信息计算偏移量以及最终容器的申请
-  // 计算每个pb 中节点id的 offset, 边 id 的 offset, 方便进行 index
-  // 的映射，以及将信息填充在临界矩阵中 计算 各个特征的offset,
-  // 以及总长度，方便进行相应容器的申请
-  // step 2.1: 在计算偏移量之前，填充 node/edge num per sample
+  // step 2: Calculate the offsets and conduct memory allocation based on
+  // statistical information step 2.1: Before calculating the offsets. fill
+  // node/edge num per sample into container.
   FillNodeEdgeNumPerSample(nodes_statistic_info, edges_statistic_info,
                            n_num_per_sample_, e_num_per_sample_);
-
+  // step 2.2: Compute the offsets for each node ID and edge ID in the protobuf
+  // (PB). Implicitly perform ID mapping to fill the adjacency matrix.
+  // Additionally, calculate the offsets and total length of each feature for
+  // convenient allocation of the corresponding containers.
   ComputeOffsetAndAllocateMemory(nodes_statistic_info, edges_statistic_info,
                                  this->node_specs_, this->edge_specs_);
   // step 3:
-  // 根据偏移量信息以及最终容器的指针，将pb中的特征copy到对应的位置上
+  // copy feature from pb to corresponding containers according to the offset
+  // information
   CopyFeatureFromPBToFeatureArray(nodes_statistic_info, edges_statistic_info,
-                                  gfs, this->node_specs_, this->edge_specs_);
+                                  graph_features, this->node_specs_,
+                                  this->edge_specs_);
 
-  // step 4: 从 nodes_static_info, 以及 edges_statistic_info 中填充 node 以及
-  // edge units
+  // step 4: fill node/edge units according to
+  // nodes_static_info/edges_statistic_info
   InitNodeAndEdgeUnitByNoMergeContainer(
       nodes_statistic_info, edges_statistic_info, this->nodes_, this->edges_);
 
-  // step 5: 根据nodes_statistic_info 的偏移量，对root id index 进行偏移计算
+  // step 5: apply offset to root id, to get real root id index
   AddOffsetToRoots(nodes_statistic_info, this->root_ids_);
 }
 
