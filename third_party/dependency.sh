@@ -10,11 +10,11 @@ cd ${base}
 source ${base}/common.sh
 set -e
 
-download_src() {
-  package=$1
-  dst_dir=$2
-  wget -q http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/user/agl_deps_src/$package -O $dst_dir/$package
-}
+#download_src() {
+#  package=$1
+#  dst_dir=$2
+#  wget -q http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/user/agl_deps_src/$package -O $dst_dir/$package
+#}
 
 boost_dir=${base}/boost
 if [ ! -e ${boost_dir}/boost_install/success ]; then
@@ -36,7 +36,12 @@ if [ ! -e ${boost_dir}/boost_install/success ]; then
   boost_untar_dir="${boost_dir}/boost_1_72_0"
   boost_tar="boost_1_72_0.tar.gz"
   #download_src ${boost_tar} ./
-  wget -q https://boostorg.jfrog.io/artifactory/main/release/1.72.0/source/boost_1_72_0.tar.gz -O ${boost_tar}
+  if [ -f /agl_resource/boost_1_72_0.tar.gz ]; then
+    echo ">>>>>>>>>>> use /agl_resource/boost_1_72_0.tar.gz"
+    cp /agl_resource/boost_1_72_0.tar.gz boost_1_72_0.tar.gz
+  else
+    wget -q https://boostorg.jfrog.io/artifactory/main/release/1.72.0/source/boost_1_72_0.tar.gz -O ${boost_tar}
+  fi
   tar -zxf ${boost_tar}
   rm ${boost_tar}
   cd ${boost_untar_dir}
@@ -60,11 +65,11 @@ if [ ! -e "${gtest_dir}/success" ]; then
   fi
   mkdir -p ${gtest_dir}
   cd ${gtest_dir}
-  if [ -f ${base}/pre_download/googletest.tar.gz ]; then
-    cp ${base}/pre_download/googletest.tar.gz googletest.tar.gz
+  if [ -f /agl_resource/googletest.tar.gz ]; then
+    echo ">>>>>>>>>>> use /agl_resource/googletest.tar.gz"
+    cp /agl_resource/googletest.tar.gz googletest.tar.gz
   else
     wget -q https://github.com/google/googletest/archive/release-1.8.1.tar.gz -O googletest.tar.gz
-    #download_src googletest.tar.gz ./
   fi
   tar -zxf googletest.tar.gz
   mv googletest-release-1.8.1 googletest_source
@@ -98,11 +103,11 @@ if [ ! -e ${protobuf_dir}/protobuf_install/success ]; then
   protobuf_url="http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/open_agl_deps%2Fprotobuf%2Fv3.20.3.tar.gz"
   # "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.20.3.tar.gz" # network problem
   protobuf_untar_dir="${protobuf_dir}/protobuf-3.20.3"
-  if [ -f ${base}/pre_download/protobuf.tar.gz ]; then
-    cp ${base}/pre_download/protobuf.tar.gz protobuf.tar.gz
+  if [ -f /agl_resource/protobuf.tar.gz ]; then
+    echo ">>>>>>>>>>> use /agl_resource/protobuf.tar.gz"
+    cp /agl_resource/protobuf.tar.gz protobuf.tar.gz
   else
     wget ${protobuf_url} -O protobuf.tar.gz
-    #download_src protobuf.tar.gz ./
   fi
   tar -zxf protobuf.tar.gz
   rm protobuf.tar.gz

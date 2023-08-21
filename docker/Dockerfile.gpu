@@ -1,6 +1,13 @@
 FROM nvcr.io/nvidia/pytorch:22.09-py3
 
+RUN mkdir /agl_resource
+# package some resource into image
 COPY pip.conf .
+COPY boost_1_72_0.tar.gz googletest.tar.gz protobuf.tar.gz spark-3.1.1-bin-hadoop3.2.tgz \
+apache-maven-3.6.1-bin.tar.gz jdk-8u202-linux-x64.tar.gz /agl_resource/
+
+RUN ls /agl_resource/
+
 RUN cp -f pip.conf /opt/conda/pip.conf \
 && cp -f pip.conf /root/.config/pip/pip.conf \
 && cp -f pip.conf /root/.pip/pip.conf \
