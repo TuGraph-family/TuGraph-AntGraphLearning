@@ -22,12 +22,15 @@ public class RangeIndex extends BaseIndex implements Serializable {
 
     public RangeIndex() {
     }
+
     public RangeIndex(String indexType, String indexColumn, String indexDtype) {
         super(indexType, indexColumn, indexDtype);
     }
+
     public List getSortedWeights() {
         return sortedWeights;
     }
+
     @Override
     public int[] buildIndex(HeteroDataset neighborDataset) {
         String indexColumn = getIndexColumn();
@@ -100,7 +103,7 @@ public class RangeIndex extends BaseIndex implements Serializable {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
             int mid = left + (right - left) / 2;
-            if (f.apply((T)nums.get(mid))) {
+            if (f.apply((T) nums.get(mid))) {
                 right = mid - 1;
             } else {
                 left = mid + 1;
@@ -113,7 +116,7 @@ public class RangeIndex extends BaseIndex implements Serializable {
         int left = 0, right = nums.size() - 1;
         while (left <= right) {
             int mid = left + (right - left) / 2;
-            if (f.apply((T)nums.get(mid))) {
+            if (f.apply((T) nums.get(mid))) {
                 left = mid + 1;
             } else {
                 right = mid - 1;

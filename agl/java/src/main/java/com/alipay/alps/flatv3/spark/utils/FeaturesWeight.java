@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.spark;
+package com.alipay.alps.flatv3.spark.utils;
 
 import java.io.Serializable;
 

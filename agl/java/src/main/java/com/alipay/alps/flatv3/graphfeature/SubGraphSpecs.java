@@ -9,13 +9,14 @@ import com.antfin.agl.proto.graph_feature.Features;
 import com.antfin.agl.proto.graph_feature.Float64List;
 import com.antfin.agl.proto.graph_feature.FloatList;
 import com.antfin.agl.proto.graph_feature.Int64List;
-import com.antfin.agl.proto.graph_feature.SubGraphSpec;
+import com.antfin.agl.proto.sampler.SubGraphSpec;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class SubGraphSpecs implements Serializable {
     private static final String DENSE = "dense";
@@ -28,7 +29,6 @@ public class SubGraphSpecs implements Serializable {
     public SubGraphSpecs(String subgraphSpecJson) {
         JSONObject subgraphSpecJsonObj = JSON.parseObject(subgraphSpecJson);
         JSONArray nodeSpecJsonArray = subgraphSpecJsonObj.getJSONArray("node_spec");
-        JSONArray edgeSpecJsonArray = subgraphSpecJsonObj.getJSONArray("edge_spec");
 
         SubGraphSpec.Builder subGraphSpecBuilder = SubGraphSpec.newBuilder();
         List<SubGraphSpec.NodeSpec> nodeSpecList = new ArrayList<>();
@@ -44,6 +44,7 @@ public class SubGraphSpecs implements Serializable {
         }
         subGraphSpecBuilder.addAllNodes(nodeSpecList);
 
+        JSONArray edgeSpecJsonArray = subgraphSpecJsonObj.getJSONArray("edge_spec");
         List<SubGraphSpec.EdgeSpec> edgeSpecList = new ArrayList<>();
         for (int i = 0; i < edgeSpecJsonArray.size(); i++) {
             JSONObject edgeSpecJsonObj = edgeSpecJsonArray.getJSONObject(i);
@@ -58,6 +59,27 @@ public class SubGraphSpecs implements Serializable {
             edgeSpecList.add(edgeSpecBuilder.build());
         }
         subGraphSpecBuilder.addAllEdges(edgeSpecList);
+
+        if (subgraphSpecJsonObj.containsKey("edge_attr")) {
+            JSONArray edgeAttrJsonArray = subgraphSpecJsonObj.getJSONArray("edge_attr");
+            for (int i = 0; i < edgeAttrJsonArray.size(); i++) {
+                JSONObject attrJsonObj = edgeAttrJsonArray.getJSONObject(i);
+                subGraphSpecBuilder.putEdgeAttrs(attrJsonObj.getString("field"), getDtype(attrJsonObj.getString("dtype")));
+            }
+        }
+
+        if (subgraphSpecJsonObj.containsKey("seed")) {
+            JSONObject seedJsonObj = subgraphSpecJsonObj.getJSONObject("seed");
+            SubGraphSpec.Seed.Builder seedBuilder = SubGraphSpec.Seed.newBuilder();
+            if (seedJsonObj.containsKey("attr")) {
+                JSONArray seedAttrJsonArray = seedJsonObj.getJSONArray("attr");
+                for (int i = 0; i < seedAttrJsonArray.size(); i++) {
+                    JSONObject attrJsonObj = seedAttrJsonArray.getJSONObject(i);
+                    seedBuilder.putAttrs(attrJsonObj.getString("field"), getDtype(attrJsonObj.getString("dtype")));
+                }
+            }
+            subGraphSpecBuilder.setSeed(seedBuilder.build());
+        }
         subGraphSpec = subGraphSpecBuilder.build();
     }
 
@@ -106,6 +128,14 @@ public class SubGraphSpecs implements Serializable {
             }
         }
         return null;
+    }
+
+    public Map<String, DType> getEdgeAttrs() {
+        return subGraphSpec.getEdgeAttrsMap();
+    }
+
+    public Map<String, DType> getSeedAttrs() {
+        return subGraphSpec.getSeed().getAttrsMap();
     }
 
     public SubGraphSpec.NodeSpec getNodeSpec(String nodeType) {
@@ -328,6 +358,7 @@ public class SubGraphSpecs implements Serializable {
             case "uint64":
                 return DType.UINT64;
             case "int64":
+            case "long":
                 return DType.INT64;
             case "float":
             case "float32":

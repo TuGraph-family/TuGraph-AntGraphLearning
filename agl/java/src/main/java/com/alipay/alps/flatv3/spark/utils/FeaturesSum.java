@@ -1,4 +1,4 @@
-package com.alipay.alps.flatv3.spark;
+package com.alipay.alps.flatv3.spark.utils;
 
 import com.antfin.agl.proto.graph_feature.Features;
 import com.antfin.agl.proto.graph_feature.Float64List;
@@ -48,7 +48,7 @@ public class FeaturesSum extends Aggregator<FeaturesWeight, String, String> {
     public String reduce(String b, FeaturesWeight a) {
         try {
             b = BaseEncoding.base64().encode(mergeFeature(Features.parseFrom(BaseEncoding.base64().decode(b)),
-                                                          updateFeature(Features.parseFrom(BaseEncoding.base64().decode(a.getFeatureStr())), a.getWeight())).toByteArray());
+                    updateFeature(Features.parseFrom(BaseEncoding.base64().decode(a.getFeatureStr())), a.getWeight())).toByteArray());
         } catch (InvalidProtocolBufferException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -62,7 +62,7 @@ public class FeaturesSum extends Aggregator<FeaturesWeight, String, String> {
         return "";
     }
 
-    
+
     public static Features updateFeature(Features a, float w) {
         // check if w is close to 1.0
         if (Math.abs(w - 1.0f) < 1e-6) {

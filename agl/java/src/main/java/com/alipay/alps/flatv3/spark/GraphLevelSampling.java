@@ -2,7 +2,6 @@ package com.alipay.alps.flatv3.spark;
 
 import com.alipay.alps.flatv3.spark.utils.Constants;
 import com.alipay.alps.flatv3.spark.utils.DatasetUtils;
-import lombok.Getter;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -10,40 +9,77 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.catalyst.encoders.RowEncoder;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+public class GraphLevelSampling extends NodeLevelSampling {
+    private static final Logger LOG = LoggerFactory.getLogger(GraphLevelSampling.class);
 
-public class HEGNN extends NodeLevelSampling {
-    private static final Logger LOG = LoggerFactory.getLogger(HEGNN.class);
+    private String labelLevel = Constants.LABEL_LEVEL_ON_GRAPH;
 
-    @Getter
-    private String hegnnMode = Constants.HEGNN_TWO_END;
-
-    public HEGNN(String edgeTable, String labelTable, String outputTablePrefix, String subGraphSpec, int maxHop, String sampleCondition) throws Exception {
+    public GraphLevelSampling(String edgeTable, String labelTable, String outputTablePrefix, String subGraphSpec, int maxHop, String sampleCondition) throws Exception {
         super(edgeTable, labelTable, outputTablePrefix, subGraphSpec, maxHop, sampleCondition);
     }
 
-    public void setHegnnMode(String mode) {
-        hegnnMode = mode;
+    public void setLabelLevel(String labelLevel) {
+        this.labelLevel = labelLevel;
+    }
+
+    public void sinkSubgraphWithLabel(SparkSession spark, Dataset<Row> subgraphWithLabel) {
+        if (labelLevel.compareToIgnoreCase(Constants.LABEL_LEVEL_ON_NODE) == 0) {
+            DatasetUtils.outputData(spark, subgraphWithLabel, getOutputTablePrefix());
+        } else {
+            super.sinkSubgraphWithLabel(spark, subgraphWithLabel);
+        }
     }
 
     @Override
-    public Dataset<Row> modifySubGraphStructure(Dataset<Row> labelDS, Dataset<Row> graphElementMultiLayer[]) {
-        Dataset<Row> graphElement = graphElementMultiLayer[0];
-        if (hegnnMode.compareToIgnoreCase(Constants.HEGNN_PATH) == 0) {
-            for (int hop = 1; hop <= getMaxHop(); hop++) {
-                graphElement = graphElement.union(graphElementMultiLayer[hop]);
-            }
-        } else {
-            graphElement = graphElement.union(graphElementMultiLayer[getMaxHop()].filter(Constants.ENTRY_TYPE + " = " + Constants.NODE_INT));
+    public void runSamplingPipeline(SparkSession spark, Dataset<Row> seedDS, Dataset<Row> edgeDS, Dataset<Row> rawNodeFeatureDF) {
+        if (labelLevel.compareToIgnoreCase(Constants.LABEL_LEVEL_ON_GRAPH) == 0) {
+            seedDS = seedDS.flatMap((FlatMapFunction<Row, Row>) row -> {
+                String nodeList = row.getString(0);
+                String graphID = row.getString(1);
+                List<Row> ans = new ArrayList<>();
+                for (String nodeID : nodeList.split(" ")) {
+                    ans.add(RowFactory.create(graphID, nodeID));
+                }
+                return ans.iterator();
+            }, RowEncoder.apply(new StructType()
+                    .add("seed", DataTypes.StringType)
+                    .add("node_id", DataTypes.StringType)));
         }
-        return graphElement;
+        seedDS = attrsCastDType(seedDS, getSubGraphSpec().getSeedAttrs());
+        seedDS.show();
+        seedDS.printSchema();
+
+        edgeDS = attrsCastDType(edgeDS, getSubGraphSpec().getEdgeAttrs());
+        sparkSampling.setEdgeColumnIndex(DatasetUtils.getColumnIndex(edgeDS));
+        Dataset<Row> edgeRemoveFeatureDS = edgeDS.drop("edge_feature");
+        edgeRemoveFeatureDS.show();
+        edgeRemoveFeatureDS.printSchema();
+
+        Dataset<Row> graphElementMultiLayer[] = propagateSubGraphStructure(seedDS, edgeRemoveFeatureDS);
+        Dataset<Row> graphElement = modifySubGraphStructure(seedDS, graphElementMultiLayer);
+
+        Dataset<Row> subGraph = buildSubgraphWithFeature(graphElement, rawNodeFeatureDF, edgeDS);
+
+        if (labelLevel.compareToIgnoreCase(Constants.LABEL_LEVEL_ON_NODE) == 0) {
+            seedDS = DatasetUtils.aggregateConcatWs(Constants.ENTRY_SEED, seedDS);
+        }
+        Dataset<Row> subGraphWithLabel = subGraph.join(seedDS, Constants.ENTRY_SEED);
+        sinkSubgraphWithLabel(spark, subGraphWithLabel);
     }
 
     public static void main(String[] args) throws Exception {
@@ -67,14 +103,14 @@ public class HEGNN extends NodeLevelSampling {
                 .addOption(Option.builder(Constants.TRAIN_FLAG).hasArg().build())
                 .addOption(Option.builder(Constants.FILTER_COND).hasArg().build())
                 .addOption(Option.builder(Constants.STORE_IDS).hasArg().build())
-                .addOption(Option.builder(Constants.HEGNN_MODE).hasArg().build());
+                .addOption(Option.builder(Constants.LABEL_LEVEL).hasArg().build());
 
         CommandLineParser parser = new DefaultParser();
         try {
             LOG.info("========================arguments: " + Arrays.toString(args));
             CommandLine arguments = parser.parse(options, args);
 
-            HEGNN gnn = new HEGNN(arguments.getOptionValue(Constants.INPUT_EDGE), arguments.getOptionValue(Constants.INPUT_LABEL),
+            GraphLevelSampling gnn = new GraphLevelSampling(arguments.getOptionValue(Constants.INPUT_EDGE), arguments.getOptionValue(Constants.INPUT_LABEL),
                     arguments.getOptionValue(Constants.OUTPUT_RESULTS), arguments.getOptionValue(Constants.SUBGRAPH_SPEC),
                     Integer.parseInt(arguments.getOptionValue(Constants.HOP)), arguments.getOptionValue(Constants.SAMPLE_COND));
             if (arguments.hasOption(Constants.INPUT_NODE_FEATURE)) {
@@ -92,8 +128,8 @@ public class HEGNN extends NodeLevelSampling {
             if (!Boolean.parseBoolean(arguments.getOptionValue(Constants.STORE_IDS, Constants.STORE_IDS_DEFAULT))) {
                 gnn.notStoreID();
             }
-            if (arguments.hasOption(Constants.HEGNN_MODE)) {
-                gnn.setHegnnMode(arguments.getOptionValue(Constants.HEGNN_MODE));
+            if (arguments.hasOption(Constants.LABEL_LEVEL)) {
+                gnn.setLabelLevel(arguments.getOptionValue(Constants.LABEL_LEVEL));
             }
             gnn.setup();
 
@@ -108,4 +144,5 @@ public class HEGNN extends NodeLevelSampling {
             formatter.printHelp(NodeLevelSampling.class.getName(), options, true);
         }
     }
+
 }

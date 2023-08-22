@@ -1,12 +1,13 @@
 package com.alipay.alps.flatv3.sampler;
 
+import java.io.Serializable;
 import java.util.StringTokenizer;
 
 /**
  * This class represents a condition for sampling data, which is constructed based on a string representation.
  * It contains method name, key to sample by, sample limit, replacement flag, and reverse flag.
  */
-public class SampleCondition {
+public class SampleCondition implements Serializable {
     private final String EQ = "=";
     private final String BY = "by";
     private final String LIMIT = "limit";
@@ -18,7 +19,7 @@ public class SampleCondition {
     private int limit;
     private boolean replacement = false;
     private boolean reverse = false;
-    private int seed = 0;
+    private int randomSeed = 0;
 
     public String getMethod() {
         return method;
@@ -40,12 +41,23 @@ public class SampleCondition {
         return reverse;
     }
 
-    public void setSeed(int seed) {
-        this.seed = seed;
+    public void setRandomSeed(int randomSeed) {
+        this.randomSeed = randomSeed;
     }
-    public int getSeed() {
-        return seed;
+
+    public int getRandomSeed() {
+        return randomSeed;
     }
+
+    public SampleCondition(SampleCondition a) {
+        this.method = a.method;
+        this.key = a.key;
+        this.limit = a.limit;
+        this.replacement = a.replacement;
+        this.reverse = a.reverse;
+        this.randomSeed = a.randomSeed;
+    }
+
     /**
      * Constructs a SampleCondition object.
      *
@@ -55,13 +67,13 @@ public class SampleCondition {
      * @param replacement Whether or not replacement is allowed.
      * @param reverse     Whether or not to reverse the sample.
      */
-    public SampleCondition(String method, String key, int limit, boolean replacement, boolean reverse, int seed) {
+    public SampleCondition(String method, String key, int limit, boolean replacement, boolean reverse, int randomSeed) {
         this.method = method;
         this.key = key;
         this.limit = limit;
         this.replacement = replacement;
         this.reverse = reverse;
-        this.seed = seed;
+        this.randomSeed = randomSeed;
     }
 
     /**
@@ -100,7 +112,7 @@ public class SampleCondition {
                             this.reverse = Boolean.valueOf(a2);
                             break;
                         case SEED:
-                            this.seed = Integer.valueOf(a2);
+                            this.randomSeed = Integer.valueOf(a2);
                         default:
                             break;
                     }
@@ -122,7 +134,7 @@ public class SampleCondition {
                 ", limit=" + limit +
                 ", replacement=" + replacement +
                 ", reverse=" + reverse +
-                ", seed=" + seed +
+                ", randomSeed=" + randomSeed +
                 '}';
     }
 }

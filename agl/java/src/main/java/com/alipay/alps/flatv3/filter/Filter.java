@@ -4,11 +4,10 @@ import com.alipay.alps.flatv3.filter.parser.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.filter.parser.CmpWrapperFactory;
 import com.alipay.alps.flatv3.filter.parser.FilterConditionParser;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
+import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.index.BaseIndex;
-import com.alipay.alps.flatv3.index.HashIndex;
 import com.alipay.alps.flatv3.index.HeteroDataset;
-import com.alipay.alps.flatv3.index.IndexFactory;
-import com.alipay.alps.flatv3.index.RangeIndex;
 import com.antfin.agl.proto.sampler.CmpExp;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.LogicExps;
@@ -35,22 +34,23 @@ public class Filter implements Serializable {
         logicExps = FilterConditionParser.parseFilterCondition(filterCond);
     }
 
-    public Map<VariableSource, Set<String>> getReferColumns() {
+    public Map<VariableSource, Set<String>> getReferSourceAndColumns() {
         Map<VariableSource, Set<String>> referColumns = new HashMap<>();
         for (LogicExps.ExpOrOp expOrOp : logicExps.getExpRPNList()) {
-            if (expOrOp.hasExp()) {
-                CmpExp cmpExp = expOrOp.getExp();
-                List<Element> elements = new ArrayList<>(cmpExp.getLhsRPNList());
-                elements.addAll(cmpExp.getRhsRPNList());
-                for (Element element : elements) {
-                    if (element.hasVar()) {
-                        Element.Variable variable = element.getVar();
-                        VariableSource variableSource = variable.getSource();
-                        if (!referColumns.containsKey(variableSource)) {
-                            referColumns.put(variableSource, new HashSet<String>());
-                        }
-                        referColumns.get(variableSource).add(variable.getName());
+            if (!expOrOp.hasExp()) {
+                continue;
+            }
+            CmpExp cmpExp = expOrOp.getExp();
+            List<Element> elements = new ArrayList<>(cmpExp.getLhsRPNList());
+            elements.addAll(cmpExp.getRhsRPNList());
+            for (Element element : elements) {
+                if (element.hasVar()) {
+                    Element.Variable variable = element.getVar();
+                    VariableSource variableSource = variable.getSource();
+                    if (!referColumns.containsKey(variableSource)) {
+                        referColumns.put(variableSource, new HashSet<String>());
                     }
+                    referColumns.get(variableSource).add(variable.getName());
                 }
             }
         }
@@ -62,13 +62,14 @@ public class Filter implements Serializable {
      * @param indexesMap: a map of indexes
      * @return: neighbor indices conforming to the filter condition
      */
-    public AbstractResult filter(int seedIndex, HeteroDataset seedValues, HeteroDataset neighborValues, Map<String, BaseIndex> indexesMap) throws Exception {
+    public AbstractResult filter(Map<String, Element.Number> seedVariableMap, HeteroDataset neighborValues, Map<String, BaseIndex> indexesMap) throws Exception {
         Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
-        Map<String, Element.Number> seedVariableMap = seedValues.fillVariables(seedIndex);
         inputVariables.put(VariableSource.SEED, seedVariableMap);
-        // in case of empty filter condition, we are using the base_index, NO_FILTER is the index column
+        // in case of empty filter condition, we just return all neighbors
         if (logicExps.getExpRPNCount() == 0) {
-            return indexesMap.get(IndexFactory.NO_FILTER).search(null, inputVariables, neighborValues);
+            List<RangeUnit> ranges = new ArrayList<>();
+            ranges.add(new RangeUnit(0, neighborValues.getArraySize() - 1));
+            return new RangeResult(null, ranges);
         }
         Stack<AbstractResult> indexResultStack = new Stack<>();
         for (int i = 0; i < logicExps.getExpRPNCount(); i++) {

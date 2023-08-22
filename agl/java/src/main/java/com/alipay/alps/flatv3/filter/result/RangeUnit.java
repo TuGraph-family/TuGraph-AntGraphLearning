@@ -1,6 +1,5 @@
 package com.alipay.alps.flatv3.filter.result;
 
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -47,10 +46,12 @@ public class RangeUnit implements Serializable {
     public int getHigh() {
         return high;
     }
+
     public RangeUnit() {
         this.low = -1;
         this.high = -1;
     }
+
     public RangeUnit(RangeUnit r) {
         this.low = r.low;
         this.high = r.low;

@@ -46,9 +46,9 @@ public class HeteroDataset implements Serializable {
         return seedVariableMap;
     }
 
-     public int getArraySize() {
-         return this.arraySize;
-     }
+    public int getArraySize() {
+        return this.arraySize;
+    }
 
     public <T extends Comparable<T>> List<T> deepCopyAndReIndex(int[] originIndex, String key) {
         int[] shuffleIndex = new int[arraySize];

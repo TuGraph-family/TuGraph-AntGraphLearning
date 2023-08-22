@@ -1,10 +1,12 @@
-package com.alipay.alps.flatv3.spark;
+package com.alipay.alps.flatv3.spark.utils;
 
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.SaveMode;
+import org.apache.spark.sql.SparkSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +17,8 @@ import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.collect_list;
 import static org.apache.spark.sql.functions.concat_ws;
 
-public class Utils {
+public class DatasetUtils {
+    private static final Logger LOG = LoggerFactory.getLogger(DatasetUtils.class);
 
     public static Dataset<Row> aggregateConcatWs(String key, Dataset<Row> inputDataset) {
         String[] columnNames = inputDataset.columns();
@@ -25,7 +28,7 @@ public class Utils {
             if (columnNames[i].compareTo(key) == 0) {
                 continue;
             }
-            aggColumns.add(concat_ws("\t", collect_list(col(columnNames[i]))).alias(columnNames[i]+"_list"));
+            aggColumns.add(concat_ws("\t", collect_list(col(columnNames[i]))).alias(columnNames[i] + "_list"));
         }
 
         Dataset<Row> aggDataset = inputDataset
@@ -55,6 +58,10 @@ public class Utils {
 
     public static Dataset<Row> inputData(SparkSession spark, String input) {
         if (input.startsWith("file:///")) {
+            if (input.substring("file:///".length()).trim().isEmpty()) {
+                LOG.info("Input file is empty:" + input);
+                return null;
+            }
             return spark.read().option("header", "true").option("delimiter", ",").csv(input);
         }
         return spark.sql(input);

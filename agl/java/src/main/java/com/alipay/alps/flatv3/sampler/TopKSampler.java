@@ -43,7 +43,7 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
     public List<Integer> sample(AbstractResult indexResult) {
         int sampleCount = this.getSampleCondition().getLimit();
         ArrayList<Integer> sampledIndex = new ArrayList<>();
-        String originIndexColumn = indexResult.getIndex().getIndexColumn();
+        String originIndexColumn = (indexResult.getIndex() == null) ? null : indexResult.getIndex().getIndexColumn();
         if (indexResult instanceof RangeResult && originIndexColumn != null && originIndexColumn.compareTo(getSampleCondition().getKey()) == 0) {
             // reuse sorted neighbors in indexing stage
             if (indexResult instanceof RangeResult) {
@@ -63,7 +63,6 @@ public class TopKSampler<T extends Comparable<T>> extends AbstractSampler {
                     }
                 }
             } else {
-                //????
                 List<Integer> sortedIndices = indexResult.getIndices();
                 if (sortedIndices.size() <= sampleCount) {
                     sampledIndex.addAll(sortedIndices);

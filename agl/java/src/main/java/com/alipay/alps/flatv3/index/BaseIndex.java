@@ -2,8 +2,8 @@ package com.alipay.alps.flatv3.index;
 
 import com.alipay.alps.flatv3.filter.parser.AbstractCmpWrapper;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
-import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
+import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.antfin.agl.proto.sampler.Element;
 import com.antfin.agl.proto.sampler.VariableSource;
 
@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 public class BaseIndex implements Serializable {
-//    protected HeteroDataset neighborDataset = null;
     protected int[] originIndices = null;
 
     /*
@@ -33,12 +32,10 @@ public class BaseIndex implements Serializable {
         this.indexType = indexType;
         this.indexColumn = indexColumn;
         this.indexDtype = indexDtype;
-//        this.neighborDataset = neighborDataset;
-//        originIndices = buildIndex();
     }
 
     public byte[] dump() {
-        ByteBuffer buffer = ByteBuffer.allocate(4 * (1+originIndices.length));
+        ByteBuffer buffer = ByteBuffer.allocate(4 * (1 + originIndices.length));
         buffer.putInt(originIndices.length);
         for (int idx : originIndices) {
             buffer.putInt(idx);
@@ -58,6 +55,7 @@ public class BaseIndex implements Serializable {
     public int[] getOriginIndices() {
         return originIndices;
     }
+
     public void setOriginIndices(int[] originIndices) {
         this.originIndices = originIndices;
     }
@@ -65,6 +63,7 @@ public class BaseIndex implements Serializable {
     public String getIndexType() {
         return indexType;
     }
+
     public void setIndexType(String indexType) {
         this.indexType = indexType;
     }
@@ -72,6 +71,7 @@ public class BaseIndex implements Serializable {
     public String getIndexColumn() {
         return indexColumn;
     }
+
     public void setIndexColumn(String indexColumn) {
         this.indexColumn = indexColumn;
     }
@@ -79,20 +79,10 @@ public class BaseIndex implements Serializable {
     public String getIndexDtype() {
         return indexDtype;
     }
+
     public void setIndexDtype(String indexDtype) {
         this.indexDtype = indexDtype;
     }
-
-//    public HeteroDataset getNeighborDataset() {
-//        return neighborDataset;
-//    }
-//    public void setNeighborDataset(HeteroDataset neighborDataset) {
-//        this.neighborDataset = neighborDataset;
-//    }
-//
-//    public String getDType(String column) {
-//        return neighborDataset.getDtype(column);
-//    }
 
     public int[] buildIndex(HeteroDataset neighborDataset) {
         originIndices = new int[neighborDataset.getArraySize()];

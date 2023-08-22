@@ -1,4 +1,7 @@
-package com.alipay.alps.flatv3.spark;
+package com.alipay.alps.flatv3.spark.utils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Constants {
     public static final String NODE = "node";
@@ -39,6 +42,44 @@ public class Constants {
     public static final String HEGNN_TWO_END = "two_end";
     public static final String HEGNN_PATH = "path";
 
-    public static final String NEED_IDS = "need_ids";
-    public static final String NEED_IDS_DEFAULT = "false";
+    public static final String STORE_IDS = "store_id_in_subgraph";
+    public static final String STORE_IDS_DEFAULT = "true";
+    public static final String TRAIN_FLAG = "train_flag";
+
+    public static final String REMOVE_TARGET_EDGE = "remove_target_edge";
+
+    public static final String ENTRY_SEED = "seed";
+    public static final String ENTRY_TYPE = "entryType";
+    public static final String ENTRY_NODE1 = "node1";
+    public static final String ENTRY_NODE2 = "node2";
+    public static final String ENTRY_ID = "id";
+    public static final String ENTRY_FEATURE = "feature";
+    public static final String ENTRY_KIND = "type";
+
+    public static final String LABEL_TYPE = "label_type";
+    public static final String NODE_LEVEL = "node_level";
+    public static final String EDGE_LEVEL = "edge_level";
+    public static final String GRAPH_LEVEL = "graph_level";
+    public static final String MERGE_SUBGRAPH = "merge_subgraph";
+    public static final String MERGE_SUBGRAPH_DEFAULT = "true";
+    public static final String REMOVE_EDGE_AMONG_ROOTS = "remove_edge_among_roots";
+    public static final String REMOVE_EDGE_AMONG_ROOTS_DEFAULT = "false";
+
+    public static final String LABEL_LEVEL = "label_level";
+    public static final String LABEL_LEVEL_ON_NODE = "label_on_node";
+    public static final String LABEL_LEVEL_ON_LINK = "label_on_link";
+    public static final String LABEL_LEVEL_ON_GRAPH = "label_on_graph";
+
+    public static Map<String, Integer> ELEMENT_FIELD_INDEX;
+
+    static {
+        ELEMENT_FIELD_INDEX = new HashMap<>();
+        ELEMENT_FIELD_INDEX.put(Constants.ENTRY_SEED, 0);
+        ELEMENT_FIELD_INDEX.put(Constants.ENTRY_TYPE, 1);
+        ELEMENT_FIELD_INDEX.put(Constants.ENTRY_NODE1, 2);
+        ELEMENT_FIELD_INDEX.put(Constants.ENTRY_NODE2, 3);
+        ELEMENT_FIELD_INDEX.put(Constants.ENTRY_ID, 4);
+        ELEMENT_FIELD_INDEX.put(Constants.ENTRY_FEATURE, 5);
+        ELEMENT_FIELD_INDEX.put(Constants.ENTRY_KIND, 6);
+    }
 }

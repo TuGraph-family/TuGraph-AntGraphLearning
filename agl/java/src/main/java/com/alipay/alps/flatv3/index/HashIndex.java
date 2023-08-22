@@ -21,6 +21,7 @@ public class HashIndex extends BaseIndex implements Serializable {
 
     public HashIndex() {
     }
+
     public HashIndex(String indexType, String indexColumn, String indexDtype) {
         super(indexType, indexColumn, indexDtype);
     }
@@ -30,7 +31,7 @@ public class HashIndex extends BaseIndex implements Serializable {
         for (String key : typeRanges.keySet()) {
             byteCountForMap += 4 + key.length() + 4 * 2;
         }
-        ByteBuffer buffer = ByteBuffer.allocate(byteCountForMap + 4 * (1+originIndices.length));
+        ByteBuffer buffer = ByteBuffer.allocate(byteCountForMap + 4 * (1 + originIndices.length));
         buffer.putInt(typeRanges.size());
         for (String key : typeRanges.keySet()) {
             buffer.putInt(key.length());
@@ -67,10 +68,11 @@ public class HashIndex extends BaseIndex implements Serializable {
     public Map<String, RangeUnit> getTypeRanges() {
         return typeRanges;
     }
+
     public void setTypeRanges(Map<String, RangeUnit> typeRanges) {
         this.typeRanges = typeRanges;
     }
-    
+
     @Override
     public int[] buildIndex(HeteroDataset neighborDataset) {
         Map<String, List<Integer>> typeIndexes = new TreeMap<>();
@@ -112,7 +114,6 @@ public class HashIndex extends BaseIndex implements Serializable {
         inputVariables.put(VariableSource.INDEX, indexVariableMap);
         for (String type : this.typeRanges.keySet()) {
             inputVariables.get(VariableSource.INDEX).put(indexKey, Element.Number.newBuilder().setS(type).build());
-            System.out.println("----cateCmpWrapper:" + cateCmpWrapper.getCmpExp() + "\n    indexKey:"+indexKey+" type:"+type+" inputVariables:" + inputVariables.get(VariableSource.INDEX).get(indexKey));
             if (cateCmpWrapper.eval(inputVariables)) {
                 ansList.add(this.typeRanges.get(type));
             }

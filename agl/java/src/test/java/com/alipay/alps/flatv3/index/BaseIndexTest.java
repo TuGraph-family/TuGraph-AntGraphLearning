@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -41,9 +42,6 @@ public class BaseIndexTest {
     @Test
     public void testGetDtype() {
         BaseIndex baseIndex = new IndexFactory().createIndex("range_index:attr2:float", neighborDataset);
-//        assertEquals("string", baseIndex.getDType("attr1"));
-//        assertEquals("float", baseIndex.getDType("attr2"));
-//        assertEquals("long", baseIndex.getDType("attr3"));
     }
 
     // test for a case with empty indexMeta and no filter conditions

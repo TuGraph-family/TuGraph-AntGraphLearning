@@ -4,6 +4,7 @@ import com.alipay.alps.flatv3.filter.Filter;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HeteroDataset;
 import com.alipay.alps.flatv3.index.IndexFactory;
+import com.alipay.alps.flatv3.sampler.SampleCondition;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class PropagateSeedTest {
+public class NeighborSelectorTest {
     private HeteroDataset neighborDataset;
     List<Integer> indices = new ArrayList<>();
     List<String> ids = new ArrayList<>();
@@ -56,18 +57,18 @@ public class PropagateSeedTest {
         // Create the PropagateSeed object.
 
         Filter filter = new Filter(filterCond);
-        PropagateSeed propagateSeed = new PropagateSeed("", filter, sampleCond);
+        NeighborSelector neighborSelector = new NeighborSelector("", filter, new SampleCondition(sampleCond));
 
         // Run the algorithm.
         Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(null, neighborDataset);
-        SampleOtherOutput sampleOtherOutput = propagateSeed.process(indexMap, neighborDataset, seedIds, seedAttrs, null, null);
+        List<List<Integer>> sampledNeighbors = neighborSelector.process(indexMap, neighborDataset, seedIds, seedAttrs);
 
         // Create the list of expected results.
-        assertEquals(Arrays.asList(0, 1), sampleOtherOutput.getSampledNeighbors(0));
-        assertEquals(Arrays.asList(0, 1), sampleOtherOutput.getSampledNeighbors(1));
-        assertEquals(Arrays.asList(0, 1), sampleOtherOutput.getSampledNeighbors(2));
-        assertEquals(Arrays.asList(0, 1), sampleOtherOutput.getSampledNeighbors(3));
-        assertEquals(Arrays.asList(0, 1), sampleOtherOutput.getSampledNeighbors(4));
+        assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(0));
+        assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(1));
+        assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(2));
+        assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(3));
+        assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(4));
     }
 
     @Test
@@ -95,18 +96,18 @@ public class PropagateSeedTest {
 
         // create propagate seed
         Filter filter = new Filter(filterCond);
-        PropagateSeed propagateSeed = new PropagateSeed("", filter, sampleCond);
+        NeighborSelector neighborSelector = new NeighborSelector("", filter, new SampleCondition(sampleCond));
 
         // process propagate seed
         Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
-        SampleOtherOutput sampleOtherOutput = propagateSeed.process(indexMap, neighborDataset, seedIds, seedAttrs, null, null);
+        List<List<Integer>> sampledNeighbors = neighborSelector.process(indexMap, neighborDataset, seedIds, seedAttrs);
 
         // create expected result
-        assertEquals(Arrays.asList(1, 2), sampleOtherOutput.getSampledNeighbors(0));
-        assertEquals(Arrays.asList(2, 3), sampleOtherOutput.getSampledNeighbors(1));
-        assertEquals(Arrays.asList(2, 3), sampleOtherOutput.getSampledNeighbors(2));
-        assertEquals(Arrays.asList(3, 4), sampleOtherOutput.getSampledNeighbors(3));
-        assertEquals(Arrays.asList(3, 4), sampleOtherOutput.getSampledNeighbors(4));
+        assertEquals(Arrays.asList(1, 2), sampledNeighbors.get(0));
+        assertEquals(Arrays.asList(2, 3), sampledNeighbors.get(1));
+        assertEquals(Arrays.asList(2, 3), sampledNeighbors.get(2));
+        assertEquals(Arrays.asList(3, 4), sampledNeighbors.get(3));
+        assertEquals(Arrays.asList(3, 4), sampledNeighbors.get(4));
     }
 
     @Test
@@ -133,16 +134,16 @@ public class PropagateSeedTest {
         String sampleCond = "topk(by=time, limit=3)";
 
         Filter filter = new Filter(filterCond);
-        PropagateSeed propagateSeed = new PropagateSeed("", filter, sampleCond);
+        NeighborSelector neighborSelector = new NeighborSelector("", filter, new SampleCondition(sampleCond));
 
         // the result of the propagation
         Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
-        SampleOtherOutput sampleOtherOutput = propagateSeed.process(indexMap, neighborDataset, seedIds, seedAttrs, null, null);
+        List<List<Integer>> sampledNeighbors = neighborSelector.process(indexMap, neighborDataset, seedIds, seedAttrs);
         List<List<String>> chosenNeighbors = new ArrayList<>();
         for (int seedIdx = 0; seedIdx < seedIds.size(); seedIdx++) {
-            List<Integer> neighborsOfSeed = sampleOtherOutput.getSampledNeighbors(seedIdx);
+            List<Integer> chosenNeighbor = sampledNeighbors.get(seedIdx);
             List<String> neighborIds = new ArrayList<>();
-            for (Integer neighborIdx : neighborsOfSeed) {
+            for (Integer neighborIdx : chosenNeighbor) {
                 neighborIds.add(ids.get(neighborIdx));
             }
             chosenNeighbors.add(neighborIds);
@@ -170,13 +171,13 @@ public class PropagateSeedTest {
         newIndexMetas.add("range_index:new_time:long");
         newIndexMetas.add("hash_index:new_type:string");
         Map<String, BaseIndex> newIndexMap = new IndexFactory().getIndexesMap(newIndexMetas, newNeighborDataset);
-        PropagateSeed newPropagateSeed = new PropagateSeed("", newFilter, newSampleCond);
-        SampleOtherOutput newSampleOutput = newPropagateSeed.process(newIndexMap, newNeighborDataset, seedIds, seedAttrs, null, null);
+        NeighborSelector newNeighborSelector = new NeighborSelector("", newFilter, new SampleCondition(newSampleCond));
+        List<List<Integer>> sampledNeighbors2 = newNeighborSelector.process(newIndexMap, newNeighborDataset, seedIds, seedAttrs);
         List<List<String>> newChosenNeighbors = new ArrayList<>();
         for (int seedIdx = 0; seedIdx < seedIds.size(); seedIdx++) {
-            List<Integer> neighborsOfSeed = newSampleOutput.getSampledNeighbors(seedIdx);
+            List<Integer> chosenNeighbor = sampledNeighbors2.get(seedIdx);
             List<String> neighborIds = new ArrayList<>();
-            for (Integer neighborIdx : neighborsOfSeed) {
+            for (Integer neighborIdx : chosenNeighbor) {
                 neighborIds.add(ids.get(neighborIdx));
             }
             newChosenNeighbors.add(neighborIds);
@@ -205,14 +206,14 @@ public class PropagateSeedTest {
         String sampleCond = "random_sampler(limit=3)";
 
         Filter filter = new Filter(filterCond);
-        PropagateSeed propagateSeed = new PropagateSeed("", filter, sampleCond);
+        NeighborSelector neighborSelector = new NeighborSelector("", filter, new SampleCondition(sampleCond));
 
         // the result of the propagation
         Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
-        SampleOtherOutput sampleOtherOutput = propagateSeed.process(indexMap, neighborDataset, seedIds, seedAttrs, null, null);
+        List<List<Integer>> sampledNeighbors = neighborSelector.process(indexMap, neighborDataset, seedIds, seedAttrs);
 
-        assertEquals(Arrays.asList(1), sampleOtherOutput.getSampledNeighbors(0));
-        assertEquals(Arrays.asList(1), sampleOtherOutput.getSampledNeighbors(1));
-        assertEquals(Arrays.asList(1), sampleOtherOutput.getSampledNeighbors(2));
+        assertEquals(Arrays.asList(1), sampledNeighbors.get(0));
+        assertEquals(Arrays.asList(1), sampledNeighbors.get(1));
+        assertEquals(Arrays.asList(1), sampledNeighbors.get(2));
     }
 }

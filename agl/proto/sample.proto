@@ -3,10 +3,11 @@ syntax = "proto3";
 // package (not affect python)
 package agl.proto.sampler;
 
+import "graph_feature.proto";
 // java
 option java_package = "com.antfin.agl.proto.sampler";
 option java_outer_classname = "GraphSampler";
-
+option java_multiple_files = true;
 option cc_enable_arenas = true;
 
 enum CmpOp {
@@ -93,4 +94,34 @@ message LogicExps {
   }
   
   repeated ExpOrOp expRPN = 1;
+}
+
+message SubGraphSpec {
+  message FeatureSpec {
+    string name = 1;
+    string type = 2;
+    int32 dim = 3;
+    agl.proto.graph_feature.DType key_dtype = 4;
+    agl.proto.graph_feature.DType value_dtype = 5;
+  }
+  message NodeSpec {
+    string node_name = 1;
+    agl.proto.graph_feature.DType id_type = 2;
+    repeated FeatureSpec features = 3;
+  }
+  message EdgeSpec {
+    string edge_name = 1;
+    agl.proto.graph_feature.DType id_type = 2;
+    string n1_name = 3;
+    string n2_name = 4;
+    repeated FeatureSpec features = 5;
+  }
+  message Seed {
+    map<string, agl.proto.graph_feature.DType> attrs = 2;
+  }
+  repeated NodeSpec nodes = 1;
+  repeated EdgeSpec edges = 2;
+  bool is_ego_graph = 3;
+  map<string, agl.proto.graph_feature.DType> edge_attrs = 4;
+  Seed seed = 5;
 }

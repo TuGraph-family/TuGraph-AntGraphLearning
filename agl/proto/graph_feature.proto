@@ -5,7 +5,7 @@ package agl.proto.graph_feature;
 
 // java
 option java_package = "com.antfin.agl.proto.graph_feature";
-option java_outer_classname = "GraphFeature";
+option java_outer_classname = "GraphFeatures";
 option java_multiple_files = true;
 
 // cpp
@@ -133,5 +133,3 @@ message GraphFeature {
   map<string, Edges> edges = 2;   // edge_name -> Edges
   Root root = 3; // optional: has->EgoGraph), empty->SubGraph
 }
-
-

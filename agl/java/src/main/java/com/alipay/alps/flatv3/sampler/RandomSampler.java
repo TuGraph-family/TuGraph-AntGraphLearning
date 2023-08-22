@@ -42,13 +42,13 @@ public class RandomSampler extends AbstractSampler {
             for (int i = 0; i < sampled.size(); i++) {
                 sampledIndex.add(originIndices.get(sampled.get(i)));
             }
-        } else {
-            assert indexResult instanceof RangeResult;
+        } else if (indexResult instanceof RangeResult) {
             for (int i = 0; i < sampled.size(); i++) {
                 int idx = ((RangeResult) indexResult).getRangeIndex(sampled.get(i));
                 sampledIndex.add(indexResult.getOriginIndex(idx));
             }
-
+        } else {
+            throw new RuntimeException("error AbstractResult");
         }
         return sampledIndex;
     }

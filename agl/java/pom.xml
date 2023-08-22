@@ -10,7 +10,7 @@
 
     <properties>
         <!-- Unique entry point for version number management -->
-        <protobuf.version>3.5.1</protobuf.version>
+        <protobuf.version>3.20.3</protobuf.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <guava.version>23.0</guava.version>
         <odps.version>0.32.1</odps.version>
@@ -61,7 +61,11 @@
         </dependency>
 
         <!--   new     -->
-
+        <dependency>
+            <groupId>com.aliyun.odps</groupId>
+            <artifactId>odps-sdk-udf</artifactId>
+            <version>0.35.1</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_${scala.binary.version}</artifactId>
@@ -90,12 +94,6 @@
             <groupId>com.aliyun.odps</groupId>
             <artifactId>hadoop-fs-oss</artifactId>
             <version>${cupid.sdk.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-common</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -189,9 +187,19 @@
             <version>1.4</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>30.1.1-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.7.1</version>
         </dependency>
     </dependencies>
 
@@ -234,7 +242,7 @@
                 <version>0.5.1</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <protoSourceRoot>${project.basedir}/proto/</protoSourceRoot>
+                    <protoSourceRoot>${project.basedir}/../proto/</protoSourceRoot>
                     <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                 </configuration>
                 <executions>
@@ -259,6 +267,18 @@
                 <version>3.1.0</version>
                 <configuration>
                     <relocations>
+                        <relocation>
+                            <pattern>org.apache.commons.cli</pattern>
+                            <shadedPattern>agl.apache.commons.cli</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.apache.hadoop</pattern>
+                            <shadedPattern>agl.apache.hadoop</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>javax.servlet</pattern>
+                            <shadedPattern>agl.servlet</shadedPattern>
+                        </relocation>
                         <relocation>
                             <pattern>com.google.protobuf</pattern>
                             <shadedPattern>agl.google.protobuf</shadedPattern>
