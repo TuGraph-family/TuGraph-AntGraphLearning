@@ -6,7 +6,16 @@ COPY pip.conf .
 COPY boost_1_72_0.tar.gz googletest.tar.gz protobuf.tar.gz spark-3.1.1-bin-hadoop3.2.tgz \
 apache-maven-3.6.1-bin.tar.gz jdk-8u202-linux-x64.tar.gz /agl_resource/
 
-RUN ls /agl_resource/
+RUN tar -xf /agl_resource/spark-3.1.1-bin-hadoop3.2.tgz -C /agl_resource/ \
+&& tar -xf /agl_resource/apache-maven-3.6.1-bin.tar.gz -C /agl_resource/ \
+&& tar -xf /agl_resource/jdk-8u202-linux-x64.tar.gz -C /agl_resource/
+
+ENV JAVA_HOME=/agl_resource/jdk1.8.0_202 \
+    M2_HOME=/agl_resource/apache-maven-3.6.1 \
+    M2=/agl_resource/apache-maven-3.6.1/bin \
+    SPARK_HOME=/agl_resource/spark-3.1.1-bin-hadoop3.2 \
+    HADOOP_CONF_DIR=/agl_resource/spark-3.1.1-bin-hadoop3.2/conf \
+    PATH=/agl_resource/apache-maven-3.6.1/bin:/agl_resource/jdk1.8.0_202/bin:/agl_resource/spark-3.1.1-bin-hadoop3.2/bin:$PATH
 
 RUN cp -f pip.conf /opt/conda/pip.conf \
 && cp -f pip.conf /root/.config/pip/pip.conf \
