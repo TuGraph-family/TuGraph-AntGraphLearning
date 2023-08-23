@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
 import torch
-import time
 from typing import List
 
 from pyagl.pyagl import (
@@ -64,7 +63,7 @@ class AGLHomoCollateForPyG:
         self._edge_spec = edge_spec
         self._graph_feature_name = graph_feature_name
         self._label_name = label_name
-        # todo 目前 column 只支持dense, raw
+        # todo now column only support dense, raw
         self._columns = columns
         self._need_node_and_edge_num = need_node_and_edge_num
         self._ego_edge_index = ego_edge_index
@@ -83,7 +82,7 @@ class AGLHomoCollateForPyG:
         Returns: TorchEgoBatchData if ego_edge_index is set to True, otherwise return TorchSubGraphBatchData
 
         """
-        # step 1: 把输入从 list of dict 转换为 dict of list.
+        # step 1: transform data to dict of list
         input_dict = self.format_batch_input(batch_input)
         # step 2: prepare subgraph and parse
         sg = PySubGraph([self._node_spec], [self._edge_spec])
@@ -102,18 +101,18 @@ class AGLHomoCollateForPyG:
         n_fs = AGLHomoCollateForPyG.get_node_features(sg, self._node_spec)
         # step 4: edge_feature
         e_fs = AGLHomoCollateForPyG.get_edge_features(sg, self._edge_spec)
-        # step 5: adj矩阵相关信息
+        # step 5: adj related information
         if self._ego_edge_index and not self._need_node_and_edge_num:
             edge_index = self.get_ego_edge_index(sg, self._hops, self._edge_spec)
         else:
             edge_index = AGLHomoCollateForPyG.get_edge_index(sg, self._edge_spec)
-        # step 6: root index 信息
+        # step 6: root index related information
         root = self.get_root_index(sg, self._node_spec)
-        # optional step 7: 是否需要每个样本的node num 和 edge_num
+        # optional step 7: get node_num/edge_num per sample
         n_num, e_num = None, None
         if self._need_node_and_edge_num and not self._ego_edge_index:
             n_num, e_num = self.get_node_edge_num(sg, self._node_spec, self._edge_spec)
-        # step 7: 其他column的parse
+        # step 7: parse other column
         label = None
         other_feats = {}
         other_raw = {}
@@ -156,11 +155,10 @@ class AGLHomoCollateForPyG:
         elem = batch_input[0]
         assert isinstance(elem, dict)
         tmp_keys = list(elem.keys())
-        # map-able 输出的 [dict1, dict2]  list of dict，
-        # iterable 输出的 [dict(key:list)]] batch_input[0] 取出后是 dict of list
+        # map-able output [dict1, dict2]  list of dict，
+        # iterable output [dict(key:list)]] batch_input[0] is dict of list
         if len(batch_input) == 1 and isinstance(elem[tmp_keys[0]], list):
-            # 判断是否是 iterable
-            # 如果是 iterable 直接返回 dict of list即可，否则需要处理
+            # directly return
             return elem
         input_dict = {k: [] for k in tmp_keys}
         for data_ in batch_input:
@@ -174,7 +172,6 @@ class AGLHomoCollateForPyG:
         # dense features
         dense_specs = node_spec.GetDenseFeatureSpec()
         features = {}
-        # n_df_dict = {}
         for f_name, spec in dense_specs.items():
             df = sg.get_node_dense_feature(n_name, f_name)
             df_t = torch.from_numpy(df)
@@ -187,7 +184,6 @@ class AGLHomoCollateForPyG:
             max_dim = spec.GetMaxDim()
             # todo n_num now use len(ind_offset) - 1
             n_num = len(ind_offset) - 1
-            # todo 是否需要转换为 coo ?
             sp_feature = TorchSparseFeature.create_from_csr(
                 row_ptr=torch.from_numpy(ind_offset),
                 col=torch.from_numpy(keys),
@@ -216,7 +212,6 @@ class AGLHomoCollateForPyG:
             max_dim = spec.GetMaxDim()
             # todo n_num now use len(ind_offset) - 1
             n_num = len(ind_offset) - 1
-            # todo 是否需要转换为 coo ?
             sp_feature = TorchSparseFeature.create_from_csr(
                 row_ptr=torch.from_numpy(ind_offset),
                 col=torch.from_numpy(keys),
@@ -250,7 +245,7 @@ class AGLHomoCollateForPyG:
         import itertools
         import numpy as np
 
-        # todo 对于一个样本有多个label的情况，目前先打平处理
+        # todo For cases where a sample has multiple labels, we currently flatten them.
         flattened_lst = list(itertools.chain.from_iterable(root_one))
         final_root = np.asarray(flattened_lst)
         return torch.as_tensor(final_root)
@@ -275,9 +270,7 @@ class AGLHomoCollateForPyG:
 
     @staticmethod
     def get_edge_index(sg: PySubGraph, edge_spec: EdgeSpec):
-        t0 = time.time()
         e_index = sg.get_edge_index()
-        t1 = time.time()
         e_name = edge_spec.GetEdgeName()
         ind_offset, indices, edge_f_index, n1_num, n2_num = e_index[e_name]
         return TorchEdgeIndex.create_from_csr_tensor(

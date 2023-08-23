@@ -1,6 +1,7 @@
 import getpass
 import os
 import sys
+import glob
 import subprocess
 from datetime import datetime
 from string import Template
@@ -15,7 +16,8 @@ with open(os.path.join(cwd, "AGL_VERSION"), "r") as rf:
 # Generate agl.__init__.py
 # More type: https://patorjk.com/software/taag/
 with open(os.path.join(cwd, "agl/version.py"), "w") as wf:
-    content = Template("""
+    content = Template(
+        """
 __version__ = "${VERSION}"
 
 class VersionInfo:
@@ -45,10 +47,15 @@ GIT_RECV:{VersionInfo.GIT_RECV}
 BUILD_USER:{VersionInfo.BUILD_USER}
 ===========================================================\"\"\",
             file=sys.stderr, flush=True)
-    """).substitute(VERSION=version,
-                    GIT_RECV=subprocess.check_output("git rev-parse HEAD", shell=True).decode("utf-8").strip(),
-                    BUILD_USER=getpass.getuser(),
-                    BUILD_DATE=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    """
+    ).substitute(
+        VERSION=version,
+        GIT_RECV=subprocess.check_output("git rev-parse HEAD", shell=True)
+        .decode("utf-8")
+        .strip(),
+        BUILD_USER=getpass.getuser(),
+        BUILD_DATE=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
     wf.write(content)
 
 include_dirs = []
@@ -73,22 +80,22 @@ include_dirs.append(ROOT_PATH + "/agl/py_api/tools")
 include_dirs.append(ROOT_PATH + "/third_party/boost/boost_install/include")
 include_dirs.append(ROOT_PATH + "/third_party/output/protobuf/include")
 
-extra_compile_args.append('-std=c++11')
-# todo 需要先把 libagl.so copy  ROOT_PATH + '/agl/python/lib/' 里面，考虑在 CMakefile 里面做这件事
-extra_link_args.append('-Wl,-rpath=' + ROOT_PATH + '/agl/python/lib/')
-library_dirs.append(ROOT_PATH + '/output/lib/')
-libraries.append('agl')
+extra_compile_args.append("-std=c++11")
 
-sources = [ROOT_PATH + '/agl/cpp/py_api/pybind11_wrapper.cc']
+extra_link_args.append("-Wl,-rpath=" + ROOT_PATH + "/agl/python/lib/")
+library_dirs.append(ROOT_PATH + "/output/lib/")
+libraries.append("agl")
+
+sources = [ROOT_PATH + "/agl/cpp/py_api/pybind11_wrapper.cc"]
 
 try_extension = Extension(
-    'pyagl',
+    "pyagl",
     sources,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     include_dirs=include_dirs,
     library_dirs=library_dirs,
-    libraries=libraries
+    libraries=libraries,
 )
 extensions.append(try_extension)
 
@@ -107,19 +114,35 @@ except Exception as e:
 
 print(f">>>>>>>> agl_data: {agl_data}")
 
-
-setup(name="agl",
-      version=version,
-      description="AGL (Ant Graph Learning)",
-      url="https://code.alipay.com/Alps/AGL",
-      author="Ant AI",
-      packages=find_packages(
-          where=".",
-          exclude=['.*test.py', 'tests', 'tests.*', "configs", "configs.*", "test", "test.*", '*.tests', '*.tests.*',
-                   "*.pyc"]),
-      install_requires=[r.strip() for r in open("requirements.txt", "r") if not r.strip().startswith("#")],
-      package_dir={'pyagl': '.'},
-      package_data={'agl': agl_data},
-      ext_package='pyagl',
-      ext_modules=extensions,
-      )
+setup(
+    name="agl",
+    version=version,
+    description="AGL (Ant Graph Learning)",
+    author="Ant AI",
+    packages=find_packages(
+        where=".",
+        exclude=[
+            ".*test.py",
+            "*_test.py",
+            "*.txt",
+            "tests",
+            "tests.*",
+            "configs",
+            "configs.*",
+            "test",
+            "test.*",
+            "*.tests",
+            "*.tests.*",
+            "*.pyc",
+        ],
+    ),
+    install_requires=[
+        r.strip()
+        for r in open("requirements.txt", "r")
+        if not r.strip().startswith("#")
+    ],
+    package_dir={"pyagl": "."},
+    package_data={"agl": agl_data},
+    ext_package="pyagl",
+    ext_modules=extensions,
+)

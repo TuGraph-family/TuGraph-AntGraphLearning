@@ -3,7 +3,8 @@
 
 import unittest
 import os
-import subprocess
+
+import torch
 import numpy as np
 from torch.utils.data import DataLoader
 
@@ -14,8 +15,7 @@ from pyagl.pyagl import AGLDType, SparseKVSpec, NodeSpec, EdgeSpec
 
 
 class DatasetAndCollateFnTest(unittest.TestCase):
-    # http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/zdl_sync%2Ftest_file.txt
-    file = "../data/test_file.txt"
+    file = "../data/subgraph/test_data/data3.txt"
     schema = ["id", "graph_feature", "label"]
     record_num = 9
     r_id = [
@@ -31,25 +31,13 @@ class DatasetAndCollateFnTest(unittest.TestCase):
     ]
     schema_sep = "\t"
 
-    @staticmethod
-    def download():
-        # todo file 路径问题
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        file_name = os.path.join(script_dir, DatasetAndCollateFnTest.file)
-        subprocess.check_call(
-            [
-                "sh",
-                "-c",
-                f"test -f test_file.txt || wget http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/zdl_sync%2Ftest_file.txt -O {file_name}",
-            ]
-        )
-
     def test_dataset(self):
-        DatasetAndCollateFnTest.download()
+        # DatasetAndCollateFnTest.download()
         script_dir = os.path.dirname(os.path.abspath(__file__))
         file_name = os.path.join(script_dir, DatasetAndCollateFnTest.file)
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        my_test_dataset = AGLTorchMapBasedDataset(file_name, "txt")
+        my_test_dataset = AGLTorchMapBasedDataset(
+            file_name, "txt", column_sep=self.schema_sep
+        )
         self.assertEqual(my_test_dataset.len(), self.record_num)
 
         # 1. node related spec
@@ -62,7 +50,6 @@ class DatasetAndCollateFnTest(unittest.TestCase):
         n_key_dtype = AGLDType.INT64
         n_val_dtype = AGLDType.FLOAT
         node_spec = NodeSpec(n_name, n_id_dtype)
-        # node_spec.AddDenseSpec(n_df_name, DenseFeatureSpec(n_df_name, n_df_dim, n_df_dtype))
         node_spec.AddSparseKVSpec(
             n_spkv_name, SparseKVSpec(n_spkv_name, n_max_dim, n_key_dtype, n_val_dtype)
         )
@@ -94,16 +81,8 @@ class DatasetAndCollateFnTest(unittest.TestCase):
             collate_fn=my_collate,
             num_workers=2,
         )
+        root_num = 0
         for i, data in enumerate(train_loader):
-            print(f"i:{i}, data:{data}")
-
-        my_map_dataset = AGLTorchMapBasedDataset(file_name, format="txt")
-        train_loader = DataLoader(
-            dataset=my_map_dataset,
-            batch_size=5,
-            shuffle=False,
-            collate_fn=my_collate,
-            num_workers=2,
-        )
-        for i, data in enumerate(train_loader):
-            print(f"i:{i}, data:{data}")
+            root_num = root_num + torch.numel(data.root_index)
+        # for this test data, each sample has one root node
+        self.assertEqual(root_num, len(my_test_dataset))

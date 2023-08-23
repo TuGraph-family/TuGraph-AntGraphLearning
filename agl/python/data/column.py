@@ -6,16 +6,6 @@ from typing import List
 import torch
 import numpy as np
 
-from pyagl.pyagl import (
-    AGLDType,
-    DenseFeatureSpec,
-    SparseKVSpec,
-    SparseKSpec,
-    NodeSpec,
-    EdgeSpec,
-    SubGraph,
-    NDArray,
-)
 from agl.python.data.agl_dtype import np_to_agl_dtype
 
 built_in_name = ["x", "edge_index", "agl", "edge_attr"]
@@ -91,7 +81,8 @@ class AGLMultiDenseColumn(AGLColumn):
         if isinstance(data, List):
             if len(data) > 0:
                 if isinstance(data[0], bytes):
-                    # 如果是 bytes (encoded by utf-8 ), 调用 multi_dense_decode_bytes 方法，zero copy 的传入到 c++
+                    # if it is instance of bytes (encoded by utf-8). call multi_dense_decode_bytes
+                    # (implemented with c++) and pass those data to c++ in a zero copy way
                     from pyagl.pyagl import multi_dense_decode_bytes
 
                     data_bytesarray = [bytearray(data_t) for data_t in data]
@@ -105,7 +96,7 @@ class AGLMultiDenseColumn(AGLColumn):
                     # list -> batch_size * np.array (element_size * dim)
                     res_np_array_list = [np.array(res_i) for res_i in res]
                 elif isinstance(data[0], str):
-                    # 如果是 str, 使用 pybind11 copy 的方式传入到c++. (for 循环 encode 相当于在 python 层copy 效率较低)
+                    # if data is instance of str, passing it from Python to C++ using pybind11 will trigger a copy.
                     from pyagl.pyagl import multi_dense_decode_string
 
                     res = multi_dense_decode_string(
@@ -124,7 +115,7 @@ class AGLMultiDenseColumn(AGLColumn):
                     final_result = final_result.reshape(-1, self._dim)
                     return torch.as_tensor(
                         final_result
-                    )  # as_tensor 如果是numpy 会 call from_numpy. won't copy
+                    )  # as_tensor: if data is numpy array, would call from_numpy. won't copy
                 else:
                     raise NotImplementedError("only support flat concat now!")
 
@@ -132,15 +123,15 @@ class AGLMultiDenseColumn(AGLColumn):
             raise NotImplementedError("now only support list")
 
     def _py_decode(self, data, **kwargs):
-        # for benckmark, 效率较低，后面考虑删除
+        # This method is just for benchmark
         if isinstance(data, List):
             if len(data) > 0:
                 result = []
-                # 处理一个batch的逻辑
+                # The logic for processing a batch is as follows:
                 for data_t in data:
-                    # 处理每条样本的逻辑
+                    # The logic for processing each sample is as follows:
                     if isinstance(data_t, bytes):
-                        # 每条样本里面可能有多个dense, 而且数量不固定
+                        # Each sample may contain multiple dense features, and the number of features is not fixed.
                         data_splited = data_t.split(self._out_sep.encode("utf-8"))
                         one_result = []
                         for data_s_t in data_splited:
@@ -173,7 +164,7 @@ class AGLMultiDenseColumn(AGLColumn):
                     final_result = final_result.reshape(-1, self._dim)
                     return torch.as_tensor(
                         final_result
-                    )  # as_tensor 如果是numpy 会 call from_numpy. won't copy
+                    )  # as_tensor: if data is numpy array, would call from_numpy. won't copy
         else:
             raise NotImplementedError("now only support list")
 
@@ -225,7 +216,7 @@ class AGLDenseColumn(AGLColumn):
                 result = np.asarray(result)  # won't copy
                 return torch.as_tensor(
                     result
-                )  # as_tensor 如果是numpy 会 call from_numpy. won't copy
+                )  # as_tensor: if data is numpy array, would call from_numpy. won't copy
         else:
             raise NotImplementedError("now only support list")
 
@@ -254,36 +245,3 @@ class AGLRowColumn(AGLColumn):
 
         """
         return data
-
-
-# todo AGLHomoGraphFeatureColumn is not ready for use
-class AGLHomoGraphFeatureColumn(AGLColumn):
-    def __init__(
-        self,
-        name: str,
-        node_spec: NodeSpec,
-        edge_spec: EdgeSpec,
-        x_name: str = None,
-        edge_attr_name: str = None,
-        need_node_and_edge_num: bool = False,
-        ego_edge_index: bool = False,
-    ):
-        assert name not in built_in_name
-        if ego_edge_index and need_node_and_edge_num:
-            raise NotImplementedError(
-                "now the options ego_edge_index and need_node_and_edge_num are mutually exclusive!"
-            )
-        self._name = name
-        self._node_spec = node_spec
-        self._edge_spec = edge_spec
-        self._x_name = x_name
-        self._edge_attr_name = edge_attr_name
-        self._need_node_and_edge_num = need_node_and_edge_num
-        self._ego_edge_index = ego_edge_index
-
-    def decode(self, data, **kwargs):
-        pass
-
-    @property
-    def name(self):
-        return self._name

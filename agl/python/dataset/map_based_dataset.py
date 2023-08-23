@@ -34,7 +34,7 @@ class AGLTorchMapBasedDataset(Dataset):
         file: str,
         format: str = "csv",
         has_schema: bool = True,
-        column_sep: str = "\t",
+        column_sep: str = ",",
         schema: List[str] = None,
     ):
         """AGL map-style dataset for local file (csv, or plain text)
@@ -44,7 +44,8 @@ class AGLTorchMapBasedDataset(Dataset):
             format(str): File format, only support csv or plain text now.
             has_schema(bool): Whether schema exists in the file; if none, you must set the schema filed
             column_sep(str): The separator for different columns in file
-            schema(List(str)): File schema. if none, will use the schema in file
+            schema(List(str)): File schema. if none, will use the schema in file.
+                               The order should match the column order in file
 
         Returns:
             AGLTorchMapBasedDataset: a subclass of Pytorch Dataset
@@ -78,7 +79,7 @@ class AGLTorchMapBasedDataset(Dataset):
 
     def _prepare_meta_info(self):
         """
-        把 map based dataset 所需的 meta info 存储在内存中
+        Store the meta information required for the map-based dataset in memory.
         """
         schema_line, position = get_meta_info_from_file(
             self._file_path, self._has_schema
@@ -88,7 +89,8 @@ class AGLTorchMapBasedDataset(Dataset):
                 schema_line = schema_line.decode("utf-8")
             schema_in_file = schema_line.strip().split(self._column_sep)
 
-            # 使用 file 中 schema 作为 schema, 或者验证给出的 schema 字段数目是否一致
+            # Use the schema from the file as the schema or validate if the provided schema matches
+            # the number of fields.
             if self._schema is None:
                 self._schema = schema_in_file
             else:
@@ -97,20 +99,21 @@ class AGLTorchMapBasedDataset(Dataset):
         self._position_meta = position
 
     def _prepare_reader(self, worker_id=0):
-        # 先创建一个 reader
+        # Create a reader.
         file_handler = open(self._file_path, "r")
         self._file_opened_dict.update({worker_id: file_handler})
 
     def _get_item_with_file(self, index, worker_id=0):
         if worker_id not in self._file_opened_dict.keys():
-            # 每个进程打开一次文件
+            # each process opens the file once.
             self._prepare_reader(worker_id)
         file_handler = self._file_opened_dict[worker_id]
         if index < self.len():
             pos = self._position_meta[index]
             line = read_file_with_handler_and_position(file_handler, pos)
             if isinstance(line, str):
-                # 最终都以 bytes 的形式输出，方便 python <-> c++ 传递
+                # The final output is always in the form of bytes, which makes it convenient
+                # for passing data between Python and C++.
                 line = line.encode("utf-8")
             line_list = line.strip().split(self._column_sep.encode("utf-8"))
             assert len(line_list) == len(self._schema)

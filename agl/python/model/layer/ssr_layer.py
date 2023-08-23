@@ -1,6 +1,5 @@
 from typing import Union, Tuple, Optional
-from torch_geometric.typing import (OptPairTensor, Adj, Size, NoneType,
-                                    OptTensor)
+from torch_geometric.typing import OptPairTensor, Adj, Size, NoneType, OptTensor
 
 import torch
 from torch import Tensor
@@ -15,6 +14,7 @@ from torch_geometric.nn.inits import glorot, zeros
 
 class GumbelConv(MessagePassing):
     _alpha: OptTensor
+
     def __init__(
         self,
         in_channels: Union[int, Tuple[int, int]],
@@ -27,11 +27,11 @@ class GumbelConv(MessagePassing):
         dropout: float = 0.0,
         add_self_loops: bool = True,
         edge_dim: Optional[int] = None,
-        fill_value: Union[float, Tensor, str] = 'mean',
+        fill_value: Union[float, Tensor, str] = "mean",
         bias: bool = True,
         **kwargs,
     ):
-        kwargs.setdefault('aggr', 'add')
+        kwargs.setdefault("aggr", "add")
         super().__init__(node_dim=0, **kwargs)
 
         self.in_channels = in_channels
@@ -49,33 +49,40 @@ class GumbelConv(MessagePassing):
         # In case we are operating in bipartite graphs, we apply separate
         # transformations 'lin_src' and 'lin_dst' to source and target nodes:
         if isinstance(in_channels, int):
-            self.lin_src = Linear(in_channels, heads * out_channels,
-                                bias=False, weight_initializer='glorot')
+            self.lin_src = Linear(
+                in_channels,
+                heads * out_channels,
+                bias=False,
+                weight_initializer="glorot",
+            )
             self.lin_dst = self.lin_src
         else:
-            self.lin_src = Linear(in_channels[0], heads * out_channels, False,
-                                weight_initializer='glorot')
-            self.lin_dst = Linear(in_channels[1], heads * out_channels, False,
-                                weight_initializer='glorot')
+            self.lin_src = Linear(
+                in_channels[0], heads * out_channels, False, weight_initializer="glorot"
+            )
+            self.lin_dst = Linear(
+                in_channels[1], heads * out_channels, False, weight_initializer="glorot"
+            )
 
         # The learnable parameters to compute attention coefficients:
         self.att_src = Parameter(torch.Tensor(1, heads, out_channels))
         self.att_dst = Parameter(torch.Tensor(1, heads, out_channels))
 
         if edge_dim is not None:
-            self.lin_edge = Linear(edge_dim, heads * out_channels, bias=False,
-                                weight_initializer='glorot')
+            self.lin_edge = Linear(
+                edge_dim, heads * out_channels, bias=False, weight_initializer="glorot"
+            )
             self.att_edge = Parameter(torch.Tensor(1, heads, out_channels))
         else:
             self.lin_edge = None
-            self.register_parameter('att_edge', None)
+            self.register_parameter("att_edge", None)
 
         if bias and concat:
             self.bias = Parameter(torch.Tensor(heads * out_channels))
         elif bias and not concat:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
 
         self._alpha = None
 
@@ -91,9 +98,14 @@ class GumbelConv(MessagePassing):
         glorot(self.att_edge)
         zeros(self.bias)
 
-    def forward(self, x: Union[Tensor, OptPairTensor], edge_index: Adj,
-                edge_attr: OptTensor = None, size: Size = None,
-                return_attention_weights=None):
+    def forward(
+        self,
+        x: Union[Tensor, OptPairTensor],
+        edge_index: Adj,
+        edge_attr: OptTensor = None,
+        size: Size = None,
+        return_attention_weights=None,
+    ):
         r"""
         Args:
             return_attention_weights (bool, optional): If set to :obj:`True`,
@@ -123,7 +135,7 @@ class GumbelConv(MessagePassing):
         alpha_dst = None if x_dst is None else (x_dst * self.att_dst).sum(-1)
         alpha = (alpha_src, alpha_dst)
 
-        ### some problem in our setting, because user_id and item_id all begins with 0; 
+        ### some problem in our setting, because user_id and item_id all begins with 0;
         if self.add_self_loops:
             if isinstance(edge_index, Tensor):
                 # We only want to add self-loops for nodes that appear both as
@@ -132,11 +144,13 @@ class GumbelConv(MessagePassing):
                 if x_dst is not None:
                     num_nodes = min(num_nodes, x_dst.size(0))
                 num_nodes = min(size) if size is not None else num_nodes
-                edge_index, edge_attr = remove_self_loops(
-                    edge_index, edge_attr)
+                edge_index, edge_attr = remove_self_loops(edge_index, edge_attr)
                 edge_index, edge_attr = add_self_loops(
-                    edge_index, edge_attr, fill_value=self.fill_value,
-                    num_nodes=num_nodes)
+                    edge_index,
+                    edge_attr,
+                    fill_value=self.fill_value,
+                    num_nodes=num_nodes,
+                )
             elif isinstance(edge_index, SparseTensor):
                 if self.edge_dim is None:
                     edge_index = set_diag(edge_index)
@@ -144,11 +158,13 @@ class GumbelConv(MessagePassing):
                     raise NotImplementedError(
                         "The usage of 'edge_attr' and 'add_self_loops' "
                         "simultaneously is currently not yet supported for "
-                        "'edge_index' in a 'SparseTensor' form")
+                        "'edge_index' in a 'SparseTensor' form"
+                    )
 
         # propagate_type: (x: OptPairTensor, alpha: OptPairTensor, edge_attr: OptTensor)  # noqa
-        out = self.propagate(edge_index, x=x, alpha=alpha, edge_attr=edge_attr,
-                             size=size)
+        out = self.propagate(
+            edge_index, x=x, alpha=alpha, edge_attr=edge_attr, size=size
+        )
 
         alpha = self._alpha
         assert alpha is not None
@@ -166,13 +182,20 @@ class GumbelConv(MessagePassing):
             if isinstance(edge_index, Tensor):
                 return out, (edge_index, alpha)
             elif isinstance(edge_index, SparseTensor):
-                return out, edge_index.set_value(alpha, layout='coo')
+                return out, edge_index.set_value(alpha, layout="coo")
         else:
             return out
 
-    def message(self, x_j: Tensor, alpha_j: Tensor, alpha_i: OptTensor,
-                edge_attr: OptTensor, index: Tensor, ptr: OptTensor,
-                size_i: Optional[int]) -> Tensor:
+    def message(
+        self,
+        x_j: Tensor,
+        alpha_j: Tensor,
+        alpha_i: OptTensor,
+        edge_attr: OptTensor,
+        index: Tensor,
+        ptr: OptTensor,
+        size_i: Optional[int],
+    ) -> Tensor:
         # Given edge-level attention coefficients for source and target nodes,
         # we simply need to sum them up to "emulate" concatenation:
         alpha = alpha_j if alpha_i is None else alpha_j + alpha_i
@@ -190,23 +213,28 @@ class GumbelConv(MessagePassing):
         alpha_before = alpha
         alpha = softmax(alpha, index, ptr, size_i)
         alpha_mask = self.gumbel_sample(alpha, index, ptr, size_i)
-        alpha = alpha_mask*alpha_before
+        alpha = alpha_mask * alpha_before
         self._alpha = alpha  # Save for later use.
         alpha = softmax(alpha, index, ptr, size_i)
         alpha = F.dropout(alpha, p=self.dropout, training=self.training)
         return x_j * alpha.unsqueeze(-1)
-    
+
     def gumbel_softmax(self, alpha, index, ptr, size_i):
         eps = 1e-20
         u = torch.rand(alpha.size()).to(alpha.device)
-        gumbel_noise = -torch.log(-torch.log(u+eps)+eps)
-        y = (torch.log(alpha+eps)+gumbel_noise)/self.gumbel_temperature
+        gumbel_noise = -torch.log(-torch.log(u + eps) + eps)
+        y = (torch.log(alpha + eps) + gumbel_noise) / self.gumbel_temperature
         return softmax(y, index, ptr, size_i)
-    
+
     def gumbel_sample(self, alpha, index, ptr, size_i):
-        index_list = [self.gumbel_softmax(alpha, index, ptr, size_i) for _ in range(self.sampled_num)]
+        index_list = [
+            self.gumbel_softmax(alpha, index, ptr, size_i)
+            for _ in range(self.sampled_num)
+        ]
         return torch.sum(torch.stack(index_list, 0), 0)
 
     def __repr__(self) -> str:
-        return (f'{self.__class__.__name__}({self.in_channels}, '
-                f'{self.out_channels}, heads={self.heads})')
+        return (
+            f"{self.__class__.__name__}({self.in_channels}, "
+            f"{self.out_channels}, heads={self.heads})"
+        )

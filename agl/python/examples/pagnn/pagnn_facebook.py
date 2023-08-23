@@ -25,6 +25,7 @@ class PaGNNModel(torch.nn.Module):
     Paper: Inductive Link Prediction with Interactive Structure Learning on Attributed Graph
             https://2021.ecmlpkdd.org/wp-content/uploads/2021/07/sub_635.pdf
     """
+
     def __init__(
         self,
         node_feat,
@@ -73,9 +74,7 @@ class PaGNNModel(torch.nn.Module):
 
 
 # step 1: dataset define
-train_file_name = (
-    "./facebook_pagnn_train.csv"  
-)
+train_file_name = "./facebook_pagnn_train.csv"
 val_file_name = "./facebook_pagnn_val.csv"
 test_file_name = "./facebook_pagnn_test.csv"
 node_feat_np = np.load("./facebook_nodefeat.npy")

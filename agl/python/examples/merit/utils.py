@@ -34,9 +34,14 @@ class EarlyStopMonitor(object):
 def parse_args():
     parser = argparse.ArgumentParser(description="MERIT")
 
-    parser.add_argument("--model", type=str, default="merit",
-                        help="Choose a model:[merit, tgat]")
-    parser.add_argument("--agg_type", type=str, default="conv",
-                        help="Choose a type of merit aggregator :[conv, lstm]")
+    parser.add_argument(
+        "--model", type=str, default="merit", help="Choose a model:[merit, tgat]"
+    )
+    parser.add_argument(
+        "--agg_type",
+        type=str,
+        default="conv",
+        help="Choose a type of merit aggregator :[conv, lstm]",
+    )
 
     return parser.parse_args()

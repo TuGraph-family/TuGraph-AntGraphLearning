@@ -11,7 +11,7 @@ class PaGNNEncoder(torch.nn.Module):
     """
 
     def __init__(self, node_dim: int, edge_dim: int, hidden_dim: int, n_hops: int):
-        """ 
+        """
         Args:
             node_dim(int): node feature dimension
             edge_dim(int): edge feature dimension
@@ -60,7 +60,7 @@ class PaGNNBroadcast(torch.nn.Module):
     """
 
     def __init__(self, node_dim: int, edge_dim: int, hidden_dim: int, n_hops: int):
-        """ 
+        """
         Args:
             node_dim(int): node feature dimension
             edge_dim(int): edge feature dimension
@@ -118,7 +118,7 @@ class PaGNNBroadcast(torch.nn.Module):
             node_embd: node imbedding
             source_nodes: nodes need to spread
             num_nodes(int): number of all nodes in subgraph for building adjacency matrix
-        Return: 
+        Return:
             embeding (shape the same with node_embd)
         """
         source_nodes = torch.reshape(source_nodes, [1, -1])
@@ -134,14 +134,14 @@ class PaGNNBroadcast(torch.nn.Module):
         return keep_embd
 
     def forward(
-            self, subgraph: TorchSubGraphBatchData, node_feat, send_from_source: bool
+        self, subgraph: TorchSubGraphBatchData, node_feat, send_from_source: bool
     ):
         """
         Inputs:
             subgraph: TorchSubGraphBatchData
             node_feat: node imbedding
             send_from_source(bool): whether broadcast from source node(Setting Ture) or target node(Setting False)
-        Return: 
+        Return:
             embeding: embedding that updating by broadcast stage
         """
         edges_index = subgraph.adjs_t.edge_index
@@ -152,8 +152,12 @@ class PaGNNBroadcast(torch.nn.Module):
 
         source_nodes = root_nodes[:, 0] if send_from_source else root_nodes[:, 1]
         bi_edges = torch.cat(
-            (torch.cat((edges_index[0], edges_index[1]), 0), torch.cat((edges_index[1], edges_index[0]), 0)),
-            -1).reshape(2, -1)
+            (
+                torch.cat((edges_index[0], edges_index[1]), 0),
+                torch.cat((edges_index[1], edges_index[0]), 0),
+            ),
+            -1,
+        ).reshape(2, -1)
         indices = torch.unique(bi_edges, dim=1)
         values = torch.ones(indices.shape[1]).to(device)
         adj = torch.sparse_coo_tensor(indices, values, [num_nodes, num_nodes])
@@ -184,7 +188,7 @@ class PaGNNAggregation(torch.nn.Module):
     """
 
     def __init__(self, node_dim: int, edge_dim: int, hidden_dim: int, n_hops: int):
-        """ 
+        """
         Args:
             node_dim(int): node feature dimension
             edge_dim(int): edge feature dimension
@@ -202,11 +206,11 @@ class PaGNNAggregation(torch.nn.Module):
         )
 
     def forward(
-            self,
-            subgraph: TorchSubGraphBatchData,
-            node_feat,
-            send_embd: torch.Tensor,
-            agg_by_source: bool,
+        self,
+        subgraph: TorchSubGraphBatchData,
+        node_feat,
+        send_embd: torch.Tensor,
+        agg_by_source: bool,
     ):
         """
         Inputs:
@@ -214,7 +218,7 @@ class PaGNNAggregation(torch.nn.Module):
             node_feat: node imbedding
             send_embd: embedding from broadcast stage
             agg_by_source(bool): whether aggregate by source node(Setting Ture) or target node(Setting False)
-        Return: 
+        Return:
             embeding: embedding that updating by aggregation stage
         """
         node_embd = node_feat

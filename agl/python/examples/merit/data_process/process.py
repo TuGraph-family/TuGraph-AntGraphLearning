@@ -12,7 +12,8 @@ class RandEdgeSampler(object):
         dst_index = np.random.randint(0, len(self.dst_list))
         return self.src_list[src_index], self.dst_list[dst_index]
 
-g_df = pd.read_csv('ml_wikipedia.csv')
+
+g_df = pd.read_csv("ml_wikipedia.csv")
 val_time, test_time = list(np.quantile(g_df.ts, [0.70, 0.85]))
 
 src_l = g_df.u.values
@@ -61,26 +62,36 @@ with open("ml_wikipedia.csv") as f:
 
         node_set.add(node1_id)
         node_set.add(node2_id)
-        full_edge_table_output += "{},{},{},{}\n".format(node1_id, node2_id, edge_id, ts)
-        full_edge_table_output += "{},{},{},{}\n".format(node2_id, node1_id, edge_id+"_r", ts)
+        full_edge_table_output += "{},{},{},{}\n".format(
+            node1_id, node2_id, edge_id, ts
+        )
+        full_edge_table_output += "{},{},{},{}\n".format(
+            node2_id, node1_id, edge_id + "_r", ts
+        )
         full_seed_table_output += "{},{},{}\n".format(node1_id, edge_id, ts)
         full_seed_table_output += "{},{},{}\n".format(node2_id, edge_id, ts)
 
         _, node_fake = full_rand_sampler.sample()
-        full_seed_table_output += "{},{},{}\n".format(node1_id, edge_id+"_f", ts)
-        full_seed_table_output += "{},{},{}\n".format(node_fake, edge_id+"_f", ts)
+        full_seed_table_output += "{},{},{}\n".format(node1_id, edge_id + "_f", ts)
+        full_seed_table_output += "{},{},{}\n".format(node_fake, edge_id + "_f", ts)
 
         if ts <= val_time:
-            train_edge_table_output += "{},{},{},{}\n".format(node1_id, node2_id, edge_id, ts)
-            train_edge_table_output += "{},{},{},{}\n".format(node2_id, node1_id, edge_id+"_r", ts)
+            train_edge_table_output += "{},{},{},{}\n".format(
+                node1_id, node2_id, edge_id, ts
+            )
+            train_edge_table_output += "{},{},{},{}\n".format(
+                node2_id, node1_id, edge_id + "_r", ts
+            )
             train_seed_table_output += "{},{},{}\n".format(node1_id, edge_id, ts)
             train_seed_table_output += "{},{},{}\n".format(node2_id, edge_id, ts)
 
             _, node_fake = train_rand_sampler.sample()
-            train_seed_table_output += "{},{},{}\n".format(node1_id, edge_id+"_f", ts)
-            train_seed_table_output += "{},{},{}\n".format(node_fake, edge_id+"_f", ts)
+            train_seed_table_output += "{},{},{}\n".format(node1_id, edge_id + "_f", ts)
+            train_seed_table_output += "{},{},{}\n".format(
+                node_fake, edge_id + "_f", ts
+            )
 
-# train edge table 
+# train edge table
 with open("train_edge_table.csv", "w") as f:
     f.write(train_edge_table_output)
 
@@ -88,7 +99,7 @@ with open("train_edge_table.csv", "w") as f:
 with open("train_seed_table.csv", "w") as f:
     f.write(train_seed_table_output)
 
-# full edge table 
+# full edge table
 with open("full_edge_table.csv", "w") as f:
     f.write(full_edge_table_output)
 

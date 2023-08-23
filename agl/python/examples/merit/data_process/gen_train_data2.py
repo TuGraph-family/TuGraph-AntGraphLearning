@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 
-
 # read node graph feature
 i = 0
 train_output = ""
@@ -11,7 +10,7 @@ for line in open("wiki_data.csv"):
     if is_first_line:
         is_first_line = False
         continue
-    parts = line.rstrip('\n').split(',')
+    parts = line.rstrip("\n").split(",")
 
     graph_feature = parts[1]
 
@@ -22,7 +21,7 @@ for line in open("wiki_data.csv"):
     else:
         break
 
-    i += 1 
+    i += 1
 
 with open("wiki_train.csv", "w") as f:
     f.write(train_output)

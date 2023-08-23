@@ -40,8 +40,8 @@ class MultiGraphFeatureCollate:
             columns(List[AGLColumn]): column information to parse related columns
             graph_feature_name(str): graph feature column name
             label_name(str): label column name
-            need_node_and_edge_num (bool): Whether should return node/edge num per sample
-            ego_edge_index(bool): Whether should return ego edge_index or plain edge index.
+            need_node_and_edge_num (bool): whether the number of nodes/edges per sample needs to be returned.
+            ego_edge_index(bool): Whether the result return ego edge_index or plain edge index.
             note need_node_and_edge_num and ego_edge_index are mutually exclusive now.
             hops(int): if return ego_edge_index, how many hops should return
             uncompress(bool): Whether the pbs should be un-compressed

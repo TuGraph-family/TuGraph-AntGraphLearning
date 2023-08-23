@@ -116,7 +116,6 @@ class PySubGraph:
         Returns: List of edge indexes. [{edge_name: edge_index_k_hop}, {edge_name: edge_index_{k-1}_hop} ...]
 
         """
-        # 需要用户判断自己的模型是否适合 ego 模式
         res = self.sg.GetEgoEdgeIndex(hops)
         res_size = len(res)
         res_final = []

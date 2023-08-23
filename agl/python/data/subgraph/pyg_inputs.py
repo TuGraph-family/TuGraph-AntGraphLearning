@@ -1,8 +1,8 @@
 from typing import List, NamedTuple, Tuple, Dict, Optional, Any, Union
 from abc import abstractmethod
 
-import numpy as np
 import torch
+import numpy as np
 from torch import Tensor
 
 
@@ -15,11 +15,11 @@ def optional_to(x: Optional, *args, **kwargs):
 
 
 class TorchEdgeIndex(NamedTuple):
-    private_edge_index: Tensor  # 目前只会用到这个字段
+    private_edge_index: Optional[Tensor]
     size: Optional[Tuple[int, int]]
     edge_indices: Optional[Tensor]
 
-    # 如果是 coo 或者 csr 创建的
+    # if create from coo or csr，following property exists
     row: Optional[Tensor]
     col: Optional[Tensor]
     row_ptr: Optional[Tensor]
@@ -27,16 +27,16 @@ class TorchEdgeIndex(NamedTuple):
     @property
     def edge_index(self):
         if self.private_edge_index is None:
-            # todo NamedTuple 属性都是 readonly 的，因此构造完不能更新对应的属性
+            # todo property of NamedTuple readonly, update related property is not allowed
             if self.row is not None:
                 assert self.col is not None
-                # coo 格式
+                # coo format. direction has exchange before. refer collate::get_ego_edge_index
                 return torch.stack(
                     [torch.as_tensor(self.row), torch.as_tensor(self.col)], dim=0
                 )
             elif self.row_ptr is not None:
                 assert self.col is not None
-                # CSR 格式
+                # CSR format
                 from torch_sparse import SparseTensor
 
                 # is sorted should be Ture, otherwise, edge_f_index [0~nnz-1] would be changed
@@ -49,8 +49,10 @@ class TorchEdgeIndex(NamedTuple):
                 )
                 coo = sp.coo()
                 dst_indices, src_indices, edge_indices = coo[0], coo[1], coo[2]
-                # 转换index 方向
+                # should adapt pyg for direction of edge index when format is coo
                 return torch.stack([src_indices, dst_indices], dim=0)
+            else:
+                raise NotImplementedError
         else:
             return self.private_edge_index
 
@@ -58,7 +60,7 @@ class TorchEdgeIndex(NamedTuple):
         if self.private_edge_index is None:
             if self.row is not None:
                 assert self.col is not None
-                # coo 格式
+                # coo format
                 row = optional_to(self.row, *args, **kwargs)
                 col = optional_to(self.col, *args, **kwargs)
                 edge_index = torch.stack(
@@ -74,7 +76,7 @@ class TorchEdgeIndex(NamedTuple):
                 )
             elif self.row_ptr is not None:
                 assert self.col is not None
-                # CSR 格式
+                # CSR format
                 p_row_ptr = optional_to(self.row_ptr, *args, **kwargs)
                 p_col = optional_to(self.col, *args, **kwargs)
                 p_edge_indices = optional_to(self.edge_indices, *args, **kwargs)
@@ -90,7 +92,7 @@ class TorchEdgeIndex(NamedTuple):
                 )
                 coo = sp.coo()
                 dst_indices, src_indices, edge_indices = coo[0], coo[1], coo[2]
-                # 转换index 方向
+                # should adapt pyg for direction of edge index when format is coo
                 edge_index = torch.stack([src_indices, dst_indices], dim=0)
                 return TorchEdgeIndex(
                     private_edge_index=edge_index.to(*args, **kwargs),
@@ -184,7 +186,6 @@ class TorchDenseFeature(TorchFeature, NamedTuple):
     def to_dense(self):
         return self.x
 
-    # 考虑是否将下面两个方法合并成一个
     @staticmethod
     def create(feat: Union[Tensor, np.ndarray]):
         return TorchDenseFeature(x=torch.as_tensor(feat))
@@ -206,6 +207,8 @@ class TorchSparseFeature(TorchFeature, NamedTuple):
             size=self.size,
         )
 
+    # todo should get sparse out of dataloader,
+    #  torch sparse tensor now can not be pickled when using multi-process in dataloader
     def get(self):
         if self.row is not None:
             assert self.col is not None
@@ -224,12 +227,8 @@ class TorchSparseFeature(TorchFeature, NamedTuple):
                 f"row = None? {self.row is None}, row_ptr = None ? {self.row_ptr is None}, not supported"
             )
 
-    # 必须在 collate function 之外使用
-    # dataloader 多进程时 sparse tensor无法 pickle
     def to_dense(self):
         return self.get().to_dense()
-
-    # 考虑将下面几个方法合并成2个 from tensor/ndarray
 
     @staticmethod
     def create_from_coo(
@@ -263,20 +262,16 @@ class TorchSparseFeature(TorchFeature, NamedTuple):
 
 
 class TorchFeatures(NamedTuple):
-    subgraph_index: Optional[Tensor]  # 内部兼容
     features: Dict[str, TorchFeature]
-    id_num: Optional[int]  # 内部兼容
 
     def to(self, *args, **kwargs):
         return TorchFeatures(
-            subgraph_index=optional_to(self.subgraph_index, *args, **kwargs),
             features={k: v.to(*args, **kwargs) for k, v in self.features.items()},
-            id_num=self.id_num,
         )
 
     @staticmethod
     def create_from_torch_feature(features: Dict[str, TorchFeature]):
-        return TorchFeatures(subgraph_index=None, features=features, id_num=None)
+        return TorchFeatures(features=features)
 
 
 class TorchEgoBatchData(NamedTuple):

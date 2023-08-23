@@ -56,7 +56,7 @@ my_collate = AGLHomoCollateForPyG(
     node_spec,
     edge_spec,
     columns=[label_column, id_column, flag_column],
-    uncompress=True, 
+    uncompress=True,
 )
 
 # step 3: 构建 dataloader
@@ -67,7 +67,6 @@ train_loader = DataLoader(
     collate_fn=my_collate,
     num_workers=0,
 )
-
 
 # step 4: 模型相关以及训练与测试
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

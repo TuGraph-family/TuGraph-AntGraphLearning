@@ -33,20 +33,6 @@ class AGLDatasetTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         AGLDatasetTest.mock_data(cls.file_name)
 
-    def test_agl_ppi_dataset(self):
-        my_test_dataset = AGLTorchMapBasedDataset(self.file_name, "txt", column_sep=",")
-        self.assertEqual(my_test_dataset.len(), 3)
-        for i in range(my_test_dataset.len()):
-            r_dict = my_test_dataset[i]
-            r_id, r_gf, r_label = (
-                r_dict["id"].decode("utf-8"),
-                r_dict["graph_feature"].decode("utf-8"),
-                r_dict["label"].decode("utf-8"),
-            )
-            self.assertEqual(r_id, AGLDatasetTest.record[i][0])
-            self.assertEqual(r_gf, AGLDatasetTest.record[i][1])
-            self.assertEqual(r_label, AGLDatasetTest.record[i][2])
-
     def test_agl_map_style_dataset(self):
         test_dataset = AGLTorchMapBasedDataset(self.file_name, column_sep=",")
         self.assertEqual(test_dataset.len(), len(self.record))
@@ -79,9 +65,10 @@ class AGLDatasetTest(unittest.TestCase):
     def test_data_loader(self):
         from torch.utils.data import DataLoader
 
-        # file_name = AGLDatasetTest.mock_data()
         script_dir = os.path.dirname(os.path.abspath(__file__))
         my_test_dataset = AGLTorchMapBasedDataset(self.file_name, "txt", column_sep=",")
         train_loader = DataLoader(dataset=my_test_dataset, batch_size=5, shuffle=False)
+        sample_num = 0
         for i, data in enumerate(train_loader):
-            print(f"i:{i}, data:{data} \n")
+            sample_num = sample_num + len(data["id"])
+        self.assertEqual(sample_num, len(my_test_dataset))

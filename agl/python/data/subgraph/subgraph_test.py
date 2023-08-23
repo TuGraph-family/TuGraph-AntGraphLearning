@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import unittest
+import os
 import numpy as np
 
 from agl.python.data.subgraph.subgraph import PySubGraph
@@ -45,9 +46,14 @@ class SubGraphTest(unittest.TestCase):
     @staticmethod
     def create_subgraph():
         sg = PySubGraph([SubGraphTest.node_spec], [SubGraphTest.edge_spec])
-        pb_string = [
-            b"CnIKB2RlZmF1bHQSZwoLCgkKATEKATIKATMSWAozCgVkZW5zZRIqCAMSJgokzczMPc3MjD8AAIA/zcxMPs3MDEAAAABAmpmZPjMzU0AAAEBAEiEKAm5mEhsKBQoDAgMGEggKBgEKAgMECioICgYBAQIDAwMScAoHZGVmYXVsdBJlCgwKCgoDMS0yCgMyLTMSDQoFCgMBAgISBAoCAQIiB2RlZmF1bHQqB2RlZmF1bHQyNBIyCgJlZhIsCgQKAgMGEggKBgECCQIDChoaChjNzIw/zcwMQJqZIUHNzAxAMzNTQGZmBkAaCwoJEgdkZWZhdWx0"
-        ]
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # the ground truth json result referring to: ./test_data/data1_content.txt
+        file_name = os.path.join(script_dir, "./test_data/data1.txt")
+        pb_string = []
+        with open(file_name, "rb") as f:
+            graph_feature_content = f.readline()
+            pb_string.append(graph_feature_content)
+
         pb_string_double = [bytearray(pb_string[0]), bytearray(pb_string[0])]
         sg.from_pb_bytes(pb_string_double)
         return sg
@@ -107,20 +113,20 @@ class SubGraphTest(unittest.TestCase):
         n_df_gt = []
         n_df_gt.extend(n_df_one_gt)
         n_df_gt.extend(n_df_one_gt)
-        print(f"========== node dense:{node_dense}")
+        print(f"==========\n node dense:\n{node_dense}\n")
         self.assertAlmostEqual(np.array(n_df_gt).all(), node_dense.all())
         # test node sparse kv
         node_sparse_kv = sg.get_node_sparse_kv_feature(self.n_name, self.n_spkv_name)
         n_spkv_ind_gt_two = [0, 2, 3, 6, 8, 9, 12]
         n_spkv_key_gt_two = [1, 10, 2, 3, 4, 10, 1, 10, 2, 3, 4, 10]
         n_spkv_val_gt_two = [1, 1, 2, 3, 3, 3, 1, 1, 2, 3, 3, 3]
-        print(f"========== node sparse: {node_sparse_kv}")
+        print(f"==========\n node sparse:\n{node_sparse_kv}\n")
         self.assertListEqual(n_spkv_ind_gt_two, node_sparse_kv[0].tolist())
         self.assertListEqual(n_spkv_key_gt_two, node_sparse_kv[1].tolist())
         self.assertListEqual(n_spkv_val_gt_two, node_sparse_kv[2].tolist())
         # test edge sparse kv
         edge_sparse_kv = sg.get_edge_sparse_kv_feature(self.e_name, self.e_kv_name)
-        print(f"========== edge sparse:{edge_sparse_kv}")
+        print(f"==========\n edge sparse:\n{edge_sparse_kv}\n")
         e_sp_kv_ind_gt_two = [0, 3, 6, 9, 12]
         e_sp_kv_key_gt_two = [1, 2, 9, 2, 3, 10, 1, 2, 9, 2, 3, 10]
         s_sp_kv_val_gt_two = [
@@ -144,17 +150,17 @@ class SubGraphTest(unittest.TestCase):
         )
         # test node_num
         n_num = sg.get_node_num_per_sample()
-        print(f"======= n_num per sample:{n_num}")
+        print(f"==========\n n_num per sample:\n{n_num}\n")
         n_num_gt_two = [3, 3]
         self.assertListEqual(n_num_gt_two, n_num[self.n_name])
         # test edge_num
         e_num = sg.get_edge_num_per_sample()
-        print(f"======= e_num per sample: {e_num}")
+        print(f"==========\n e_num per sample:\n{e_num}\n")
         e_num_gt_two = [2, 2]
         self.assertListEqual(e_num_gt_two, e_num[self.e_name])
         # test ego graph
         ego_adj = sg.get_ego_edge_index(2)
-        print(f"=========== ego adj 2hops: {ego_adj}")
+        print(f"==========\n ego adj 2hops:\n{ego_adj}\n")
         ego_2_hop_gt = {0: (0, 1), 1: (1, 2), 2: (3, 4), 3: (4, 5)}
 
         ego_1_hop_gt = {0: {0, 1}, 2: {3, 4}}
