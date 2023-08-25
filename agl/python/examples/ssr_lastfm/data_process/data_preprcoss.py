@@ -3,7 +3,7 @@ import numpy as np
 
 def read_lastfm():
     edges = []
-    with open("data/user_artists.dat", "r") as f:
+    with open("./user_artists.dat", "r") as f:
         f.readline()
         for line in f:
             l = line.strip().split()
@@ -16,7 +16,7 @@ def read_lastfm():
     )
 
     social_relations = []
-    with open("data/user_friends.dat", "r") as f:
+    with open("./user_friends.dat", "r") as f:
         f.readline()
         for line in f:
             l = line.strip().split()
@@ -55,11 +55,11 @@ if __name__ == "__main__":
     ratio = int(0.8 * len(edges))
     train_edges, test_edges = edges[:ratio], edges[ratio:]
 
-    with open("data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv", "w") as f:
+    with open("./agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv", "w") as f:
         print("node_id,node_feature", file=f)
         for i in range(user_num + item_num):
             print(i, i, file=f, sep=",")
-    with open("data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv", "w") as f:
+    with open("./agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv", "w") as f:
         print("node1_id,node2_id,edge_id", file=f)
         for u, i in train_edges:
             i += user_num
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     train_neg_edges = negative_sampling(user_nbrs, train_edges, item_num)
     test_neg_edges = negative_sampling(user_nbrs, test_edges, item_num)
-    with open("data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_label.csv", "w") as f:
+    with open("./agl_gzoo_bmdata_ssr_lastfm_open_source_node_label.csv", "w") as f:
         print("node1_id,node2_id,seed,label,train_flag", file=f)
         for u, i in train_edges:
             i += user_num

@@ -57,16 +57,14 @@ def get_features(filename, node_num):
 
 
 user_feat_filenames = [
-    "/graph_ml/agl/python/examples/ssr_lastfm/result/out_node_features_ui",
-    "/graph_ml/agl/python/examples/ssr_lastfm/result/out_node_features_uu",
-    "/graph_ml/agl/python/examples/ssr_lastfm/result/out_node_features_uiu",
-]
+    './result/out_node_features_ui',
+    './result/out_node_features_uu',
+    './result/out_node_features_uiu']
 item_feat_filenames = [
-    "/graph_ml/agl/python/examples/ssr_lastfm/result/out_node_features_iu",
-    "/graph_ml/agl/python/examples/ssr_lastfm/result/out_node_features_iui",
-    "/graph_ml/agl/python/examples/ssr_lastfm/result/out_node_features_iuu",
-]
-feat_filename = "/graph_ml/agl/python/examples/ssr_lastfm/result/features.txt"
+    './result/out_node_features_iu',
+    './result/out_node_features_iui',
+    './result/out_node_features_iuu']
+feat_filename = './result/features.txt'
 user_num = 2101
 item_num = 18746
 node_num = user_num + item_num
@@ -87,8 +85,8 @@ for f in item_feat_filenames:
     temp_x = get_features(f, node_num)
     item_feats.append(temp_x[user_num:])
 
-train_filename = "./data/subgraph_ssr_lastfm_train.csv"
-test_filename = "./data/subgraph_ssr_lastfm_test.csv"
+train_filename = "./data_process/subgraph_ssr_lastfm_train.csv"
+test_filename = "./data_process/subgraph_ssr_lastfm_test.csv"
 
 f = open(train_filename, "r")
 edges = []

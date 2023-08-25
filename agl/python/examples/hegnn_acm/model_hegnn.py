@@ -81,9 +81,9 @@ class HeGNNModel(torch.nn.Module):
         return out
 
 
-train_file_name = "t_xr_acm_train_table_xuanruo_0628.txt"  # "ppi_xr_acm_train_0628.txt"
-test_file_name = "t_xr_acm_test_table_xuanruo_0628.txt"  # "ppi_xr_acm_test_0628.txt"
-val_file_name = "t_xr_acm_val_table_xuanruo_0628.txt"  # "ppi_xr_acm_val_0628.txt"
+train_file_name = "./data_process/hegnn_train.csv"
+test_file_name = "./data_process/hegnn_test.csv"
+val_file_name = "./data_process/hegnn_val.csv"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 train_file_name = os.path.join(script_dir, train_file_name)
@@ -91,22 +91,22 @@ test_file_name = os.path.join(script_dir, test_file_name)
 
 train_data_set = AGLTorchMapBasedDataset(
     train_file_name,
-    format="txt",
-    has_schema=False,
+    format="csv",
+    has_schema=True,
     schema=["id", "graph_feature", "label"],
 )
 
 val_data_set = AGLTorchMapBasedDataset(
     val_file_name,
-    format="txt",
-    has_schema=False,
+    format="csv",
+    has_schema=True,
     schema=["id", "graph_feature", "label"],
 )
 
 test_data_set = AGLTorchMapBasedDataset(
     test_file_name,
-    format="txt",
-    has_schema=False,
+    format="csv",
+    has_schema=True,
     schema=["id", "graph_feature", "label"],
 )
 
@@ -129,7 +129,7 @@ my_collate = MultiGraphFeatureCollate(
     columns=[label_column, id_column],
     ego_edge_index=True,
     pre_transform=SplitGraphFeatures(name="graph_feature"),
-    uncompress=False,
+    uncompress=True,
 )
 
 # print(label_column)

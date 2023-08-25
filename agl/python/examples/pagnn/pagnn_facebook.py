@@ -74,17 +74,17 @@ class PaGNNModel(torch.nn.Module):
 
 
 # step 1: dataset define
-train_file_name = "./facebook_pagnn_train.csv"
-val_file_name = "./facebook_pagnn_val.csv"
-test_file_name = "./facebook_pagnn_test.csv"
-node_feat_np = np.load("./facebook_nodefeat.npy")
+train_file_name = "./data_process/facebook_pagnn_train.csv"
+val_file_name = "./data_process/facebook_pagnn_val.csv"
+test_file_name = "./data_process/facebook_pagnn_test.csv"
+node_feat_np = np.load("./data_process/facebook_nodefeat.npy")
 
 train_data_set = AGLTorchMapBasedDataset(
     train_file_name,
     format="csv",
     has_schema=True,
     column_sep=",",
-    schema=["link_id", "graph_feature", "node1_id", "node2_id", "label"],
+    schema=["seed", "graph_feature", "node1_id", "node2_id", "label"],
 )
 
 val_data_set = AGLTorchMapBasedDataset(
@@ -92,14 +92,14 @@ val_data_set = AGLTorchMapBasedDataset(
     format="csv",
     has_schema=True,
     column_sep=",",
-    schema=["link_id", "graph_feature", "node1_id", "node2_id", "label"],
+    schema=["seed", "graph_feature", "node1_id", "node2_id", "label"],
 )
 test_data_set = AGLTorchMapBasedDataset(
     test_file_name,
     format="csv",
     has_schema=True,
     column_sep=",",
-    schema=["link_id", "graph_feature", "node1_id", "node2_id", "label"],
+    schema=["seed", "graph_feature", "node1_id", "node2_id", "label"],
 )
 
 # step 2: collate function
@@ -113,7 +113,7 @@ node_spec.AddDenseSpec(
 edge_spec = EdgeSpec("default", node_spec, node_spec, AGLDType.STR)
 
 label_column = AGLDenseColumn(name="label", dim=2, dtype=np.int64, sep=" ")
-id_column = AGLRowColumn(name="link_id")
+id_column = AGLRowColumn(name="seed")
 my_collate = AGLHomoCollateForPyG(
     node_spec,
     edge_spec,

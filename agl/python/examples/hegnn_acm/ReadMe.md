@@ -10,11 +10,12 @@
 
 * 数据
 
-训练集: http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/hegnn_train_odps.csv <br>
-验证集: http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/hegnn_val_odps.csv <br>
-测试集: http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/hegnn_test_odps.csv <br>
+下载数据放到data_process目录下
 
+* 数据预处理与子图采样：
+    运行submit.sh进行spark采样,得到训练集测试集验证集
 * 效果
+python model_hegnn.py
 
 Epoch: 01, Loss: 0.6549, val_micro_f1: 0.3533, test_micro_f1: 0.3812, time_cost:10.1865
 (Epoch: 01, best_val_micro_f1: 0.3533, best_test_micro_f1: 0.3812)  <br>

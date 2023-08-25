@@ -98,10 +98,10 @@ def generate_pseudo_label(
 
 def main():
     # step 1: 构建dataset
-    train_file_name = "graph_feature_1.csv"
-    test_file_name = "graph_feature_0.csv"
-    val_file_name = "graph_feature_2.csv"
-    unlabel_file_name = "graph_feature_-1.csv"
+    train_file_name = "data_process/graph_feature_1.csv"
+    test_file_name = "data_process/graph_feature_0.csv"
+    val_file_name = "data_process/graph_feature_2.csv"
+    unlabel_file_name = "data_process/graph_feature_-1.csv"
 
     # 数据集参数及模型超参数
     num_node = 3327

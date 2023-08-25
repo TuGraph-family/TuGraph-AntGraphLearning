@@ -19,22 +19,25 @@
 ```
 python data_preprocess.py
 ```
-从http://files.grouplens.org/datasets/hetrec2011/hetrec2011-lastfm-2k.zip下载lastfm数据，使用上述命令预处理成我们需要的格式。
+从http://files.grouplens.org/datasets/hetrec2011/hetrec2011-lastfm-2k.zip下载lastfm数据，创建data_process/data目录,将下载数据解压后放在data目录下，使用上述命令预处理成我们需要的格式。
 
 #### 第一阶段数据预处理
-首先我们要把原始数据压缩成子图(pb string)的形式，使用如下命令
+首先我们要把原始数据压缩成子图(pb string)的形式，使用data_process/run_ssr_link.sh脚本命令
 ```
-/graph_ml/spark/spark_client_agl/spark-3.1.1-odps0.34.1/bin/spark-submit --master local --class com.alipay.alps.flatv3.spark.LinkLevelSampling \
-      gnn.jar hop=2 \
-      need_ids='false'   \
-      merge_subgraph="false" \
-      sample_cond='random_sampler(limit=50, seed=34, replacement=false)'   \
-      input_edge="file:////graph_ml/agl/python/examples/ssr_lastfm/data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv" \
-      input_label="file:////graph_ml/agl/python/examples/ssr_lastfm/data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_label.csv" \
-      input_node_feature='file:////graph_ml/agl/python/examples/ssr_lastfm/data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv' \
-      train_flag="train_flag" \
-      output_results='file:////graph_ml/agl/python/examples/ssr_lastfm/data/subgraph_ssr_lastfm_train' \
-      subgraph_spec="{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'node_feature','type':'dense','dim':1,'value':'int64'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[]}],'seed':{'type':'link'}}"  2>&1 | tee logfile2.txt
+python ../../run_spark.py --spark_client_path /graph_ml/spark-3.1.1-bin-hadoop3.2 \
+    --jar_resource_path ../../../java/target/flatv3-1.0-SNAPSHOT.jar \
+    --input_edge_table_name data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv \
+    --input_label_table_name data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_label.csv \
+    --input_node_table_name data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv \
+    --output_table_name_prefix data/output_graph_feature \
+    --neighbor_distance 2 \
+    --train_flag "train_flag" \
+	--sample_condition 'random_sampler(limit=50, seed=34, replacement=false)' \
+    --subgraph_spec "{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'node_feature','type':'dense','dim':1,'value':'int64'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[]}]}" \
+    --algorithm link_level
+
+cp data/output_graph_feature_1/part* subgraph_ssr_lastfm_train.csv
+cp data/output_graph_feature_0/part* subgraph_ssr_lastfm_test.csv
 ```
 其中包含以下几个文件,必须是csv文件：
 - input_edge
@@ -63,7 +66,7 @@ python ssr_ego_infer.py
 
 #### 第二阶段离线特征聚合
 ```
-sh feature_propagation.sh
+sh data_process/feature_propagation.sh
 ```
 离线聚合path guilded 表征，得到U,UI, UU, UUI, I, IU, IUI, IUU 8条路径的特征。
 

@@ -21,11 +21,11 @@ download_resource() {
 
   # todo change to open link
   # spark 3.1.1
-  wget http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/spark-3.1.1-bin-hadoop3.2.tgz -O spark-3.1.1-bin-hadoop3.2.tgz
+  wget https://archive.apache.org/dist/spark/spark-3.1.3/spark-3.1.3-bin-hadoop3.2.tgz -O spark-3.1.1-bin-hadoop3.2.tgz
   # maven 3.6.1
-  wget http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/apache-maven-3.6.1-bin.tar.gz -O apache-maven-3.6.1-bin.tar.gz
+  wget https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz -O apache-maven-3.6.1-bin.tar.gz
   # jdk1.8.0_202
-  wget http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/jdk-8u202-linux-x64.tar.gz -O jdk-8u202-linux-x64.tar.gz
+  wget https://repo.huaweicloud.com/java/jdk/8u202-b08/jdk-8u202-linux-x64.tar.gz -O jdk-8u202-linux-x64.tar.gz
 }
 
 final_tag=agl-gcc${GCC_VERSION}-py${PY_VERSION}-cuda${CUDA_VERSION}-pytorch${PYTORCH_VERSION}

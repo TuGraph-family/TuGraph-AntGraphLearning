@@ -15,20 +15,26 @@
 ## 说明
 > Warning: 模型部分实现和论文中略有不同，原文是知识图谱表征学习和kcan交替训练，这里只有kcan的训练。同时开源数据只有正边没有负边，所以负样本是随机采样的导致数据集中负样本和原论文不一样，因此效果并不能完全对齐论文。
 
+### 数据下载：
+从网盘下载数据文件,放在data_process/目录下
+
 ### 数据预处理
 以movielens为例子
-首先我们要把原始数据压缩成子图(pb string)的形式，使用如下命令
+首先我们要把原始数据压缩成子图(pb string)的形式，使用如下data_process/submit.sh的命令
 ```
-/ossfs/workspace/kcan/spark-3.1.1-odps0.34.1/bin/spark-submit --class com.alipay.alps.flatv3.spark.SubgraphSampling \
-    gnn.jar hop=2 \
-    need_ids='false'   \
-    sample_cond='random_sampler(limit=20, seed=34, replacement=false)'   \
-    input_edge="select node1_id, node2_id, edge_id from agl_gzoo_bmdata_kcan_movielens_open_source_edge_table;" \
-    input_edge_feature="select edge_id, edge_feature from agl_gzoo_bmdata_kcan_movielens_open_source_edge_table;" \
-    input_label="select node_id, seed, label, train_flag from agl_gzoo_bmdata_kcan_movielens_open_source_node_label;" \
-    input_node_feature='select node_id, node_feature from agl_gzoo_bmdata_kcan_movielens_open_source_node_table;' \
-    output_results='agl_gzoo_bmdata_kcan_movielens_open_source_output_subgraph_noids_v2_lx' \
-    subgraph_spec="{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'node_feature','type':'dense','dim':1,'value':'int64'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[{'name':'edge_feature','type':'dense','dim':1,'value':'int64'}]}]}"  2>&1 | tee logfile.txt
+base=`dirname "$0"`
+cd "$base"
+
+python ../../run_spark.py \
+    --jar_resource_path ../../../../java/target/flatv3-1.0-SNAPSHOT.jar \
+    --input_edge_table_name ./edge_table.csv \
+    --input_label_table_name ./link_table.csv \
+    --input_node_table_name ./node_table.csv \
+    --output_table_name_prefix ./output_graph_feature \
+    --neighbor_distance 2 \
+	--sample_condition 'random_sampler(limit=20, seed=34, replacement=false)' \
+    --subgraph_spec "{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'node_feature','type':'dense','dim':1,'value':'int64'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[{'name':'edge_feature','type':'dense','dim':1,'value':'int64'}]}]}" \
+    --algorithm kcan
 ```
 主要包含以下几个文件：
 - input_edge

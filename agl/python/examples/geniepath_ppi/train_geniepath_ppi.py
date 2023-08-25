@@ -58,8 +58,8 @@ class GeniePathPPIModel(torch.nn.Module):
 
 def main():
     # step 1: 构建dataset
-    train_file_name = "ppi_train_docker.csv"
-    test_file_name = "ppi_test_docker.csv"
+    train_file_name = "data_process/ppi_train.csv"
+    test_file_name = "data_process/ppi_test.csv"
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     train_file_name = os.path.join(script_dir, train_file_name)

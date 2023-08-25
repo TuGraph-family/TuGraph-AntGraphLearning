@@ -5,7 +5,7 @@ import pandas as pd
 ### read node graph feature
 train_node_gf = {}
 is_first_line = True
-for line in open("train_wiki_data.csv"):
+for line in open("train_wiki_graph_feature.csv"):
     if is_first_line:
         is_first_line = False
         continue
@@ -16,7 +16,7 @@ for line in open("train_wiki_data.csv"):
 
 full_node_gf = {}
 is_first_line = True
-for line in open("full_wiki_data.csv"):
+for line in open("full_wiki_graph_feature.csv"):
     if is_first_line:
         is_first_line = False
         continue
@@ -26,7 +26,7 @@ for line in open("full_wiki_data.csv"):
     full_node_gf[seed] = graph_feature
 
 ### Load data and train val test split
-g_df = pd.read_csv("ml_wikipedia.csv")
+g_df = pd.read_csv('./processed/ml_wikipedia.csv')
 val_time, test_time = list(np.quantile(g_df.ts, [0.70, 0.85]))
 
 train_output = ""

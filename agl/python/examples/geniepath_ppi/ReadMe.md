@@ -8,11 +8,12 @@
 
 ## 说明
 
-* 数据：
-    * wget http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/ppi_train_docker.csv
-    * wget http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/ppi_val_docker.csv
-    * wget http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/ppi_test_docker.csv
-* python train_geniepath_ppi.py
+* 数据下载：
+    从https://github.com/sufeidechabei/PPI-Inductive/tree/master/ppi下载,放到data_process/ppi/目录下
+* 数据预处理与子图采样：
+    运行submit.sh进行数据预处理和spark采样,得到训练集测试集验证集
+* 模型
+    python train_geniepath_ppi.py
 
 ## Benchmark
 

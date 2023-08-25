@@ -10,12 +10,6 @@ cd ${base}
 source ${base}/common.sh
 set -e
 
-#download_src() {
-#  package=$1
-#  dst_dir=$2
-#  wget -q http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/user/agl_deps_src/$package -O $dst_dir/$package
-#}
-
 boost_dir=${base}/boost
 if [ ! -e ${boost_dir}/boost_install/success ]; then
   echo "start to compile boost"
@@ -100,8 +94,7 @@ if [ ! -e ${protobuf_dir}/protobuf_install/success ]; then
   fi
   mkdir ${protobuf_dir}
   cd ${protobuf_dir}
-  protobuf_url="http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/open_agl_deps%2Fprotobuf%2Fv3.20.3.tar.gz"
-  # "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.20.3.tar.gz" # network problem
+  protobuf_url="https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.20.3.tar.gz"
   protobuf_untar_dir="${protobuf_dir}/protobuf-3.20.3"
   if [ -f /agl_resource/protobuf.tar.gz ]; then
     echo ">>>>>>>>>>> use /agl_resource/protobuf.tar.gz"

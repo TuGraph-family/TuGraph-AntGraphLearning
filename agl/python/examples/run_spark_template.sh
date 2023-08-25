@@ -1,0 +1,16 @@
+spark-submit --master local \
+    --class ${algorithm} ${jar_resource_path} \
+    -input_edge "file:///${edge_table}" \
+    -input_label "file:///${label_table}" \
+    -input_node_feature "file:///${node_table}" \
+    -output_results "file:///${output_table_name_prefix}" \
+    -subgraph_spec "${subgraph_spec}" \
+    -index_metas "${index_metas}" \
+    -filter_cond "${filter_condition}" \
+    -sample_cond "${sample_condition}" \
+    -remove_edge_among_roots "${remove_edge_among_roots}" \
+    -store_id_in_subgraph "${store_id_in_subgraph}" \
+    -train_flag "${train_flag}" \
+    -hegnn_mode "${hegnn_mode}" \
+    -label_level "${label_level}" \
+    -hop "${neighbor_distance}"

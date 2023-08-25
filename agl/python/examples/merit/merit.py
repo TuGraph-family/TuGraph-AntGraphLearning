@@ -21,7 +21,7 @@ class MERITModel(torch.nn.Module):
         seq_len=None,
         log_max=None,
         kernel_size=3,
-        context_type="lstm",
+        context_type="conv",
     ):
         super().__init__()
 

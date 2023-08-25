@@ -28,7 +28,7 @@ parser.add_argument("--num_layers", type=int, default=2, help="layer number of G
 args = parser.parse_args()
 
 # step 1: 构建dataset
-train_file_name = "part-00000-f1c59df8-da17-4c37-82ad-01f6b7f44089-c000.csv"
+train_file_name = "data_process/graph_features.csv"
 script_dir = os.path.dirname(os.path.abspath("./nasa/"))
 train_file_path = os.path.join(script_dir, train_file_name)
 
@@ -51,7 +51,7 @@ edge_spec.AddSparseKVSpec(
 
 label_column = AGLDenseColumn(name="label_list", dim=7650, dtype=np.int64, sep="\t")
 id_column = AGLDenseColumn(name="node_id_list", dim=7650, dtype=np.int64, sep="\t")
-flag_column = AGLDenseColumn(name="flag_list", dim=7650, dtype=np.int64, sep="\t")
+flag_column = AGLDenseColumn(name="train_flag_list", dim=7650, dtype=np.int64, sep="\t")
 my_collate = AGLHomoCollateForPyG(
     node_spec,
     edge_spec,
@@ -96,7 +96,7 @@ def train(loader):
 
         # step 4.1.1: 准备当前batch数据
         subgraph = subgraph.to(device)
-        train_mask = subgraph.other_feats["flag_list"] == 0
+        train_mask = subgraph.other_feats["train_flag_list"] == 0
         x = subgraph.n_feats.features["sparse_kv"].get().to_dense()
         aug_edge_index = neighbor_replace_aug(subgraph)
 
@@ -147,7 +147,7 @@ def test(loader, flag="test"):
             softmax_aug_pred = F.softmax(aug_pred, 1)
 
         # step 4.1.3: 数据后处理，用于计算评估指标
-        mask = data.other_feats["flag_list"].squeeze(0)
+        mask = data.other_feats["train_flag_list"].squeeze(0)
         if flag == "train":
             mask = mask == 0
         if flag == "val":

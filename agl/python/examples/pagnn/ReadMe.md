@@ -3,6 +3,13 @@
 > Paper: Inductive Link Prediction with Interactive Structure Learning on Attributed Graph
 https://2021.ecmlpkdd.org/wp-content/uploads/2021/07/sub_635.pdf
 
+* 数据下载：
+    从Facebook: https://docs.google.com/uc?export=download&id=12aJWAGCM4IvdGI2fiydDNyWzViEOLZH8&confirm=t下载数据,放到data_process/facebook/raw目录下
+* 数据预处理与子图采样：
+    运行submit.sh进行数据预处理和spark采样,得到训练集测试集验证集
+* 模型
+    python pagnn_facebook.py
+
 ### Model:
 
 PaGNN as a path aware model includes two main parts: broadcast and aggregation. The broadcast operation is to propagate

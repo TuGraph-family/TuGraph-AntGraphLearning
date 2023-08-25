@@ -33,11 +33,11 @@ args = parse_args()
 random.seed(2020)
 
 # step 1: read dataset
-train_file_name = "wiki_train.csv"
-valid_file_name = "wiki_valid.csv"
-test_file_name = "wiki_test.csv"
+train_file_name = "./data_process/wiki_train.csv"
+valid_file_name = "./data_process/wiki_valid.csv"
+test_file_name = "./data_process/wiki_test.csv"
 
-g_df = pd.read_csv("./ml_wikipedia.csv")
+g_df = pd.read_csv("./data_process/processed/ml_wikipedia.csv")
 max_time_interval = 0
 for i in range(1, g_df.u.max() + 1):
     temp = g_df[g_df.u == i].ts.diff()
@@ -136,8 +136,8 @@ test_loader = DataLoader(
 )
 
 # step 4: model train
-e_feat = np.load("./ml_wikipedia.npy")
-n_feat = np.load("./ml_wikipedia_node.npy")
+e_feat = np.load("./data_process/processed/ml_wikipedia.npy")
+n_feat = np.load("./data_process/processed/ml_wikipedia_node.npy")
 if args.model == "merit":
     model = MERITModel(
         n_feat,

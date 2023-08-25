@@ -19,18 +19,13 @@ stage = 6
 
 ## Benchmark
 
-- 数据
-
-训练集: http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/graph_feature_1.csv
-
-验证集: http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/graph_feature_2.csv
-
-测试集: http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/graph_feature_0.csv
-
-无标签数据集: http://alps-common.oss-cn-hangzhou-zmf.aliyuncs.com/graph_feature_-1.csv
-
-- 效果
-
+* 数据下载：
+    从https://github.com/tkipf/gcn/tree/master/gcn/data下载ind.citeseer.开头的数据文件,放在data_process/data/目录下
+* 数据预处理与子图采样：
+    运行submit.sh进行数据预处理和spark采样,得到训练集测试集验证集
+* 模型
+    python drgst_citeseer.py
+* 效果
 In stage 0
 test loss:0.9647, test acc:0.7070
 In stage 1

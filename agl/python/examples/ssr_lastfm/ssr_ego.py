@@ -60,8 +60,10 @@ class SSRLastfmModel(torch.nn.Module):
 
 def main():
     # step 1: 构建dataset
-    train_file_name = "./data/subgraph_ssr_lastfm_train.csv"
-    test_file_name = "./data/subgraph_ssr_lastfm_test.csv"
+    train_file_name = "./data_process/subgraph_ssr_lastfm_train.csv"
+    test_file_name = "./data_process/subgraph_ssr_lastfm_test.csv"
+    if not os.path.exists('./result/'):
+        os.mkdir('./result/')
 
     # train data set and test data set
     train_data_set = AGLTorchMapBasedDataset(

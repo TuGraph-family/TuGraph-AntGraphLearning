@@ -114,8 +114,8 @@ class KCANMovielensModel(torch.nn.Module):
 
 
 # step 1: 构建dataset
-train_file_name = "./data/subgraph_kcan_movielens_train_new.csv"
-test_file_name = "./data/subgraph_kcan_movielens_test_new.csv"
+train_file_name = "./data_process/subgraph_kcan_movielens_train.csv"
+test_file_name = "./data_process/subgraph_kcan_movielens_test.csv"
 
 # train data set and test data set
 # train_data_set = AGLIterableDataset(train_file_name,
