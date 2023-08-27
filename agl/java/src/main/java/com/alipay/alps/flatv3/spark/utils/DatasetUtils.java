@@ -53,15 +53,6 @@ public class DatasetUtils {
     return aggDataset;
   }
 
-  public static Map<String, String> populateArgumentMap(String[] args) {
-    Map<String, String> arguments = new HashMap<>();
-    for (int i = 0; i < args.length; i++) {
-      int equalityPos = args[i].indexOf("=");
-      arguments.put(args[i].substring(0, equalityPos), args[i].substring(equalityPos + 1));
-    }
-    return arguments;
-  }
-
   public static void outputData(SparkSession spark, Dataset<Row> subgraph, String output) {
     if (output.startsWith("file:///")) {
       subgraph.repartition(1).write().mode(SaveMode.Overwrite).option("header", "true").csv(output);

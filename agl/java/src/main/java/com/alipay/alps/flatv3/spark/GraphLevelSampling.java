@@ -76,14 +76,10 @@ public class GraphLevelSampling extends NodeLevelSampling {
           .add("node_id", DataTypes.StringType)));
     }
     seedDS = attrsCastDType(seedDS, getSubGraphSpec().getSeedAttrs());
-    seedDS.show();
-    seedDS.printSchema();
 
     edgeDS = attrsCastDType(edgeDS, getSubGraphSpec().getEdgeAttrs());
     sparkSampling.setEdgeColumnIndex(DatasetUtils.getColumnIndex(edgeDS));
     Dataset<Row> edgeRemoveFeatureDS = edgeDS.drop("edge_feature");
-    edgeRemoveFeatureDS.show();
-    edgeRemoveFeatureDS.printSchema();
 
     Dataset<Row> graphElementMultiLayer[] = propagateSubGraphStructure(seedDS, edgeRemoveFeatureDS);
     Dataset<Row> graphElement = modifySubGraphStructure(seedDS, graphElementMultiLayer);

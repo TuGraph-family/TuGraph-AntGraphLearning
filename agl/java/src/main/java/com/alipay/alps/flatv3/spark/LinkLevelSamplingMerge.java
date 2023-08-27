@@ -54,12 +54,8 @@ public class LinkLevelSamplingMerge extends NodeLevelSampling {
     edgeDS = attrsCastDType(edgeDS, getSubGraphSpec().getEdgeAttrs());
     sparkSampling.setEdgeColumnIndex(DatasetUtils.getColumnIndex(edgeDS));
     Dataset<Row> edgeRemoveFeatureDS = edgeDS.drop("edge_feature");
-    edgeRemoveFeatureDS.show();
-    edgeRemoveFeatureDS.printSchema();
 
     linkDS = attrsCastDType(linkDS, getSubGraphSpec().getSeedAttrs());
-    linkDS.show();
-    linkDS.printSchema();
     Dataset<Row> node1LinkDS = linkDS.withColumnRenamed("node1_id", "node_id")
         .select("node_id", "seed");
     Dataset<Row> node2LinkDS = linkDS.withColumnRenamed("node2_id", "node_id")
@@ -69,13 +65,9 @@ public class LinkLevelSamplingMerge extends NodeLevelSampling {
         .withColumn("nodes_order", functions.concat_ws(" ", col("node1_id"), col("node2_id")))
         .select("nodes_order", "seed");
     seedDS = seedDS.join(nodesOrder, "seed").select("node_id", "seed", "nodes_order");
-    seedDS.show();
-    seedDS.printSchema();
 
     Dataset<Row> graphElementMultiLayer[] = propagateSubGraphStructure(seedDS, edgeRemoveFeatureDS);
     Dataset<Row> linkSubgraphDS = modifySubGraphStructure(seedDS, graphElementMultiLayer);
-    linkSubgraphDS.show();
-    linkSubgraphDS.printSchema();
 
     Dataset<Row> linkSubgraph = buildSubgraphWithFeature(linkSubgraphDS, rawNodeFeatureDF, edgeDS);
     Dataset<Row> linkSubgraphWithLabel = linkSubgraph.join(linkDS, Constants.ENTRY_SEED);
