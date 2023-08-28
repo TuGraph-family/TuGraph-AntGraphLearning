@@ -13,6 +13,8 @@
 
 package com.alipay.alps.flatv3.sampler;
 
+import static org.junit.Assert.assertEquals;
+
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.CommonResult;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
@@ -20,14 +22,12 @@ import com.alipay.alps.flatv3.filter.result.RangeUnit;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HeteroDataset;
 import com.alipay.alps.flatv3.index.IndexFactory;
-import com.antfin.agl.proto.sampler.Element;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class RandomSamplerTest {
 
@@ -36,7 +36,7 @@ public class RandomSamplerTest {
   private BaseIndex weightIndex;
   private BaseIndex typeIndex;
 
-  @BeforeTest
+  @Before
   public void setUp() {
     List<String> ids = new ArrayList<>();
     List<Float> weight = new ArrayList<>();
@@ -72,7 +72,7 @@ public class RandomSamplerTest {
     }
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (float) numSamples;
-      Assert.assertEquals(6.0F * 1 / 10, empiricalProb, 0.01);
+      assertEquals(6.0F * 1 / 10, empiricalProb, 0.01);
     }
   }
 
@@ -98,9 +98,9 @@ public class RandomSamplerTest {
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (float) numSamples;
       if (i != 1 && i != 6) {
-        Assert.assertEquals(2.0F * 1 / 8, empiricalProb, 0.01);
+        assertEquals(2.0F * 1 / 8, empiricalProb, 0.01);
       } else {
-        Assert.assertEquals(0, empiricalProb, 0.01);
+        assertEquals(0, empiricalProb, 0.01);
       }
     }
   }
@@ -125,9 +125,9 @@ public class RandomSamplerTest {
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (float) numSamples;
       if (i != 1 && i != 6) {
-        Assert.assertEquals(1.0F, empiricalProb, 0.01);
+        assertEquals(1.0F, empiricalProb, 0.01);
       } else {
-        Assert.assertEquals(0, empiricalProb, 0.01);
+        assertEquals(0, empiricalProb, 0.01);
       }
     }
   }
@@ -154,9 +154,9 @@ public class RandomSamplerTest {
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (float) numSamples;
       if (i != 0 && i != 5) {
-        Assert.assertEquals(3.0F / 8, empiricalProb, 0.01);
+        assertEquals(3.0F / 8, empiricalProb, 0.01);
       } else {
-        Assert.assertEquals(0, empiricalProb, 0.01);
+        assertEquals(0, empiricalProb, 0.01);
       }
     }
   }
@@ -183,9 +183,9 @@ public class RandomSamplerTest {
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (float) numSamples;
       if (i != 0 && i != 5) {
-        Assert.assertEquals(3.0F / 8, empiricalProb, 0.01);
+        assertEquals(3.0F / 8, empiricalProb, 0.01);
       } else {
-        Assert.assertEquals(0, empiricalProb, 0.01);
+        assertEquals(0, empiricalProb, 0.01);
       }
     }
   }
@@ -211,9 +211,9 @@ public class RandomSamplerTest {
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (float) numSamples;
       if (i == 1 || i == 2 || i == 4 || i == 6 || i == 7 || i == 9) {
-        Assert.assertEquals(2.0F * 1 / 6, empiricalProb, 0.01);
+        assertEquals(2.0F * 1 / 6, empiricalProb, 0.01);
       } else {
-        Assert.assertEquals(0, empiricalProb, 0.01);
+        assertEquals(0, empiricalProb, 0.01);
       }
     }
   }

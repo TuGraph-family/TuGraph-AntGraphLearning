@@ -13,6 +13,8 @@
 
 package com.alipay.alps.flatv3.graphfeature;
 
+import static org.junit.Assert.assertEquals;
+
 import com.antfin.agl.proto.graph_feature.Edges;
 import com.antfin.agl.proto.graph_feature.GraphFeature;
 import com.antfin.agl.proto.graph_feature.Nodes;
@@ -28,8 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.IOUtils;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 // add several nodes and edges into the graph, then check the result of the graph feature generator
 public class GraphFeatureGeneratorTest {
@@ -67,17 +68,17 @@ public class GraphFeatureGeneratorTest {
     for (int i = 0; i < userIDBytes.size(); i++) {
       userID2Indices.put(userIDBytes.get(i).toStringUtf8(), (long) i);
     }
-    Assert.assertEquals(1, userIDBytes.size());
-    Assert.assertEquals("1", userIDBytes.get(0).toStringUtf8());
+    assertEquals(1, userIDBytes.size());
+    assertEquals("1", userIDBytes.get(0).toStringUtf8());
     // get 'item' nodes
     Nodes items = graphFeatureMessage.getNodesOrThrow("item");
     List<ByteString> itemIDBytes = items.getNids().getStr().getValueList();
-    Assert.assertEquals(2, itemIDBytes.size());
+    assertEquals(2, itemIDBytes.size());
     Map<String, Long> itemID2Indices = new HashMap<>();
     for (int i = 0; i < itemIDBytes.size(); i++) {
       itemID2Indices.put(itemIDBytes.get(i).toStringUtf8(), (long) i);
     }
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("2", "3")), itemID2Indices.keySet());
+    assertEquals(new HashSet<String>(Arrays.asList("2", "3")), itemID2Indices.keySet());
     Map<String, Map<String, Long>> nodeID2IndicesPerType = new HashMap<>();
     nodeID2IndicesPerType.put("user", userID2Indices);
     nodeID2IndicesPerType.put("item", itemID2Indices);
@@ -86,62 +87,62 @@ public class GraphFeatureGeneratorTest {
     Edges buyEdges = graphFeatureMessage.getEdgesOrThrow("buy");
     String buyN1Name = buyEdges.getN1Name();
     String buyN2Name = buyEdges.getN2Name();
-    Assert.assertEquals("user", buyN1Name);
-    Assert.assertEquals("item", buyN2Name);
+    assertEquals("user", buyN1Name);
+    assertEquals("item", buyN2Name);
     List<ByteString> buyEdgeIDBytes = buyEdges.getEids().getStr().getValueList();
-    Assert.assertEquals(1, buyEdgeIDBytes.size());
-    Assert.assertEquals("1-2", buyEdgeIDBytes.get(0).toStringUtf8());
+    assertEquals(1, buyEdgeIDBytes.size());
+    assertEquals("1-2", buyEdgeIDBytes.get(0).toStringUtf8());
 
     // test csr indices
     List<Long> buyCsrIndptr = buyEdges.getCsr().getIndptr().getValueList();
-    Assert.assertEquals(1, buyCsrIndptr.size());
-    Assert.assertEquals(1, buyCsrIndptr.get(0).longValue());
+    assertEquals(1, buyCsrIndptr.size());
+    assertEquals(1, buyCsrIndptr.get(0).longValue());
     List<Long> buyNbrsIndices = buyEdges.getCsr().getNbrsIndices().getValueList();
-    Assert.assertEquals(1, buyNbrsIndices.size());
-    Assert.assertEquals(nodeID2IndicesPerType.get(buyN2Name).get("2").longValue(),
+    assertEquals(1, buyNbrsIndices.size());
+    assertEquals(nodeID2IndicesPerType.get(buyN2Name).get("2").longValue(),
         buyNbrsIndices.get(0).longValue());
 
     // get 'link' edges
     Edges linkEdges = graphFeatureMessage.getEdgesOrThrow("link");
     String linkN1Name = linkEdges.getN1Name();
     String linkN2Name = linkEdges.getN2Name();
-    Assert.assertEquals("item", linkN1Name);
-    Assert.assertEquals("item", linkN2Name);
+    assertEquals("item", linkN1Name);
+    assertEquals("item", linkN2Name);
     List<ByteString> linkEdgeIDBytes = linkEdges.getEids().getStr().getValueList();
-    Assert.assertEquals(1, linkEdgeIDBytes.size());
-    Assert.assertEquals("2-3", linkEdgeIDBytes.get(0).toStringUtf8());
+    assertEquals(1, linkEdgeIDBytes.size());
+    assertEquals("2-3", linkEdgeIDBytes.get(0).toStringUtf8());
 
     // test csr indices
     List<Long> linkCsrIndptr = linkEdges.getCsr().getIndptr().getValueList();
-    Assert.assertEquals(2, linkCsrIndptr.size());
-    Assert.assertEquals(1, linkCsrIndptr.get(0).longValue());
-    Assert.assertEquals(1, linkCsrIndptr.get(1).longValue());
+    assertEquals(2, linkCsrIndptr.size());
+    assertEquals(1, linkCsrIndptr.get(0).longValue());
+    assertEquals(1, linkCsrIndptr.get(1).longValue());
     List<Long> linkNbrsIndices = linkEdges.getCsr().getNbrsIndices().getValueList();
-    Assert.assertEquals(1, linkNbrsIndices.size());
-    Assert.assertEquals(nodeID2IndicesPerType.get(linkN2Name).get("3").longValue(),
+    assertEquals(1, linkNbrsIndices.size());
+    assertEquals(nodeID2IndicesPerType.get(linkN2Name).get("3").longValue(),
         linkNbrsIndices.get(0).longValue());
 
     // check the dense feature of user nodes
     List<Float> userDenseFeatures = users.getFeatures().getDfsOrThrow("dense").getF32S()
         .getValueList();
     List<Float> expectedUserDenseFeatures = Arrays.asList(0.2f, 1.1f, 2f, 3f, 4f);
-    Assert.assertEquals(expectedUserDenseFeatures, userDenseFeatures);
+    assertEquals(expectedUserDenseFeatures, userDenseFeatures);
     // check the time feature of user nodes
     List<Long> userTimeFeatures = users.getFeatures().getDfsOrThrow("time").getI64S()
         .getValueList();
     List<Long> expectedUserTimeFeatures = Arrays.asList(12L);
-    Assert.assertEquals(expectedUserTimeFeatures, userTimeFeatures);
+    assertEquals(expectedUserTimeFeatures, userTimeFeatures);
 
     // check the dense feature of the 'buy' edges
     List<Float> buyEdgeDenseFeatures = buyEdges.getFeatures().getDfsOrThrow("dense").getF32S()
         .getValueList();
     List<Float> expectedBuyEdgeDenseFeatures = Arrays.asList(2.2f, 3.4f);
-    Assert.assertEquals(expectedBuyEdgeDenseFeatures, buyEdgeDenseFeatures);
+    assertEquals(expectedBuyEdgeDenseFeatures, buyEdgeDenseFeatures);
     // check the time feature of the 'buy' edges
     List<Long> buyEdgeTimeFeatures = buyEdges.getFeatures().getDfsOrThrow("time").getI64S()
         .getValueList();
     List<Long> expectedBuyEdgeTimeFeatures = Arrays.asList(32435L);
-    Assert.assertEquals(expectedBuyEdgeTimeFeatures, buyEdgeTimeFeatures);
+    assertEquals(expectedBuyEdgeTimeFeatures, buyEdgeTimeFeatures);
   }
 
   @Test
@@ -171,37 +172,37 @@ public class GraphFeatureGeneratorTest {
     // check the nodes
     Nodes nodes = graphFeatureMessage.getNodesOrThrow("default");
     List<ByteString> idBytes = nodes.getNids().getStr().getValueList();
-    Assert.assertEquals(3, idBytes.size());
+    assertEquals(3, idBytes.size());
     Map<String, Long> id2Indices = new HashMap<>();
     for (int i = 0; i < idBytes.size(); i++) {
       String userID = idBytes.get(i).toStringUtf8();
       id2Indices.put(userID, (long) i);
     }
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("1", "2", "3")), id2Indices.keySet());
+    assertEquals(new HashSet<String>(Arrays.asList("1", "2", "3")), id2Indices.keySet());
     Map<String, Map<String, Long>> nodeID2IndicesPerType = new HashMap<>();
     nodeID2IndicesPerType.put("default", id2Indices);
     // check the edges
     Edges edges = graphFeatureMessage.getEdgesOrThrow("default");
     String n1Name = edges.getN1Name();
     String n2Name = edges.getN2Name();
-    Assert.assertEquals("default", n1Name);
-    Assert.assertEquals("default", n2Name);
+    assertEquals("default", n1Name);
+    assertEquals("default", n2Name);
     List<ByteString> edgeIDBytes = edges.getEids().getStr().getValueList();
-    Assert.assertEquals(2, edgeIDBytes.size());
-    Assert.assertEquals("1-2", edgeIDBytes.get(0).toStringUtf8());
-    Assert.assertEquals("2-3", edgeIDBytes.get(1).toStringUtf8());
+    assertEquals(2, edgeIDBytes.size());
+    assertEquals("1-2", edgeIDBytes.get(0).toStringUtf8());
+    assertEquals("2-3", edgeIDBytes.get(1).toStringUtf8());
 
     // check the csr indices
     List<Long> csrIndptr = edges.getCsr().getIndptr().getValueList();
-    Assert.assertEquals(3, csrIndptr.size());
-    Assert.assertEquals(1, csrIndptr.get(0).longValue());
-    Assert.assertEquals(2, csrIndptr.get(1).longValue());
-    Assert.assertEquals(2, csrIndptr.get(2).longValue());
+    assertEquals(3, csrIndptr.size());
+    assertEquals(1, csrIndptr.get(0).longValue());
+    assertEquals(2, csrIndptr.get(1).longValue());
+    assertEquals(2, csrIndptr.get(2).longValue());
     List<Long> csrNbrsIndices = edges.getCsr().getNbrsIndices().getValueList();
-    Assert.assertEquals(2, csrNbrsIndices.size());
-    Assert.assertEquals(nodeID2IndicesPerType.get(n2Name).get("2").longValue(),
+    assertEquals(2, csrNbrsIndices.size());
+    assertEquals(nodeID2IndicesPerType.get(n2Name).get("2").longValue(),
         csrNbrsIndices.get(0).longValue());
-    Assert.assertEquals(nodeID2IndicesPerType.get(n2Name).get("3").longValue(),
+    assertEquals(nodeID2IndicesPerType.get(n2Name).get("3").longValue(),
         csrNbrsIndices.get(1).longValue());
 
     // check the dense feature of default nodes
@@ -209,28 +210,28 @@ public class GraphFeatureGeneratorTest {
         .getValueList();
     List<Float> expectedDefaultDenseFeatures = Arrays
         .asList(0.1f, 1.1f, 1f, 0.2f, 2.2f, 2f, 0.3f, 3.3f, 3f);
-    Assert.assertEquals(expectedDefaultDenseFeatures, defaultDenseFeatures);
+    assertEquals(expectedDefaultDenseFeatures, defaultDenseFeatures);
     // check the nf feature of default nodes
     List<Long> defaultNFKeys = nodes.getFeatures().getSpKvsOrThrow("nf").getKeys().getValueList();
     List<Long> expectedDefaultNFKeys = Arrays.asList(1L, 8L, 2L, 3L, 4L, 8L);
-    Assert.assertEquals(expectedDefaultNFKeys, defaultNFKeys);
+    assertEquals(expectedDefaultNFKeys, defaultNFKeys);
     List<Long> defaultNFValues = nodes.getFeatures().getSpKvsOrThrow("nf").getI64S().getValueList();
     List<Long> expectedDefaultNFValues = Arrays.asList(1L, 1L, 2L, 3L, 3L, 3L);
-    Assert.assertEquals(expectedDefaultNFValues, defaultNFValues);
+    assertEquals(expectedDefaultNFValues, defaultNFValues);
     List<Long> defaultNFLens = nodes.getFeatures().getSpKvsOrThrow("nf").getLens().getValueList();
     List<Long> expectedDefaultNFLens = Arrays.asList(2L, 3L, 6L);
-    Assert.assertEquals(expectedDefaultNFLens, defaultNFLens);
+    assertEquals(expectedDefaultNFLens, defaultNFLens);
 
     // check the ef feature of default edges
     List<Long> defaultEFKeys = edges.getFeatures().getSpKvsOrThrow("ef").getKeys().getValueList();
     List<Long> expectedDefaultEFKeys = Arrays.asList(1L, 2L, 9L, 2L, 3L, 8L);
-    Assert.assertEquals(expectedDefaultEFKeys, defaultEFKeys);
+    assertEquals(expectedDefaultEFKeys, defaultEFKeys);
     List<Float> defaultEFValues = edges.getFeatures().getSpKvsOrThrow("ef").getF32S()
         .getValueList();
     List<Float> expectedDefaultEFValues = Arrays.asList(1.1f, 2.2f, 10.1f, 2.2f, 3.3f, 2.1f);
-    Assert.assertEquals(expectedDefaultEFValues, defaultEFValues);
+    assertEquals(expectedDefaultEFValues, defaultEFValues);
     List<Long> defaultEFLens = edges.getFeatures().getSpKvsOrThrow("ef").getLens().getValueList();
     List<Long> expectedDefaultEFLens = Arrays.asList(3L, 6L);
-    Assert.assertEquals(expectedDefaultEFLens, defaultEFLens);
+    assertEquals(expectedDefaultEFLens, defaultEFLens);
   }
 }

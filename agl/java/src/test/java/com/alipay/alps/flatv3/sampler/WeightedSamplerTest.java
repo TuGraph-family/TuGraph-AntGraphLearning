@@ -13,6 +13,8 @@
 
 package com.alipay.alps.flatv3.sampler;
 
+import static org.junit.Assert.assertEquals;
+
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.CommonResult;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
@@ -23,9 +25,8 @@ import com.alipay.alps.flatv3.index.IndexFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class WeightedSamplerTest {
 
@@ -35,7 +36,7 @@ public class WeightedSamplerTest {
   private HeteroDataset neighborDataset;
   List<Float> weights = Arrays.asList(1.0F, 2.0F, 3.0F, 4.0F, 5.0F, 6.0F, 7.0F, 8.0F, 9.0F, 10.0F);
 
-  @BeforeTest
+  @Before
   public void setUp() {
     List<String> ids = Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     List<String> types = Arrays
@@ -56,7 +57,7 @@ public class WeightedSamplerTest {
         Collections.singletonList(new RangeUnit(0, 2)));
     List<Integer> actual = sampler.sample(indexResult);
     List<Integer> expected = Arrays.asList(0, 1, 2);
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -82,7 +83,7 @@ public class WeightedSamplerTest {
     }
     for (int i = candidateRange.getLow(); i <= candidateRange.getHigh(); i++) {
       double empiricalProb = frequence[i] / (double) numSamples;
-      Assert.assertEquals(3 * weights.get(i) / totalWeight, empiricalProb, 0.01);
+      assertEquals(3 * weights.get(i) / totalWeight, empiricalProb, 0.01);
     }
   }
 
@@ -107,7 +108,7 @@ public class WeightedSamplerTest {
         0.143865F, 0.16043F, 0.17525F};
     for (int i = candidateRange.getLow(); i <= candidateRange.getHigh(); i++) {
       double empiricalProb = frequence[i] / (double) numSamples / 2.0;
-      Assert.assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
+      assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
     }
   }
 
@@ -134,7 +135,7 @@ public class WeightedSamplerTest {
         continue;
       }
       double empiricalProb = frequence[i] / (float) numSamples;
-      Assert.assertEquals(3.0F * weights.get(i) / totalWeight, empiricalProb, 0.01);
+      assertEquals(3.0F * weights.get(i) / totalWeight, empiricalProb, 0.01);
     }
   }
 
@@ -159,7 +160,7 @@ public class WeightedSamplerTest {
         0.1783F, 0.19618F, 0.0F};
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (double) numSamples / 2.0;
-      Assert.assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
+      assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
     }
   }
 
@@ -189,9 +190,9 @@ public class WeightedSamplerTest {
     for (int i = 0; i < 10; i++) {
       double empiricalProb = frequence[i] / (double) numSamples;
       if (i == 0 || i == 2 || i == 4 || i == 5 || i == 6 || i == 9) {
-        Assert.assertEquals(4.0F * weights.get(i) / totalWeight, empiricalProb, 0.01);
+        assertEquals(4.0F * weights.get(i) / totalWeight, empiricalProb, 0.01);
       } else {
-        Assert.assertEquals(0.0F, empiricalProb, 0.0001);
+        assertEquals(0.0F, empiricalProb, 0.0001);
       }
     }
   }
@@ -217,7 +218,7 @@ public class WeightedSamplerTest {
         0.142127F, 0.15579F, 0.16817F};
     for (int i = 0; i < frequence.length; i++) {
       double empiricalProb = frequence[i] / (double) numSamples / 3.0;
-      Assert.assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
+      assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
     }
   }
 
@@ -243,7 +244,7 @@ public class WeightedSamplerTest {
         0.196303F, 0.0F};
     for (int i = 0; i < frequence.length; i++) {
       double empiricalProb = frequence[i] / (double) numSamples / 3.0;
-      Assert.assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
+      assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
     }
   }
 
@@ -267,7 +268,7 @@ public class WeightedSamplerTest {
         0.0F, 0.228685F};
     for (int i = 0; i < frequence.length; i++) {
       double empiricalProb = frequence[i] / (double) numSamples / 4.0;
-      Assert.assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
+      assertEquals(expected[i], empiricalProb, expected[i] * 0.1);
     }
   }
 }

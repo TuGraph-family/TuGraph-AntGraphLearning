@@ -13,13 +13,14 @@
 
 package com.alipay.alps.flatv3.filter.result;
 
+import static org.junit.Assert.assertEquals;
+
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HeteroDataset;
 import com.alipay.alps.flatv3.index.IndexFactory;
 import java.util.ArrayList;
 import java.util.List;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 public class RangeUnitIndexResultTest {
 
@@ -58,14 +59,14 @@ public class RangeUnitIndexResultTest {
     expectedRanges.add(new RangeUnit(4, 4));
 
     RangeResult expectedResult = new RangeResult(index, expectedRanges);
-    Assert.assertEquals(expectedResult.getIndex().getIndexColumn(),
+    assertEquals(expectedResult.getIndex().getIndexColumn(),
         joinedResult.getIndex().getIndexColumn());
-    Assert.assertEquals(expectedResult.getIndices(), joinedResult.getIndices());
+    assertEquals(expectedResult.getIndices(), joinedResult.getIndices());
     List<RangeUnit> expectedRangeList = expectedResult.getRangeList();
     List<RangeUnit> resultRangeList = ((RangeResult) joinedResult).getRangeList();
     for (int i = 0; i < expectedRangeList.size(); i++) {
-      Assert.assertEquals(expectedRangeList.get(i).getLow(), resultRangeList.get(i).getLow());
-      Assert.assertEquals(expectedRangeList.get(i).getHigh(), resultRangeList.get(i).getHigh());
+      assertEquals(expectedRangeList.get(i).getLow(), resultRangeList.get(i).getLow());
+      assertEquals(expectedRangeList.get(i).getHigh(), resultRangeList.get(i).getHigh());
     }
   }
 }

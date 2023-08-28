@@ -13,18 +13,20 @@
 
 package com.alipay.alps.flatv3.index;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import java.util.Arrays;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class BaseIndexTest {
 
   private HeteroDataset neighborDataset = null;
   private Integer[] originIndex = null;
 
-  @BeforeTest
+  @Before
   public void setUp() {
     neighborDataset = new HeteroDataset(4);
     neighborDataset.addAttributeList("attr1", Arrays.asList("val1", "val2", "val3", "val4"));
@@ -37,18 +39,18 @@ public class BaseIndexTest {
   public void testBuildIndex() {
     BaseIndex baseIndex = new IndexFactory()
         .createIndex("hash_index:attr1:string", neighborDataset);
-    Assert.assertEquals("hash_index", baseIndex.getIndexType());
-    Assert.assertEquals("attr1", baseIndex.getIndexColumn());
-    Assert.assertEquals("string", baseIndex.getIndexDtype());
+    assertEquals("hash_index", baseIndex.getIndexType());
+    assertEquals("attr1", baseIndex.getIndexColumn());
+    assertEquals("string", baseIndex.getIndexDtype());
   }
 
   @Test
   public void testGetters() {
     BaseIndex baseIndex = new IndexFactory()
         .createIndex("range_index:attr2:float", neighborDataset);
-    Assert.assertEquals("range_index", baseIndex.getIndexType());
-    Assert.assertEquals("attr2", baseIndex.getIndexColumn());
-    Assert.assertEquals("float", baseIndex.getIndexDtype());
+    assertEquals("range_index", baseIndex.getIndexType());
+    assertEquals("attr2", baseIndex.getIndexColumn());
+    assertEquals("float", baseIndex.getIndexDtype());
   }
 
   @Test
@@ -62,8 +64,8 @@ public class BaseIndexTest {
   public void testGetIndexResultWithEmptyIndexMetaAndNOFilter() throws Exception {
     BaseIndex baseIndex = new IndexFactory().createIndex("", neighborDataset);
     AbstractResult indexResult = baseIndex.search(null, null, neighborDataset);
-    Assert.assertEquals(4, indexResult.getSize());
-    Assert.assertEquals(originIndex, indexResult.getIndices().toArray());
+    assertEquals(4, indexResult.getSize());
+    assertArrayEquals(originIndex, indexResult.getIndices().toArray());
   }
 }
 

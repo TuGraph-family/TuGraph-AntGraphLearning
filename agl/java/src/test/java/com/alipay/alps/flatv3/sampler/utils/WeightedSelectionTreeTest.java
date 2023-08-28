@@ -13,12 +13,13 @@
 
 package com.alipay.alps.flatv3.sampler.utils;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 public class WeightedSelectionTreeTest {
 
@@ -30,61 +31,61 @@ public class WeightedSelectionTreeTest {
   public void testBuildTree() {
     WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights, new Random());
     WeightedSelectionTree.Node root = tree.getRoot();
-    Assert.assertEquals(2, root.getElement());
-    Assert.assertEquals(0.3, root.getLeftBranchWeight(), 0.001);
-    Assert.assertEquals(0.4, root.getRightBranchWeight(), 0.001);
-    Assert.assertEquals(0.3, root.getElementWeight(), 0.001);
+    assertEquals(2, root.getElement());
+    assertEquals(0.3, root.getLeftBranchWeight(), 0.001);
+    assertEquals(0.4, root.getRightBranchWeight(), 0.001);
+    assertEquals(0.3, root.getElementWeight(), 0.001);
 
-    Assert.assertEquals(0, root.getLeft().getElement());
-    Assert.assertEquals(0.0, root.getLeft().getLeftBranchWeight(), 0.001);
-    Assert.assertEquals(0.2, root.getLeft().getRightBranchWeight(), 0.001);
-    Assert.assertEquals(0.1, root.getLeft().getElementWeight(), 0.001);
+    assertEquals(0, root.getLeft().getElement());
+    assertEquals(0.0, root.getLeft().getLeftBranchWeight(), 0.001);
+    assertEquals(0.2, root.getLeft().getRightBranchWeight(), 0.001);
+    assertEquals(0.1, root.getLeft().getElementWeight(), 0.001);
 
-    Assert.assertEquals(3, root.getRight().getElement());
-    Assert.assertEquals(0.0, root.getRight().getLeftBranchWeight(), 0.001);
-    Assert.assertEquals(0.3, root.getRight().getRightBranchWeight(), 0.001);
-    Assert.assertEquals(0.1, root.getRight().getElementWeight(), 0.001);
+    assertEquals(3, root.getRight().getElement());
+    assertEquals(0.0, root.getRight().getLeftBranchWeight(), 0.001);
+    assertEquals(0.3, root.getRight().getRightBranchWeight(), 0.001);
+    assertEquals(0.1, root.getRight().getElementWeight(), 0.001);
   }
 
   @Test
   public void testSelectNode() {
     WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights, random);
     int removedNode = tree.getSampleByRandomNum(0.24F);
-    Assert.assertEquals(removedNode, 1);
+    assertEquals(removedNode, 1);
   }
 
   @Test
   public void testSelectNode2() {
     WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights, random);
     int removedNode = tree.getSampleByRandomNum(0.34F);
-    Assert.assertEquals(removedNode, 2);
+    assertEquals(removedNode, 2);
     // check the tree after remove a node
     WeightedSelectionTree.Node root = tree.getRoot();
-    Assert.assertEquals(1, root.getElement());
-    Assert.assertEquals(0.1, root.getLeftBranchWeight(), 0.001);
-    Assert.assertEquals(0.4, root.getRightBranchWeight(), 0.001);
-    Assert.assertEquals(0.2, root.getElementWeight(), 0.001);
+    assertEquals(1, root.getElement());
+    assertEquals(0.1, root.getLeftBranchWeight(), 0.001);
+    assertEquals(0.4, root.getRightBranchWeight(), 0.001);
+    assertEquals(0.2, root.getElementWeight(), 0.001);
   }
 
   @Test
   public void testSelectNode3() {
     WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights, random);
     int removedNode = tree.getSampleByRandomNum(0.64F);
-    Assert.assertEquals(removedNode, 3);
+    assertEquals(removedNode, 3);
   }
 
   @Test
   public void testSelectNode4() {
     WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights, random);
     int removedNode = tree.getSampleByRandomNum(0.78F);
-    Assert.assertEquals(removedNode, 4);
+    assertEquals(removedNode, 4);
   }
 
   @Test
   public void testSelectNode5() {
     WeightedSelectionTree tree = new WeightedSelectionTree(elementIndices, weights, random);
     int removedNode = tree.getSampleByRandomNum(0.83F);
-    Assert.assertEquals(removedNode, 4);
+    assertEquals(removedNode, 4);
   }
 }
 

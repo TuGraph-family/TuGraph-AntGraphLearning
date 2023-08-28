@@ -17,8 +17,8 @@ import com.antfin.agl.proto.sampler.CmpOp;
 import com.antfin.agl.proto.sampler.LogicExps;
 import com.antfin.agl.proto.sampler.LogicOp;
 import java.util.List;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class FilterExpressionParserTest {
 
