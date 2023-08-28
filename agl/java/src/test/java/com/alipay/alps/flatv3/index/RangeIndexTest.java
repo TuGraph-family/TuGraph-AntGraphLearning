@@ -13,9 +13,6 @@
 
 package com.alipay.alps.flatv3.index;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
 import com.alipay.alps.flatv3.filter.parser.CmpWrapperFactory;
 import com.alipay.alps.flatv3.filter.parser.FilterConditionParser;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
@@ -27,7 +24,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class RangeIndexTest {
 
@@ -42,11 +40,11 @@ public class RangeIndexTest {
     // check if the index is built correctly
     int[] expectedOriginIndex = new int[]{2, 1, 0};
     int[] actualOriginIndex = rangeIndex.getOriginIndices();
-    assertArrayEquals(expectedOriginIndex, actualOriginIndex);
+    Assert.assertEquals(expectedOriginIndex, actualOriginIndex);
 
     List<Float> expectedIndexedData = Arrays.asList(new Float[]{3.0F, 2.0F, 1.0F});
     List<Float> actualIndexedData = neighborDataset.getAttributeList("weight");
-    assertEquals(expectedIndexedData, actualIndexedData);
+    Assert.assertEquals(expectedIndexedData, actualIndexedData);
 
     Map<VariableSource, Map<String, Element.Number>> inputVariables = new HashMap<>();
     String filterCond = "index.weight < 1.4";
@@ -54,7 +52,7 @@ public class RangeIndexTest {
     CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
     AbstractResult indexResult = rangeIndex
         .search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables, neighborDataset);
-    assertArrayEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
   }
 
   @Test
@@ -74,6 +72,6 @@ public class RangeIndexTest {
     CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
     AbstractResult indexResult = rangeIndex
         .search(CmpWrapperFactory.createCmpWrapper(cmpExp), inputVariables, neighborDataset);
-    assertArrayEquals(Arrays.asList(1, 4).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(1, 4).toArray(), indexResult.getIndices().toArray());
   }
 }

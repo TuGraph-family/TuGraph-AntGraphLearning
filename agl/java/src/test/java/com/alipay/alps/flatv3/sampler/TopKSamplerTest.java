@@ -13,8 +13,6 @@
 
 package com.alipay.alps.flatv3.sampler;
 
-import static org.junit.Assert.assertEquals;
-
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.filter.result.CommonResult;
 import com.alipay.alps.flatv3.filter.result.RangeResult;
@@ -25,8 +23,9 @@ import com.alipay.alps.flatv3.index.IndexFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 public class TopKSamplerTest {
 
@@ -36,7 +35,7 @@ public class TopKSamplerTest {
   private BaseIndex timeIndex = null;
   private BaseIndex weightIndex = null;
 
-  @Before
+  @BeforeTest
   public void setUp() {
     List<String> ids = Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     List<Float> weights = Arrays
@@ -65,7 +64,7 @@ public class TopKSamplerTest {
 
     List<Integer> actual = sampler.sample(indexResult);
     List<Integer> expected = Arrays.asList(0, 3, 5, 8);
-    assertEquals(expected, actual);
+    Assert.assertEquals(expected, actual);
   }
 
   @Test
@@ -79,7 +78,7 @@ public class TopKSamplerTest {
 
     List<Integer> actual = sampler.sample(indexResult);
     List<Integer> expected = Arrays.asList(9, 8, 7, 6, 5);
-    assertEquals(expected, actual);
+    Assert.assertEquals(expected, actual);
   }
 
   @Test
@@ -93,7 +92,7 @@ public class TopKSamplerTest {
     List<Integer> actual = sampler.sample(indexResult);
     List<Integer> expected = Arrays.asList(8, 7, 6, 5, 4);
 
-    assertEquals(expected, actual);
+    Assert.assertEquals(expected, actual);
   }
 
   @Test
@@ -107,7 +106,7 @@ public class TopKSamplerTest {
     List<Integer> actual = sampler.sample(indexResult);
     List<Integer> expected = Arrays.asList(8, 7, 6, 5, 4);
 
-    assertEquals(expected, actual);
+    Assert.assertEquals(expected, actual);
   }
 
 
@@ -121,7 +120,7 @@ public class TopKSamplerTest {
 
     List<Integer> actual = sampler.sample(indexResult);
     List<Integer> expected = Arrays.asList(9, 6, 5);
-    assertEquals(expected, actual);
+    Assert.assertEquals(expected, actual);
   }
 
   @Test
@@ -134,6 +133,6 @@ public class TopKSamplerTest {
 
     List<Integer> actual = sampler.sample(indexResult);
     List<Integer> expected = Arrays.asList(0, 2, 4);
-    assertEquals(expected, actual);
+    Assert.assertEquals(expected, actual);
   }
 }

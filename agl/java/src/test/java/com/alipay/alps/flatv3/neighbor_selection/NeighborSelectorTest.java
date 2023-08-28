@@ -13,8 +13,6 @@
 
 package com.alipay.alps.flatv3.neighbor_selection;
 
-import static org.junit.Assert.assertEquals;
-
 import com.alipay.alps.flatv3.filter.Filter;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HeteroDataset;
@@ -25,8 +23,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 public class NeighborSelectorTest {
 
@@ -37,7 +36,7 @@ public class NeighborSelectorTest {
   List<String> types = Arrays
       .asList("item", "shop", "user", "item", "user", "item", "shop", "user", "item", "user");
 
-  @Before
+  @BeforeTest
   public void setUp() {
     for (int i = 0; i < 10; i++) {
       ids.add(String.valueOf(i));
@@ -80,11 +79,11 @@ public class NeighborSelectorTest {
         .process(indexMap, neighborDataset, seedIds, seedAttrs);
 
     // Create the list of expected results.
-    assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(0));
-    assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(1));
-    assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(2));
-    assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(3));
-    assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(4));
+    Assert.assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(0));
+    Assert.assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(1));
+    Assert.assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(2));
+    Assert.assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(3));
+    Assert.assertEquals(Arrays.asList(0, 1), sampledNeighbors.get(4));
   }
 
   @Test
@@ -121,11 +120,11 @@ public class NeighborSelectorTest {
         .process(indexMap, neighborDataset, seedIds, seedAttrs);
 
     // create expected result
-    assertEquals(Arrays.asList(1, 2), sampledNeighbors.get(0));
-    assertEquals(Arrays.asList(2, 3), sampledNeighbors.get(1));
-    assertEquals(Arrays.asList(2, 3), sampledNeighbors.get(2));
-    assertEquals(Arrays.asList(3, 4), sampledNeighbors.get(3));
-    assertEquals(Arrays.asList(3, 4), sampledNeighbors.get(4));
+    Assert.assertEquals(Arrays.asList(1, 2), sampledNeighbors.get(0));
+    Assert.assertEquals(Arrays.asList(2, 3), sampledNeighbors.get(1));
+    Assert.assertEquals(Arrays.asList(2, 3), sampledNeighbors.get(2));
+    Assert.assertEquals(Arrays.asList(3, 4), sampledNeighbors.get(3));
+    Assert.assertEquals(Arrays.asList(3, 4), sampledNeighbors.get(4));
   }
 
   @Test
@@ -204,7 +203,7 @@ public class NeighborSelectorTest {
       }
       newChosenNeighbors.add(neighborIds);
     }
-    assertEquals(chosenNeighbors, newChosenNeighbors);
+    Assert.assertEquals(chosenNeighbors, newChosenNeighbors);
   }
 
   @Test
@@ -236,8 +235,8 @@ public class NeighborSelectorTest {
     List<List<Integer>> sampledNeighbors = neighborSelector
         .process(indexMap, neighborDataset, seedIds, seedAttrs);
 
-    assertEquals(Arrays.asList(1), sampledNeighbors.get(0));
-    assertEquals(Arrays.asList(1), sampledNeighbors.get(1));
-    assertEquals(Arrays.asList(1), sampledNeighbors.get(2));
+    Assert.assertEquals(Arrays.asList(1), sampledNeighbors.get(0));
+    Assert.assertEquals(Arrays.asList(1), sampledNeighbors.get(1));
+    Assert.assertEquals(Arrays.asList(1), sampledNeighbors.get(2));
   }
 }

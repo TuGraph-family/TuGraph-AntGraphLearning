@@ -13,7 +13,6 @@
 
 package com.alipay.alps.flatv3.filter;
 
-import static org.junit.Assert.assertArrayEquals;
 
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
 import com.alipay.alps.flatv3.index.BaseIndex;
@@ -24,14 +23,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 public class FilterTest {
 
   private HeteroDataset neighborDataset;
 
-  @Before
+  @BeforeTest
   public void setUp() {
     // Create a neighbor dataset
     List<Integer> node2IDs = Arrays.asList(0, 1, 2, 3, 4);
@@ -55,7 +55,7 @@ public class FilterTest {
     Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(null, neighborDataset);
     Map<String, Element.Number> seedVariableMap = seedAttrs.fillVariables(0);
     AbstractResult indexResult = filter.filter(seedVariableMap, neighborDataset, indexMap);
-    assertArrayEquals(Arrays.asList(0, 1, 2, 3, 4).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(0, 1, 2, 3, 4).toArray(), indexResult.getIndices().toArray());
   }
 
   // test type filter
@@ -70,7 +70,7 @@ public class FilterTest {
     Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
     Map<String, Element.Number> seedVariableMap = seedAttrs.fillVariables(0);
     AbstractResult indexResult = filter.filter(seedVariableMap, neighborDataset, indexMap);
-    assertArrayEquals(Arrays.asList(2, 4).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(2, 4).toArray(), indexResult.getIndices().toArray());
   }
 
   // test range filter
@@ -87,7 +87,7 @@ public class FilterTest {
     Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
     Map<String, Element.Number> seedVariableMap = seedAttrs.fillVariables(0);
     AbstractResult indexResult = filter.filter(seedVariableMap, neighborDataset, indexMap);
-    assertArrayEquals(Arrays.asList(2, 3).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(2, 3).toArray(), indexResult.getIndices().toArray());
   }
 
   // test range filter with negative value
@@ -103,7 +103,7 @@ public class FilterTest {
     Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
     Map<String, Element.Number> seedVariableMap = seedAttrs.fillVariables(0);
     AbstractResult indexResult = filter.filter(seedVariableMap, neighborDataset, indexMap);
-    assertArrayEquals(Arrays.asList(0, 1).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(0, 1).toArray(), indexResult.getIndices().toArray());
   }
 
   // test range filter and type filter
@@ -121,7 +121,7 @@ public class FilterTest {
     Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
     Map<String, Element.Number> seedVariableMap = seedAttrs.fillVariables(0);
     AbstractResult indexResult = filter.filter(seedVariableMap, neighborDataset, indexMap);
-    assertArrayEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(2).toArray(), indexResult.getIndices().toArray());
   }
 
   // test two range filters
@@ -141,6 +141,6 @@ public class FilterTest {
     Map<String, BaseIndex> indexMap = new IndexFactory().getIndexesMap(indexMetas, neighborDataset);
     Map<String, Element.Number> seedVariableMap = seedAttrs.fillVariables(0);
     AbstractResult indexResult = filter.filter(seedVariableMap, neighborDataset, indexMap);
-    assertArrayEquals(Arrays.asList(3).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(3).toArray(), indexResult.getIndices().toArray());
   }
 }

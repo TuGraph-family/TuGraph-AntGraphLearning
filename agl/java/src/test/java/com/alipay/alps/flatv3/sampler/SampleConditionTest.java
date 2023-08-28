@@ -13,11 +13,8 @@
 
 package com.alipay.alps.flatv3.sampler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class SampleConditionTest {
 
@@ -25,11 +22,11 @@ public class SampleConditionTest {
   public void testConstructor() {
     String sampleMeta = "weighted_sample(by=index.weight, limit=5, reverse=true, replacement=False)";
     SampleCondition sampleCondition = new SampleCondition(sampleMeta);
-    assertEquals("weighted_sample", sampleCondition.getMethod());
-    assertEquals("index.weight", sampleCondition.getKey());
-    assertEquals(5, sampleCondition.getLimit());
-    assertFalse(sampleCondition.isReplacement());
-    assertTrue(sampleCondition.isReverse());
+    Assert.assertEquals("weighted_sample", sampleCondition.getMethod());
+    Assert.assertEquals("index.weight", sampleCondition.getKey());
+    Assert.assertEquals(5, sampleCondition.getLimit());
+    Assert.assertFalse(sampleCondition.isReplacement());
+    Assert.assertTrue(sampleCondition.isReverse());
   }
 
   @Test
@@ -37,6 +34,6 @@ public class SampleConditionTest {
     SampleCondition sampleCondition = new SampleCondition("weighted_sample", "index.weight", 5,
         false, true, 34);
     String expected = "SampleCondition{method='weighted_sample', key='index.weight', limit=5, replacement=false, reverse=true, randomSeed=34}";
-    assertEquals(expected, sampleCondition.toString());
+    Assert.assertEquals(expected, sampleCondition.toString());
   }
 }

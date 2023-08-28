@@ -13,8 +13,6 @@
 
 package com.alipay.alps.flatv3.neighbor_selection;
 
-import static org.junit.Assert.assertEquals;
-
 import com.alipay.alps.flatv3.filter.Filter;
 import com.alipay.alps.flatv3.index.BaseIndex;
 import com.alipay.alps.flatv3.index.HeteroDataset;
@@ -26,8 +24,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 public class OtherOutputTest {
 
@@ -39,7 +38,7 @@ public class OtherOutputTest {
   List<String> types = Arrays
       .asList("item", "shop", "user", "item", "user", "item", "shop", "user", "item", "user");
 
-  @Before
+  @BeforeTest
   public void setUp() {
     for (int i = 0; i < 10; i++) {
       node2Ids.add("n" + String.valueOf(i));
@@ -151,7 +150,7 @@ public class OtherOutputTest {
         new Object[]{"s5", Constants.EDGE_INT, "currentNode", "n1", "e1", null, null, null, null});
 
     for (int i = 0; i < ans.size(); i++) {
-      assertEquals(expected.get(i), ans.get(i));
+      Assert.assertEquals(expected.get(i), ans.get(i));
     }
 
   }

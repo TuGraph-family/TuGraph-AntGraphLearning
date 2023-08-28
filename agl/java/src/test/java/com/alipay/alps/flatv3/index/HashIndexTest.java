@@ -13,8 +13,6 @@
 
 package com.alipay.alps.flatv3.index;
 
-import static org.junit.Assert.assertArrayEquals;
-
 import com.alipay.alps.flatv3.filter.parser.CategoryCmpWrapper;
 import com.alipay.alps.flatv3.filter.parser.FilterConditionParser;
 import com.alipay.alps.flatv3.filter.result.AbstractResult;
@@ -26,7 +24,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class HashIndexTest {
 
@@ -49,7 +48,7 @@ public class HashIndexTest {
     CmpExp cmpExp = logicExps.getExpRPN(0).getExp();
     AbstractResult indexResult = hashIndex
         .search(new CategoryCmpWrapper(cmpExp), inputVariables, neighborDataset);
-    assertArrayEquals(Arrays.asList(1, 2, 4).toArray(), indexResult.getIndices().toArray());
+    Assert.assertEquals(Arrays.asList(1, 2, 4).toArray(), indexResult.getIndices().toArray());
   }
 }
 

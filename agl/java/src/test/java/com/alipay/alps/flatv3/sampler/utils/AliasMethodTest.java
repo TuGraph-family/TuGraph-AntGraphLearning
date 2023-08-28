@@ -13,13 +13,12 @@
 
 package com.alipay.alps.flatv3.sampler.utils;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class AliasMethodTest {
 
@@ -42,7 +41,7 @@ public class AliasMethodTest {
     }
     for (int i = 0; i < probabilities.size(); i++) {
       float proportion = (float) counts[i] / 10000000;
-      assertEquals(probabilities.get(i) / sum, proportion, 0.01);
+      Assert.assertEquals(probabilities.get(i) / sum, proportion, 0.01);
     }
   }
 }
