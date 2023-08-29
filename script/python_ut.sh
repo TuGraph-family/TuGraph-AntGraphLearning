@@ -11,7 +11,7 @@ set -euo pipefail
 
 source ${PROJECT_DIR}/third_party/common.sh
 
-pip install coverage -i https://pypi.antfin-inc.com/simple
+pip install coverage -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
 pip install unittest-xml-reporting
 
 exitcode=0
@@ -42,21 +42,9 @@ for file in $(find agl -type f -name "*_test.py"); do
   fi
 done
 
-function update_pycov() {
-  TARGET_FILE=$1
-  # shellcheck disable=SC2046
-  pushd "$(dirname "$TARGET_FILE")"
-  curl http://aivolvo-dev.cn-hangzhou-alipay-b.oss-cdn.aliyun-inc.com/citools/covclient -o covclient
-  chmod +x covclient
-  ./covclient --COV_FILE="$(basename "$TARGET_FILE")"
-  ./covclient --onlyWaitCompass
-  popd
-}
-
 coverage combine
 coverage report 2>&1 | tee "$TEST_RESULT_DIR/coverage.report.log"
 coverage xml -o "$TEST_RESULT_DIR"/cobertura.xml
-update_pycov "$TEST_RESULT_DIR"/cobertura.xml
 popd &>/dev/null
 
 echo "Search \"Fatal Error\" if failed"
