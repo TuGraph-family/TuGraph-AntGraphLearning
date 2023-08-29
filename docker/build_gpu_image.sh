@@ -19,7 +19,6 @@ download_resource() {
   # protobuf, version: v3.20.3
   wget https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.20.3.tar.gz -O protobuf.tar.gz
 
-  # todo change to open link
   # spark 3.1.1
   wget https://archive.apache.org/dist/spark/spark-3.1.3/spark-3.1.3-bin-hadoop3.2.tgz -O spark-3.1.1-bin-hadoop3.2.tgz
   # maven 3.6.1
@@ -30,7 +29,6 @@ download_resource() {
 
 final_tag=agl-gcc${GCC_VERSION}-py${PY_VERSION}-cuda${CUDA_VERSION}-pytorch${PYTORCH_VERSION}
 
-# todo change BASE_IMAGE as image
 BASE_IMAGE=agl_image
 
 image_name=${BASE_IMAGE}:${final_tag}

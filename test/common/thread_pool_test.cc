@@ -1,6 +1,3 @@
-//
-// Created by zdl on 2023/4/28.
-//
 #include "common/thread_pool.h"
 #include "gtest/gtest.h"
 #include <functional>

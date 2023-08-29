@@ -1,6 +1,3 @@
-//
-// Created by zdl on 2023/4/26.
-//
 #include <string>
 
 #include "common/safe_check.h"

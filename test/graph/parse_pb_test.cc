@@ -1,6 +1,3 @@
-//
-// Created by zdl on 2023/5/5.
-//
 #include <fstream>
 #include <iostream>
 #include <memory>

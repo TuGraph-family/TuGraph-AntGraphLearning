@@ -37,14 +37,6 @@ TEST(NDARRAY_TEST, TEST_USAGE) {
         EXPECT_EQ(flat_p[i * cols + j], gt_2[i][j]);
       }
     }
-//    auto view_ptr = nd_ptr->ToView<float>();
-//    for (size_t i = 0; i < rows; ++i) {
-//      for (size_t j = 0; j < cols; ++j) {
-//        cout << "view[" << i << "][" << j << "]:" << (*view_ptr)[i][j]
-//             << ", ground truth:" << gt[i * cols + j] << "\n";
-//        EXPECT_EQ((*view_ptr)[i][j], gt[i * cols + j]);
-//      }
-//    }
   }
 }
 
