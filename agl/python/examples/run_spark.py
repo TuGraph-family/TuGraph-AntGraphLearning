@@ -67,6 +67,13 @@ def _parse_args():
         help="output table name prefix",
     )
     parser.add_argument(
+        "--mode",
+        dest="mode",
+        default="local",
+        type=str,
+        help="spark running mode",
+    )
+    parser.add_argument(
         "--jar_resource_path",
         dest="jar_resource_path",
         required=True,
@@ -176,6 +183,7 @@ def run(args):
     shell_script = template.substitute(
         algorithm=algorithm_main,
         jar_resource_path=args.jar_resource_path,
+        mode=args.mode,
         neighbor_distance=args.neighbor_distance,
         edge_table=get_abslute_path(args.input_edge_table_name),
         label_table=get_abslute_path(args.input_label_table_name),

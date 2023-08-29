@@ -58,8 +58,8 @@ AGL应对这些问题的思路：
 # 如何使用
 
 * [安装说明](doc/core/install.md)
-* [流程说明](doc/core/流程说明.md)
-* [构建图样本](doc/core/构建图样本.md)
+* [流程说明](doc/core/process_description.md)
+* [构建图样本](doc/core/sampler/0_data_preparation.md)
 * [图学习教程](doc/core/graph_learning_tutorial.md)
 
 # 如何贡献代码

@@ -1,4 +1,4 @@
-spark-submit --master local \
+spark-submit --master ${mode} \
     --class ${algorithm} ${jar_resource_path} \
     -input_edge "file:///${edge_table}" \
     -input_label "file:///${label_table}" \

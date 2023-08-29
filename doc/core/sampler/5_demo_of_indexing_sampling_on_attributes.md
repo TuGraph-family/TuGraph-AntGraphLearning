@@ -1,6 +1,6 @@
 # 属性索引和采样的应用
-AGL提供了基于属性建立索引[建立索引](./5，邻居属性索引.md)的功能，
-进行邻居采样时可以基于属性进行高效的[过滤](./5，邻居过滤条件.md)和[采样](./5，邻居采样.md)，来满足不同算法的个性化需求。
+AGL提供了基于属性[建立索引](./3_neighbor_attribute_indexing.md)的功能，
+进行邻居采样时可以基于属性进行高效的[过滤](./2_neighbor_filtering_condition.md)和[采样](./4_neighbor_sampling.md)，来满足不同算法的个性化需求。
 
 ## 图数据准备
 
@@ -109,8 +109,3 @@ sample_cond="topk(by=time, limit=3, reverse=True)"
 | sample_cond="topk(by=time, limit=3, reverse=True)"                              | 每个节点采样time最大3个邻居节点       |
 | filter_cond="neighbor_1.time > seed.time AND neighbor_2.time > neighbor_1.time" | 邻居过滤：根节点的time大于第一跳节点的time，第一跳节点的time大于第二跳节点的time |
 | input_node_feature="file:////path_to/node_table.csv"                            | 前缀file:///表示后续接着本地路径      |
-
-
-## 模型实现
-
-## 模型训练

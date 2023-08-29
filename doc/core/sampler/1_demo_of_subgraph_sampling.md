@@ -1,5 +1,5 @@
 # 快速开始
-在项目的example目录下有多种图模型运行案例，下面我们以Geniepath为例在PPI数据集上介绍如何快速上手AGL。
+在项目的example目录下有多种图模型运行案例，下面我们以Geniepath为例在PPI数据集上介绍如何快速上手子图采样。
 ## 图数据准备
 
 ### 图数据格式
@@ -33,7 +33,7 @@ PPI图数据点特征为dim=50的Dense Float列表，边上没有特征。图数
  ``` 
 
 json线上format工具：http://jsonviewer.stack.hu/
-![](./imgs/json_viewer.png)
+![](../imgs/json_viewer.png)
 format和 remove white space非常好用，建议json中字符串使用单引号，避免转义麻烦。
 format便于观看和编辑，remove white space便于粘贴进配置项或者代码之中。
 
@@ -68,7 +68,7 @@ format便于观看和编辑，remove white space便于粘贴进配置项或者�
 
 ## 运行Spark生成子图样本
 
-用户配置spark本地运行命令如下：
+用户配置spark本地运行命令如下(目前只支持spark3.0.3及以上版本)：
  ``` 
 /path_to/spark-3.1.1-odps0.34.1/bin/spark-submit  --master local --class com.alipay.alps.flatv3.spark.NodeLevelSampling \
     /path_to/agl.jar hop=2 \
@@ -95,7 +95,7 @@ format便于观看和编辑，remove white space便于粘贴进配置项或者�
 ### 图采样整体流程
 下图展示了2跳子图结构采样的扩展过程：
 
-![](./imgs/join_graph_structure.png)
+![](../imgs/join_graph_structure.png)
 
 得到子图结构，根节点依赖的点、边信息后，再join点、边特征，生成子图样本。
 ### 结果数据说明
@@ -107,6 +107,3 @@ format便于观看和编辑，remove white space便于粘贴进配置项或者�
 |     0      |  0 0 ... 1 |     train    |   0的子图   |
 |     2      |  1 1 ... 0 |     eval     |   2的子图   |
 |     5      |  1 0 ... 0 |     test     |   5的子图   |
-## 模型实现
-
-## 模型训练

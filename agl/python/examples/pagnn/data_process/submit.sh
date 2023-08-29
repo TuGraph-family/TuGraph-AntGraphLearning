@@ -4,6 +4,7 @@ cd "$base"
 python data_prepare.py
 
 python ../../run_spark.py \
+    --mode yarn \
     --jar_resource_path ../../../../java/target/flatv3-1.0-SNAPSHOT.jar \
     --input_edge_table_name ./facebook_edge_t.csv \
     --input_label_table_name ./facebook_sample_t.csv \
