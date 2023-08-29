@@ -1,51 +1,91 @@
-## 编译安装
+# Ant Graph Learning
 
-### 镜像
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 
-* ubuntu-2204 or centos?
-* 环境：
-    * Python: 3.9+？
-    * CPP: gcc10? c++17?
+Ant Graph Learning (AGL) 为工业级大规模图学习任务提供全链路解决方案。
 
-## Doc
+[//]: # (<div align="center">)
 
-* Sphinx构建
+[//]: # (<img src=./doc/core/architecture.png>)
 
-## Docker
+[//]: # (<br>)
 
-* TODO: 选择合适的镜像？Dockerfile from ubuntu？
+[//]: # (<b>Figure</b>: AGL Overall Architecture)
 
-## README的意义
+[//]: # (</div>)
 
-README 文件通常是项目的第一个入口点。你应该通过 README 明确地告诉大家，为什么他们应该使用你的项目，以及安装和使用的方法。
+![](./doc/core/architecture.png)
 
-如果在仅仅看文档而不看代码的情况下就可以使用你的项目，该文档就完成了。 这个非常重要，因为这将使项目的文档接口与其内部实现分开，只要接口保持不变，就可以自由更改项目的内部结构。
+工业级图学习任务具有以下特点：
 
-**文档，而不是代码定义了项目的使用方式。**
+* 图数据复杂：
+    * 图数据规模大：典型有 十亿点，百亿边，亿级别样本。
+    * 数据依赖：一个点的 embedding 依赖周围点/边的 embedding
+    * 类型丰富： 同质/异质/动态图
+* 任务类型复杂
+    * 离线：离线训练，离线批量预测，离线全图预测
+    * 在线：在线训练，在线预测（需要与离线结果一致）
+* 使用方式/场景复杂：
+    * 多租户
+    * 使用方式多变：GNN-only，GNN+搜推广/多模态
+    * 异构资源：CPU/GPU cluster
 
-一个规范的README文档能减少用户检索信息的时间。
+AGL应对这些问题的思路：
 
-## 标准 README
+* 图规模
+    * 图训练：训练时由大图转换为小图，解决数据依赖问题
+* 扩展性
+    * 图采样：条件过滤（索引） + 采样（随机/概率、TopK）
+    * 图表达：graph feature 能够表达 同质/异质/动态图；支持 node/edge/graph level 子图；支持只存储结构
+    * 图训练：解除图数据的数据依赖问题，可以复用成熟的DNN训练架构（如 PS, AllReduce） 进行大规模分布式训练
+* 稳定性
+    * 复用成熟的 Spark or MapReduce (图样本阶段), 以及 DNN 链路基础设施的弹性与容错能力
+* 一致性
+    * 样本一致性：图样本离线生成，在/离线预测可复用
+* 资源成本
+    * graph feature 可存储在磁盘上，减少对内存的需求
 
-一个标准的README文件应当至少包含以下的内容：
+基于这样的考量，AGL设计了图数据构建以及学习方案，可以在普通的集群上完成大规模图学习任务：
 
-- 项目背景：说明创建本项目的背景与动机，创建本项目试图解决的问题
-- 安装方法：说明如何快速上手使用该项目
-- 使用方法：列出本项目能够提供的功能以及使用这些功能的方法
-- 文档：现阶段antcode鼓励用户使用语雀组织项目文档，在README上应当放入项目的语雀文档链接
+- 图样本：AGL通过 Spark (MR) 预先抽取目标节点的 k阶邻域信息，作为 GraphFeature。
 
-## 附加内容
 
-视项目的实际情况，同样也应该包含以下内容：
+- 图训练：训练阶段提供解析逻辑，把 GraphFeature 转换为模型所需的临接矩阵，点特征矩阵，边特征矩阵等信息。
+  通过这种将图学习任务无缝衔接到普通DNN的学习模式上，能够方便复用普通DNN模式中各种成熟的技术和基础设施。
 
-- 项目特性：说明本项目相较于其他同类项目所具有的特性
-- 兼容环境：说明本项目能够在什么平台上运行
-- 使用示例：展示一些使用本项目的小demo
-- 主要项目负责人：使用“@”标注出本项目的主要负责人，方便项目的用户沟通
-- 参与贡献的方式：规定好其他用户参与本项目并贡献代码的方式
-- 项目的参与者：列出项目主要的参与人
-- 已知用户：列出已经在生产环境中使用了本项目的全部或部分组件的公司或组织
-- 赞助者：列出为本项目提供赞助的用户
+目前AGL以Pytorch为后端，同时对接了开源算法库（PyG）, 以减少用户开发负担。同时AGL针对复杂的图数据（同质/异质/动态图），沉淀了丰富的自研图算法（点分类/边预测/表征学习等)。
+
+# 如何使用
+
+* [安装说明](doc/core/install.md)
+* [流程说明](doc/core/流程说明.md)
+* [构建图样本](doc/core/构建图样本.md)
+* [图学习教程](doc/core/graph_learning_tutorial.md)
+
+# 如何贡献代码
+
+* [Contribution Guidelines](doc/core/Contribution.md)
+
+# Cite
+
+```
+@article{zhang13agl,
+  title={AGL: A Scalable System for Industrial-purpose Graph Machine Learning},
+  author={Zhang, Dalong and Huang, Xin and Liu, Ziqi and Zhou, Jun and Hu, Zhiyang and Song, Xianzheng and Ge, Zhibang and Wang, Lin and Zhang, Zhiqiang and Qi, Yuan},
+  journal={Proceedings of the VLDB Endowment},
+  volume={13},
+  number={12}
+}
+
+@inproceedings{zhang2023inferturbo,
+  title={InferTurbo: A Scalable System for Boosting Full-graph Inference of Graph Neural Network over Huge Graphs},
+  author={Zhang, Dalong and Song, Xianzheng and Hu, Zhiyang and Li, Yang and Tao, Miao and Hu, Binbin and Wang, Lin and Zhang, Zhiqiang and Zhou, Jun},
+  booktitle={2023 IEEE 39th International Conference on Data Engineering (ICDE)},
+  pages={3235--3247},
+  year={2023},
+  organization={IEEE Computer Society}
+}
+```
 
 # License
 
