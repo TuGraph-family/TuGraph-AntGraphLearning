@@ -64,7 +64,7 @@ AGL应对这些问题的思路：
 
 # 如何贡献代码
 
-* [Contribution Guidelines](doc/core/Contribution.md)
+* [Contribution Guidelines](doc/core/contribution.md)
 
 # Cite
 
