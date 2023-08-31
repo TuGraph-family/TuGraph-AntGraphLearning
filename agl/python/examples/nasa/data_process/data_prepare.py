@@ -13,10 +13,8 @@ def load_npz_to_sparse_graph(file_name):
 
         if 'attr_data' in loader:
             attr_matrix = sp.csr_matrix((loader['attr_data'], loader['attr_indices'], loader['attr_indptr']), shape=loader['attr_shape'])
-        elif 'attr_matrix' in loader:
-            attr_matrix = loader['attr_matrix']
         else:
-            attr_matrix = None
+            attr_matrix = loader['attr_matrix']
 
         if 'labels_data' in loader:
             labels = sp.csr_matrix((loader['labels_data'], loader['labels_indices'], loader['labels_indptr']), shape=loader['labels_shape'])
@@ -30,10 +28,6 @@ def load_npz_to_sparse_graph(file_name):
 
         feat = attr_matrix.todense()
         num_class = len(set(labels))
-
-        # graph = dgl.graph((col, row), num_nodes=adj.shape[0])
-        # graph.ndata['feat'] = torch.FloatTensor(feat)
-        # graph.ndata['label'] = torch.LongTensor(labels)
 
         with open(file_name + '_edge.csv', 'w') as outfile:
             outfile.write("node1_id,node2_id,edge_id\n")
@@ -59,11 +53,6 @@ def load_npz_to_sparse_graph(file_name):
                 outfile.write(' '.join(atts) + '\n')
 
         label = list(labels)
-        # nclass = len(set(labels))
-        # class_ind = [[] for i in range(nclass)]
-        # for ind, lab in enumerate(label):
-        #     class_ind[lab].append(ind)
-        # # train = 20; # val = 30
         train_inds = [
             [416, 1199, 1342, 1986, 2085, 2167, 2858, 3071, 3696, 4119, 4299, 4929, 5956, 6254, 6394, 6456, 7066, 7089, 7138, 7256],
             [373, 548, 738, 805, 1783, 1859, 2616, 2731, 2764, 2836, 3777, 5014, 5273, 6583, 7063, 7120, 7154, 7516, 7545, 7634],

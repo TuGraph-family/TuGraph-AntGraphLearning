@@ -96,6 +96,10 @@ class SSR2Encoder(torch.nn.Module):
 
     def forward(self, user_feats: List[Tensor], item_feats: List[Tensor], mode="train"):
         user_embed, item_embed = None, None
+
+        if mode == "train":
+            assert user_feats is not None
+
         if user_feats is not None:
             user_embeds = [
                 F.leaky_relu(self.user_lins[i](user_feats[i]))
