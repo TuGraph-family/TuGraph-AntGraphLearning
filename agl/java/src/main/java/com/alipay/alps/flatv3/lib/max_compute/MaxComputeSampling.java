@@ -15,7 +15,6 @@ package com.alipay.alps.flatv3.lib.max_compute;
 
 import com.alipay.alps.flatv3.lib.GNNSamplingLib;
 import com.alipay.alps.flatv3.lib.WriteSubGraphElement;
-import com.aliyun.odps.udf.UDTFCollector;
 import java.util.List;
 import java.util.Map;
 
@@ -24,11 +23,9 @@ public class MaxComputeSampling implements WriteSubGraphElement {
   private Map<String, Integer> neighborColumnIndex;
   private Map<String, Integer> seedColumnIndex;
   private GNNSamplingLib gnnSamplingLib;
-  private UDTFCollector udtfCollector;
 
-  public MaxComputeSampling(GNNSamplingLib gnnSamplingLib, UDTFCollector udtfCollector) {
+  public MaxComputeSampling(GNNSamplingLib gnnSamplingLib) {
     this.gnnSamplingLib = gnnSamplingLib;
-    this.udtfCollector = udtfCollector;
   }
 
   public void setNeighborColumnIndex(Map<String, Integer> neighborColumnIndex) {
@@ -60,6 +57,5 @@ public class MaxComputeSampling implements WriteSubGraphElement {
 
   @Override
   public void write(Object... values) {
-    udtfCollector.collect(values);
   }
 }

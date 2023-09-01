@@ -10,7 +10,6 @@
 
     <properties>
         <protobuf.version>3.20.3</protobuf.version>
-        <cupid.sdk.version>3.3.14-SNAPSHOT</cupid.sdk.version>
         <scala.version>2.12.10</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.1.1</spark.version>
@@ -55,17 +54,6 @@
             <version>2.10.1</version>
         </dependency>
         <dependency>
-            <groupId>com.aliyun.odps</groupId>
-            <artifactId>odps-sdk-udf</artifactId>
-            <version>0.35.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.aspectj</groupId>
-                    <artifactId>aspectjrt</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
@@ -77,13 +65,6 @@
             <version>${scala.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.aliyun.odps</groupId>
-            <artifactId>cupid-sdk</artifactId>
-            <version>${cupid.sdk.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
@@ -105,23 +86,7 @@
             <version>32.0.1-jre</version>
         </dependency>
     </dependencies>
-
-
-
-    <repositories>
-        <repository>
-            <id>tbmirror</id>
-            <name>taobao mirror</name>
-            <url>http://mvnrepo.alibaba-inc.com/mvn/repository</url>
-        </repository>
-        <repository>
-            <id>tbmirror-snapshots</id>
-            <name>taobao mirror snapshots</name>
-            <url>http://mvnrepo.alibaba-inc.com/mvn/repository</url>
-        </repository>
-    </repositories>
-
-
+         
     <build>
         <extensions>
             <extension>
