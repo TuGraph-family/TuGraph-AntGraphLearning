@@ -37,7 +37,21 @@ AGL提供了基于属性[建立索引](./3_neighbor_attribute_indexing.md)的功
         }
       ]
     }
-  ]
+  ],
+  'edge_attr': [
+    {
+      'field': 'time',
+      'dtype': 'long'
+    }
+  ],
+  'seed': {
+    'attr': [
+      {
+        'field': 'time',
+        'dtype': 'long'
+      }
+    ]
+  }
 }
  ``` 
 
@@ -76,7 +90,7 @@ index="range_index:time:long"
 
 ### 配置过滤条件
 动态图的采样规则为：根节点的time大于第一跳节点的time，第一跳节点的time大于第二跳节点的time。表达为:
-filter_cond="neighbor_1.time > seed.time AND neighbor_2.time > neighbor_1.time"
+filter_cond="neighbor_1.time < seed.time AND neighbor_2.time < neighbor_1.time"
 
 ### 配置采样规则
 假设用户的采样规则为选择邻居中time最大的3个邻居，采样规则表达为：
@@ -88,9 +102,9 @@ sample_cond="topk(by=time, limit=3, reverse=True)"
  ``` 
 /path_to/spark-3.1.1-odps0.34.1/bin/spark-submit  --master local --class com.alipay.alps.flatv3.spark_back.DynamicGraph \
     /path_to/agl.jar hop=2 \
-    subgraph_spec="{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'sparse_kv','type':'sparse_kv','dim':3,'key':'int64','value':'float32'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[{'name':'feature','type':'dense','dim':2,'value':'float32'}]}]}"  \
+    subgraph_spec="{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'sparse_kv','type':'sparse_kv','dim':3,'key':'int64','value':'float32'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[{'name':'feature','type':'dense','dim':2,'value':'float32'}]}],'edge_attr':[{'field':'time','dtype':'long'}],'seed':{'attr':[{'field':'time','dtype':'long'}]}}"  \
     sample_cond="topk(by=time, limit=3, reverse=True)"   \
-    filter_cond="neighbor_1.time > seed.time AND neighbor_2.time > neighbor_1.time" \
+    filter_cond="neighbor_1.time < seed.time AND neighbor_2.time < neighbor_1.time" \
     input_node_feature="file:////path_to/node_table.csv" \
     input_edge="file:////path_to/edge_table.csv" \
     input_label="file:////path_to/label.csv" \
@@ -103,9 +117,9 @@ sample_cond="topk(by=time, limit=3, reverse=True)"
 |                           配置                                                   |                说明              |
 | ------------------------------------------------------------------------------- | -------------------------------- |
 | --master local                                                                  | spark本地运行模式                  |
-| --class com.alipay.alps.flatv3.spark_back.DynamicGraph                               | spark程序入口：动态图采样            |
+| --class com.alipay.alps.flatv3.spark.NodeLevelSampling                          | spark程序入口：点级别图采样            |
 | hop=2                                                                           | 进行2跳邻居采样                     |
 | subgraph_spec                                                                   | 定义图数据格式                      |
 | sample_cond="topk(by=time, limit=3, reverse=True)"                              | 每个节点采样time最大3个邻居节点       |
-| filter_cond="neighbor_1.time > seed.time AND neighbor_2.time > neighbor_1.time" | 邻居过滤：根节点的time大于第一跳节点的time，第一跳节点的time大于第二跳节点的time |
+| filter_cond="neighbor_1.time < seed.time AND neighbor_2.time < neighbor_1.time" | 邻居过滤：根节点的time大于第一跳节点的time，第一跳节点的time大于第二跳节点的time |
 | input_node_feature="file:////path_to/node_table.csv"                            | 前缀file:///表示后续接着本地路径      |
