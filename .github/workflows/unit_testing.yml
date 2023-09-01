@@ -15,7 +15,7 @@ jobs:
       run: |
         rm -rf /opt/hostedtoolcache
         docker pull aglimage/agl:agl-ubuntu-gcc9.4.0-py3.8-cuda11.8-pytorch2.0.1-0825
-        docker run  --net=host --rm -i -m 30000m -v ${GITHUB_WORKSPACE}:/graph_ml -w /graph_ml aglimage/agl:agl-ubuntu-gcc9.4.0-py3.8-cuda11.8-pytorch2.0.1-0825 mvn -B package --file pom.xml
+        docker run  --net=host --rm -i -m 30000m -v ${GITHUB_WORKSPACE}:/graph_ml -w /graph_ml aglimage/agl:agl-ubuntu-gcc9.4.0-py3.8-cuda11.8-pytorch2.0.1-0825 /bin/bash -c 'cd agl/java && mvn -B package --file pom.xml'
     - name: python cpp unit testing
       if: always()
-      run: docker run --net=host --rm -i -m 30000m -v ${GITHUB_WORKSPACE}:/graph_ml -w /graph_ml aglimage/agl:agl-ubuntu-gcc9.4.0-py3.8-cuda11.8-pytorch2.0.1-0825 /bin/bash -c 'bash build.sh'
+      run: docker run --net=host --rm -i -m 30000m -v ${GITHUB_WORKSPACE}:/graph_ml -w /graph_ml aglimage/agl:agl-ubuntu-gcc9.4.0-py3.8-cuda11.8-pytorch2.0.1-0825 /bin/bash -c 'git config --global --add safe.directory /graph_ml && bash build.sh'
