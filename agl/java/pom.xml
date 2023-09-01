@@ -140,10 +140,6 @@
                             <shadedPattern>agl.apache.commons.cli</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>org.apache.hadoop</pattern>
-                            <shadedPattern>agl.apache.hadoop</shadedPattern>
-                        </relocation>
-                        <relocation>
                             <pattern>javax.servlet</pattern>
                             <shadedPattern>agl.servlet</shadedPattern>
                         </relocation>
