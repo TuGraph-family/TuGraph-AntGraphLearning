@@ -106,22 +106,6 @@
         </dependency>
     </dependencies>
 
-
-
-    <repositories>
-        <repository>
-            <id>tbmirror</id>
-            <name>taobao mirror</name>
-            <url>http://mvnrepo.alibaba-inc.com/mvn/repository</url>
-        </repository>
-        <repository>
-            <id>tbmirror-snapshots</id>
-            <name>taobao mirror snapshots</name>
-            <url>http://mvnrepo.alibaba-inc.com/mvn/repository</url>
-        </repository>
-    </repositories>
-
-
     <build>
         <extensions>
             <extension>
