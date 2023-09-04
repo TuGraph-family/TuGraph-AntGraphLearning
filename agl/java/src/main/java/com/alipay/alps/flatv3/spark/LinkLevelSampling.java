@@ -17,7 +17,9 @@ import static org.apache.spark.sql.functions.col;
 
 import com.alipay.alps.flatv3.spark.utils.Constants;
 import com.alipay.alps.flatv3.spark.utils.DatasetUtils;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -25,9 +27,11 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,15 +75,20 @@ public class LinkLevelSampling extends NodeLevelSampling {
     Dataset<Row> linkSubgraph = buildSubgraphWithFeature(linkSubgraphDS, rawNodeFeatureDF, edgeDS);
 
     linkDS = linkDS.withColumnRenamed("seed", "link");
-    linkDS = linkDS
-        .join(linkSubgraph, linkDS.col("node1_id").equalTo(linkSubgraph.col(Constants.ENTRY_SEED)))
-        .select("node1_id", "node2_id", "link", "label", "train_flag", "graph_feature");
-    linkSubgraph = linkSubgraph.withColumnRenamed("graph_feature", "graph_feature_2");
-    Dataset<Row> linkSubgraphWithLabel = linkDS
-        .join(linkSubgraph, linkDS.col("node2_id").equalTo(linkSubgraph.col(Constants.ENTRY_SEED)))
-        .select("node1_id", "node2_id", "link", "label", "train_flag", "graph_feature",
-            "graph_feature_2");
+    List<Column> linkOtherColumns = new ArrayList();
+    String[] linkColumnNames = linkDS.columns();
 
+    for(int i = 0; i < linkColumnNames.length; ++i) {
+      if (linkColumnNames[i].compareTo("node1_id") != 0 && linkColumnNames[i].compareTo("node2_id") != 0) {
+        linkOtherColumns.add(functions.col(linkColumnNames[i]));
+      }
+    }
+
+    Dataset<Row> linkOtherColumnDS = linkDS.select((Column[])linkOtherColumns.toArray(new Column[0]));
+    linkDS = linkDS.join(linkSubgraph, linkDS.col("node2_id").equalTo(linkSubgraph.col("seed"))).select("node1_id", new String[]{"node2_id", "link", "graph_feature"});
+    linkSubgraph = linkSubgraph.withColumnRenamed("graph_feature", "graph_feature_2");
+    Dataset<Row> linkSubgraphWithLabel = linkDS.join(linkSubgraph, linkDS.col("node1_id").equalTo(linkSubgraph.col("seed"))).select("node1_id", new String[]{"node2_id", "link", "graph_feature", "graph_feature_2"});
+    linkSubgraphWithLabel = linkSubgraphWithLabel.join(linkOtherColumnDS, "link");
     sinkSubgraphWithLabel(spark, linkSubgraphWithLabel);
   }
 
