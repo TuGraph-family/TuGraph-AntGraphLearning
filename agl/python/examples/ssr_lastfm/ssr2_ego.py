@@ -94,8 +94,8 @@ ys = []
 f.readline()
 for line in f:
     l = line.strip().split(",")
-    edges.append([int(l[0]), int(l[1])])
-    ys.append(int(l[3]))
+    edges.append([int(l[1]), int(l[2])])
+    ys.append(int(l[5]))
 f.close()
 dataset = TensorDataset(torch.LongTensor(edges), torch.LongTensor(ys))
 train_loader = DataLoader(
@@ -177,8 +177,8 @@ ys = []
 f.readline()
 for line in f:
     l = line.strip().split(",")
-    edges.append([int(l[0]), int(l[1])])
-    ys.append(int(l[3]))
+    edges.append([int(l[1]), int(l[2])])
+    ys.append(int(l[5]))
 f.close()
 dataset = TensorDataset(torch.LongTensor(edges), torch.LongTensor(ys))
 test_loader = DataLoader(
