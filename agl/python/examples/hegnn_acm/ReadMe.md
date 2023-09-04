@@ -8,13 +8,13 @@
 
 ## BenchMark
 
-* 数据
+### 数据
 
-下载数据放到data_process目录下
+下载数据https://drive.google.com/drive/folders/1koV0rGhj-UXrEMOCZezK1tnwC6zb69uB?usp=sharing ，将node.csv,edge.csv,label.csv文件拷贝到data_process目录下
 
-* 数据预处理与子图采样：
+### 数据预处理与子图采样：
     运行submit.sh进行spark采样,得到训练集测试集验证集
-* 效果
+### 效果
 python model_hegnn.py
 
 Epoch: 01, Loss: 0.6549, val_micro_f1: 0.3533, test_micro_f1: 0.3812, time_cost:10.1865
