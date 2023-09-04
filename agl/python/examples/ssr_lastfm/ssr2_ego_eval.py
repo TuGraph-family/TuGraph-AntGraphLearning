@@ -3,13 +3,25 @@ import numpy as np
 
 
 def load_data(filename, filter_label=False):
+    # schema: link,node1_id,node2_id,graph_feature,graph_feature_2,label,train_flag
     res = []
     with open(filename, "r") as f:
         f.readline()
         for line in f:
             l = line.strip().split(",")
-            if filter_label and l[3] == "0":
+            if filter_label and l[5] == "0":
                 continue
+            res.append([int(l[1]), int(l[2])])
+    res = np.array(res)
+    return res
+
+def load_edge_data(filename):
+    # schema: node1_id,node2_id,edge_id
+    res = []
+    with open(filename, "r") as f:
+        f.readline()
+        for line in f:
+            l = line.strip().split(",")
             res.append([int(l[0]), int(l[1])])
     res = np.array(res)
     return res
@@ -23,7 +35,7 @@ neg_sample_num = 100
 user_embed = torch.load("result/model2_user_embed.pt").cpu().detach().numpy()
 item_embed = torch.load("result/model2_item_embed.pt").cpu().detach().numpy()
 test_data = load_data("./data_process/subgraph_ssr_lastfm_test.csv", filter_label=True)
-edge_table = load_data("./data_process/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv")
+edge_table = load_edge_data("./data_process/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv")
 print(user_embed.shape, item_embed.shape, test_data.shape, edge_table.shape)
 
 edge_dict = {}
