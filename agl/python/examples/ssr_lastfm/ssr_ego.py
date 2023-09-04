@@ -70,13 +70,13 @@ def main():
         train_file_name,
         has_schema=True,
         schema=[
+            "link",
             "node1_id",
             "node2_id",
-            "link",
-            "label",
-            "train_flag",
             "graph_feature",
             "graph_feature_2",
+            "label",
+            "train_flag",
         ],
         column_sep=",",
     )
@@ -84,13 +84,13 @@ def main():
         test_file_name,
         has_schema=True,
         schema=[
+            "link",
             "node1_id",
             "node2_id",
-            "link",
-            "label",
-            "train_flag",
             "graph_feature",
             "graph_feature_2",
+            "label",
+            "train_flag",
         ],
         column_sep=",",
     )
