@@ -11,7 +11,8 @@ python ../../run_spark.py \
     --input_node_table_name ./facebook_node_t.csv \
     --output_table_name_prefix ./output_graph_feature \
     --neighbor_distance 2 \
-    --sample_condition 'random_sampler(limit=200, replacement=false)' \
+    --remove_edge_among_roots "True" \
+    --sample_condition "random_sampler(limit=200, replacement=false)" \
     --subgraph_spec "{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'node_feature','type':'dense','dim':1,'value':'int64'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[]}]}" \
     --algorithm pagnn
 
