@@ -3,10 +3,10 @@ cd "$base"
 
 python ../../run_spark.py \
     --jar_resource_path ../../../../java/target/flatv3-1.0-SNAPSHOT.jar \
-    --input_edge_table_name agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv \
-    --input_label_table_name agl_gzoo_bmdata_ssr_lastfm_open_source_node_label.csv \
-    --input_node_table_name agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv \
-    --output_table_name_prefix output_graph_feature \
+    --input_edge_table_name data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv \
+    --input_label_table_name data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_label.csv \
+    --input_node_table_name data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv \
+    --output_table_name_prefix data/output_graph_feature \
     --neighbor_distance 2 \
     --train_flag "train_flag" \
 	--sample_condition 'random_sampler(limit=50, seed=34, replacement=false)' \
