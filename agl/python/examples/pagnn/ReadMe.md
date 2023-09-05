@@ -3,10 +3,10 @@
 > Paper: Inductive Link Prediction with Interactive Structure Learning on Attributed Graph
 https://2021.ecmlpkdd.org/wp-content/uploads/2021/07/sub_635.pdf
 
-由于link类算法的样本数量过多，只能在分布式模式（比如yarn）运行，为了方便不想搭建yarn集群的用户，我们提供了采样好的图样本下载地址为https://drive.google.com/drive/folders/11VphpI6rgvKzfElF9slp2D9qSJvT-big?usp=sharing，用户可直接进行模型训练
+由于link类算法的样本数量过多，只能在分布式模式（比如yarn）运行，为了方便不想搭建yarn集群的用户，我们提供了采样好的图样本下载地址为 https://drive.google.com/drive/folders/11VphpI6rgvKzfElF9slp2D9qSJvT-big?usp=sharing ，用户可直接进行模型训练
 
 ### 数据下载：
-    从Facebook: https://docs.google.com/uc?export=download&id=12aJWAGCM4IvdGI2fiydDNyWzViEOLZH8&confirm=t下载数据,放到data_process/facebook/raw目录下
+    从Facebook: https://docs.google.com/uc?export=download&id=12aJWAGCM4IvdGI2fiydDNyWzViEOLZH8&confirm=t 下载数据,放到data_process/facebook/raw目录下
 ### 数据预处理与子图采样：
     运行submit.sh进行数据预处理和spark采样,得到训练集测试集验证集
 ### 模型
