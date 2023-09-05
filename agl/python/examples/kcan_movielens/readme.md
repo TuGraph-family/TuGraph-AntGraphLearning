@@ -68,7 +68,7 @@ python kcan_subgraph_adj.py
   * kcan 未调参，100 epoch, AUC ~ 0.9 左右 (原论文 0.907)
 
 * 效率  * kcan
-    ```
+```
     Epoch: 01, Loss: 0.4570, auc: 0.8826, best_auc: 0.8826, train_time: 154.442953, val_time: 30.473222
     Epoch: 02, Loss: 0.4234, auc: 0.8841, best_auc: 0.8841, train_time: 151.677146, val_time: 29.973186
     Epoch: 03, Loss: 0.4215, auc: 0.8842, best_auc: 0.8842, train_time: 153.905838, val_time: 32.188418
