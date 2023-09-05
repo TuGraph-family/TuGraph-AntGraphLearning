@@ -20,7 +20,7 @@ stage = 6
 ## Benchmark
 
 * 数据下载：
-    从https://github.com/tkipf/gcn/tree/master/gcn/data下载ind.citeseer.开头的数据文件,放在data_process/data/目录下
+    从 https://github.com/tkipf/gcn/tree/master/gcn/data 下载ind.citeseer.开头的数据文件,放在data_process/data/目录下
 * 数据预处理与子图采样：
     运行submit.sh进行数据预处理和spark采样,得到训练集测试集验证集
 * 模型
