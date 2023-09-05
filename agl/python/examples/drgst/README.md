@@ -26,6 +26,7 @@ stage = 6
 * 模型
     python drgst_citeseer.py
 * 效果
+```
 In stage 0
 test loss:0.9647, test acc:0.7070
 In stage 1
@@ -38,3 +39,4 @@ In stage 4
 test loss:0.9230, test acc:0.7440
 In stage 5
 test loss:0.9430, test acc:0.7540
+```
