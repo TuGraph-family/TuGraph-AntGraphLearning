@@ -54,7 +54,8 @@ python ../../run_spark.py \
     - 包含node_id,node_feature两个字段
 
 ```
-python data_process/split_graph_features.py
+cd data_process
+python split_graph_features.py
 ```
 运行上面的脚本，将output_graph_feature目录下的子图根据train_flag划分为subgraph_kcan_movielens_train.txt和subgraph_kcan_movielens_test.txt文件给下游训练。
 
