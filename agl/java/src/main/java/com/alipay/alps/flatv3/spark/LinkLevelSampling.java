@@ -85,9 +85,9 @@ public class LinkLevelSampling extends NodeLevelSampling {
     }
 
     Dataset<Row> linkOtherColumnDS = linkDS.select((Column[])linkOtherColumns.toArray(new Column[0]));
-    linkDS = linkDS.join(linkSubgraph, linkDS.col("node2_id").equalTo(linkSubgraph.col("seed"))).select("node1_id", new String[]{"node2_id", "link", "graph_feature"});
+    linkDS = linkDS.join(linkSubgraph, linkDS.col("node1_id").equalTo(linkSubgraph.col("seed"))).select("node1_id", new String[]{"node2_id", "link", "graph_feature"});
     linkSubgraph = linkSubgraph.withColumnRenamed("graph_feature", "graph_feature_2");
-    Dataset<Row> linkSubgraphWithLabel = linkDS.join(linkSubgraph, linkDS.col("node1_id").equalTo(linkSubgraph.col("seed"))).select("node1_id", new String[]{"node2_id", "link", "graph_feature", "graph_feature_2"});
+    Dataset<Row> linkSubgraphWithLabel = linkDS.join(linkSubgraph, linkDS.col("node2_id").equalTo(linkSubgraph.col("seed"))).select("node1_id", new String[]{"node2_id", "link", "graph_feature", "graph_feature_2"});
     linkSubgraphWithLabel = linkSubgraphWithLabel.join(linkOtherColumnDS, "link");
     sinkSubgraphWithLabel(spark, linkSubgraphWithLabel);
   }
