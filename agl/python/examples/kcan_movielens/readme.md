@@ -16,7 +16,7 @@
 > Warning: 模型部分实现和论文中略有不同，原文是知识图谱表征学习和kcan交替训练，这里只有kcan的训练。同时开源数据只有正边没有负边，所以负样本是随机采样的导致数据集中负样本和原论文不一样，因此效果并不能完全对齐论文。
 由于link类算法的样本数量过多，只能在分布式模式（比如yarn）运行，为了方便不想搭建yarn集群的用户，我们提供了采样好的图样本下载地址为:，用户可以直接进行模型训练
 ### 数据下载：
-从https://drive.google.com/drive/folders/12_mU1jt7ntuWEMQ-bogF0cLQjFJijnab?usp=sharing下载数据文件,把图数据文件node_table.csv,link_table.csv,edge_table.csv放在data_process/目录下。
+从 https://drive.google.com/drive/folders/12_mU1jt7ntuWEMQ-bogF0cLQjFJijnab?usp=sharing 下载数据文件,把图数据文件node_table.csv,link_table.csv,edge_table.csv放在data_process/目录下。
 由于link模式的样本量巨大，用户需要搭建spark集群运行。对于无法搭建集群的用户，可以下载预先采样的子图数据part-subgraph_kcan_train_test.csv，放在data_process/output_graph_feature目录下
 
 ### 数据预处理
