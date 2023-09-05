@@ -16,10 +16,11 @@
 ### 数据预处理
 以movielens为例子
 #### 开源数据预处理
+从 http://files.grouplens.org/datasets/hetrec2011/hetrec2011-lastfm-2k.zip 下载lastfm数据，创建data_process/data目录,将下载数据解压后放在data目录下，使用下述命令预处理成我们需要的格式。
+
 ```
 python data_preprocess.py
 ```
-从 http://files.grouplens.org/datasets/hetrec2011/hetrec2011-lastfm-2k.zip 下载lastfm数据，创建data_process/data目录,将下载数据解压后放在data目录下，使用上述命令预处理成我们需要的格式。
 
 #### 第一阶段数据预处理
 首先我们要把原始数据压缩成子图(pb string)的形式，使用data_process/run_ssr_link.sh脚本命令
