@@ -20,7 +20,8 @@
 
 ### 数据预处理
 以movielens为例子
-首先我们要把原始数据压缩成子图(pb string)的形式，使用如下data_process/submit.sh的命令
+首先我们要把原始数据压缩成子图(pb string)的形式，使用如下data_process/submit.sh的命令。
+
 由于link模式的样本量巨大，用户需要搭建spark集群运行。对于无法搭建集群的用户，可以下载预先采样的子图数据part-subgraph_kcan_train_test.csv，放在data_process/output_graph_feature目录下
 
 ```
