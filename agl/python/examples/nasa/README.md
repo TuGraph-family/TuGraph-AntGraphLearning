@@ -21,7 +21,7 @@
 以 `Amazon Photo` 数据集为例子
 
 * 数据下载：
-    从https://github.com/BUPT-GAMMA/NASA/tree/main/dataset下载photo.npz文件,放到data_process/dataset/目录下
+    从 https://github.com/BUPT-GAMMA/NASA/tree/main/dataset 下载photo.npz文件,放到data_process/dataset/目录下
 * 数据预处理与子图采样：
     运行submit.sh进行数据预处理和spark采样,得到每条样本的子图
     将得到的csv表 `graph_features.csv`，包含 'seed', 'graph_feature', 'node_id_list', 'label_list', 'flag_list' 三个字段，其中 'flag_list' 字段中以 'train', 'val', 'test' 标记训练集数据、验证集数据和测试集数据。然后，执行下述指令，转换flag_list的格式以便于后续处理：
