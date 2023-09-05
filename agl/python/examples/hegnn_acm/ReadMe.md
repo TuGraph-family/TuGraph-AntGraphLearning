@@ -10,7 +10,7 @@
 
 ### 数据
 
-下载数据https://drive.google.com/drive/folders/1koV0rGhj-UXrEMOCZezK1tnwC6zb69uB?usp=sharing ，将node.csv,edge.csv,label.csv文件拷贝到data_process目录下
+下载数据 https://drive.google.com/drive/folders/1koV0rGhj-UXrEMOCZezK1tnwC6zb69uB?usp=sharing ，将node.csv,edge.csv,label.csv文件拷贝到data_process目录下
 
 ### 数据预处理与子图采样：
     运行submit.sh进行spark采样,得到训练集测试集验证集
