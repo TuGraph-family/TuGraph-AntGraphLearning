@@ -63,6 +63,9 @@ public class DatasetUtils {
   }
 
   public static Dataset<Row> inputData(SparkSession spark, String input) {
+    if (input == null) {
+      return null;
+    }
     if (input.startsWith("file:///")) {
       if (input.substring("file:///".length()).trim().isEmpty()) {
         LOG.info("Input file is empty:" + input);
