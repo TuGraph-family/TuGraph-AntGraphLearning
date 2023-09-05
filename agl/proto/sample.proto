@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+// package (not affect python)
+package agl.proto.sampler;
+
+import "graph_feature.proto";
+// java
+option java_package = "com.antfin.agl.proto.sampler";
+option java_outer_classname = "GraphSampler";
+option java_multiple_files = true;
+option cc_enable_arenas = true;
+
+enum CmpOp {
+  CMP_UNKNOWN = 0;
+  LT = 1;
+  LE = 2;
+  EQ = 3;
+  GT = 4;
+  GE = 5;
+  NE = 6;
+  IN = 7;
+  NOT_IN = 8;
+}
+
+enum LogicOp {
+  LOGIC_UNKNOWN = 0;
+  AND = 1;
+  OR = 2;
+  NOT = 3;
+}
+
+enum ArithmeticOp {
+  ARITH_UNKNOWN = 0;
+  MINUS = 1;
+  PLUS = 2;
+  STAR = 3;
+  DIV = 4;
+  MOD = 5;
+}
+
+enum VariableSource {
+  VAR_UNKNOWN = 0;
+  INDEX = 1;
+  SEED = 2;
+  FRONTIER = 3;
+  EDGE = 4;
+}
+
+message Element {
+  message Variable {
+    string name = 1;
+    VariableSource source = 2;
+    int32 index = 3;
+  }
+
+  message Number {
+    oneof data {
+      float f = 1;
+      int64 i = 2;
+      string s = 3;
+    }
+  }
+
+  oneof symbol {
+    Variable var = 1;
+    Number num = 2;
+    ArithmeticOp op = 3;
+  }
+}
+
+// The left and right lists could contain variables, constants, and operators, arranged in reverse polish notation(RPN).
+// The comparison operator determines how the two lists are compared.
+// The original formula is converted into reverse polish notation, where the operands follow their operators.
+// For example, the original inequation is index.time - seed.1 / index.time2 + seed.3 >=  10 * seed.2,
+// the converted leftRPN is [index.time, seed.1, seed.2, /, -, seed.3, +]
+// the converted rightRPN is [10, seed.2, *]
+// the op is GE
+message CmpExp {
+  repeated Element lhsRPN = 1;
+  repeated Element rhsRPN = 2;
+  CmpOp op = 3;
+}
+
+// Similar to CmpExp, LogicExps represents logic expressions in reverse polish notation manner,
+// where operands follow their logic sub-expressions.
+// For example, the original logic expressions are: CmpExp1 OR CmpExp2 AND CmpExp3,
+// the converted list is [CmpExp1, CmpExp2, CmpExp3, AND, OR]
+message LogicExps {
+  message ExpOrOp {
+    oneof data {
+      CmpExp exp = 1;
+      LogicOp op = 2;
+    }
+  }
+  
+  repeated ExpOrOp expRPN = 1;
+}
+
+message SubGraphSpec {
+  message FeatureSpec {
+    string name = 1;
+    string type = 2;
+    int32 dim = 3;
+    agl.proto.graph_feature.DType key_dtype = 4;
+    agl.proto.graph_feature.DType value_dtype = 5;
+  }
+  message NodeSpec {
+    string node_name = 1;
+    agl.proto.graph_feature.DType id_type = 2;
+    repeated FeatureSpec features = 3;
+  }
+  message EdgeSpec {
+    string edge_name = 1;
+    agl.proto.graph_feature.DType id_type = 2;
+    string n1_name = 3;
+    string n2_name = 4;
+    repeated FeatureSpec features = 5;
+  }
+  message Seed {
+    map<string, agl.proto.graph_feature.DType> attrs = 2;
+  }
+  repeated NodeSpec nodes = 1;
+  repeated EdgeSpec edges = 2;
+  bool is_ego_graph = 3;
+  map<string, agl.proto.graph_feature.DType> edge_attrs = 4;
+  Seed seed = 5;
+}

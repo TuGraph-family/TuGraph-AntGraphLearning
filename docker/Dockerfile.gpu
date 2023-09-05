@@ -1,0 +1,25 @@
+FROM nvcr.io/nvidia/pytorch:22.09-py3
+
+RUN mkdir /agl_resource
+# package some resource into image
+COPY boost_1_72_0.tar.gz googletest.tar.gz protobuf.tar.gz spark-3.1.1-bin-hadoop3.2.tgz \
+apache-maven-3.6.1-bin.tar.gz jdk-8u202-linux-x64.tar.gz /agl_resource/
+
+RUN tar -xf /agl_resource/spark-3.1.1-bin-hadoop3.2.tgz -C /agl_resource/ \
+&& tar -xf /agl_resource/apache-maven-3.6.1-bin.tar.gz -C /agl_resource/ \
+&& tar -xf /agl_resource/jdk-8u202-linux-x64.tar.gz -C /agl_resource/
+
+ENV JAVA_HOME=/agl_resource/jdk1.8.0_202 \
+    M2_HOME=/agl_resource/apache-maven-3.6.1 \
+    M2=/agl_resource/apache-maven-3.6.1/bin \
+    SPARK_HOME=/agl_resource/spark-3.1.1-bin-hadoop3.2 \
+    HADOOP_CONF_DIR=/agl_resource/spark-3.1.1-bin-hadoop3.2/conf \
+    PATH=/agl_resource/apache-maven-3.6.1/bin:/agl_resource/jdk1.8.0_202/bin:/agl_resource/spark-3.1.1-bin-hadoop3.2/bin:$PATH
+
+# uninstall or install c++ and python dependencies
+RUN apt-get remove libprotobuf-dev -y \
+&& pip3 uninstall torch torchvision torchaudio -y \
+&& pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118 \
+&& pip install torch_geometric \
+&& pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
+

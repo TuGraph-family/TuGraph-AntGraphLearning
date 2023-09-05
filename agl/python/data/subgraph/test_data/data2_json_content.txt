@@ -1,0 +1,60 @@
+base64SerializedString.len:208 isCompress:false
+subGraph:nodes {
+  key: "default"
+  value {
+    nids {
+      str {
+        value: "38"
+        value: "8265"
+      }
+    }
+    features {
+    }
+  }
+}
+edges {
+  key: "default"
+  value {
+    eids {
+      str {
+        value: "38_8265_2807.0"
+        value: "38_8265_2785.0"
+      }
+    }
+    csr {
+      indptr {
+        value: 2
+        value: 2
+      }
+      nbrs_indices {
+        value: 1
+        value: 1
+      }
+    }
+    n1_name: "default"
+    n2_name: "default"
+    features {
+      dfs {
+        key: "time"
+        value {
+          dim: 1
+          i64s {
+            value: 2807
+            value: 2785
+          }
+        }
+      }
+    }
+  }
+}
+root {
+  subgraph {
+    is_node: true
+    indices {
+      key: "default"
+      value {
+        value: 0
+      }
+    }
+  }
+}

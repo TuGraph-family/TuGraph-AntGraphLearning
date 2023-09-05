@@ -1,0 +1,114 @@
+base64SerializedString.len:324 isCompress:false
+subGraph:nodes {
+  key: "default"
+  value {
+    nids {
+      str {
+        value: "1"
+        value: "2"
+        value: "3"
+      }
+    }
+    features {
+      dfs {
+        key: "dense"
+        value {
+          dim: 3
+          f32s {
+            value: 0.1
+            value: 1.1
+            value: 1.0
+            value: 0.2
+            value: 2.2
+            value: 2.0
+            value: 0.3
+            value: 3.3
+            value: 3.0
+          }
+        }
+      }
+      sp_kvs {
+        key: "nf"
+        value {
+          lens {
+            value: 2
+            value: 3
+            value: 6
+          }
+          keys {
+            value: 1
+            value: 10
+            value: 2
+            value: 3
+            value: 4
+            value: 10
+          }
+          i64s {
+            value: 1
+            value: 1
+            value: 2
+            value: 3
+            value: 3
+            value: 3
+          }
+        }
+      }
+    }
+  }
+}
+edges {
+  key: "default"
+  value {
+    eids {
+      str {
+        value: "1-2"
+        value: "2-3"
+      }
+    }
+    csr {
+      indptr {
+        value: 1
+        value: 2
+        value: 2
+      }
+      nbrs_indices {
+        value: 1
+        value: 2
+      }
+    }
+    n1_name: "default"
+    n2_name: "default"
+    features {
+      sp_kvs {
+        key: "ef"
+        value {
+          lens {
+            value: 3
+            value: 6
+          }
+          keys {
+            value: 1
+            value: 2
+            value: 9
+            value: 2
+            value: 3
+            value: 10
+          }
+          f32s {
+            value: 1.1
+            value: 2.2
+            value: 10.1
+            value: 2.2
+            value: 3.3
+            value: 2.1
+          }
+        }
+      }
+    }
+  }
+}
+root {
+  nidx {
+    name: "default"
+  }
+}
