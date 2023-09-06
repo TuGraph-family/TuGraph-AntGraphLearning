@@ -35,7 +35,7 @@ neg_sample_num = 100
 user_embed = torch.load("result/model2_user_embed.pt").cpu().detach().numpy()
 item_embed = torch.load("result/model2_item_embed.pt").cpu().detach().numpy()
 test_data = load_data("./data_process/subgraph_ssr_lastfm_test.csv", filter_label=True)
-edge_table = load_edge_data("./data_process/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv")
+edge_table = load_edge_data("./data_process/data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv")
 print(user_embed.shape, item_embed.shape, test_data.shape, edge_table.shape)
 
 edge_dict = {}

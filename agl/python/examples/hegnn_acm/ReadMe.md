@@ -10,13 +10,13 @@
 
 ### 数据
 
-下载数据https://drive.google.com/drive/folders/1koV0rGhj-UXrEMOCZezK1tnwC6zb69uB?usp=sharing ，将node.csv,edge.csv,label.csv文件拷贝到data_process目录下
+下载数据 https://drive.google.com/drive/folders/1koV0rGhj-UXrEMOCZezK1tnwC6zb69uB?usp=sharing ，将node.csv,edge.csv,label.csv文件拷贝到data_process目录下
 
 ### 数据预处理与子图采样：
     运行submit.sh进行spark采样,得到训练集测试集验证集
 ### 效果
 python model_hegnn.py
-
+```
 Epoch: 01, Loss: 0.6549, val_micro_f1: 0.3533, test_micro_f1: 0.3812, time_cost:10.1865
 (Epoch: 01, best_val_micro_f1: 0.3533, best_test_micro_f1: 0.3812)  <br>
 Epoch: 02, Loss: 0.5937, val_micro_f1: 0.8100, test_micro_f1: 0.8640, time_cost:7.7812
@@ -218,3 +218,4 @@ Epoch: 99, Loss: 0.0003, val_micro_f1: 0.8767, test_micro_f1: 0.9068, time_cost:
 Epoch: 100, Loss: 0.0003, val_micro_f1: 0.8767, test_micro_f1: 0.9068, time_cost:7.9536
 (Epoch: 07, best_val_micro_f1: 0.8900, best_test_micro_f1: 0.9144)  <br>
 sucess
+```

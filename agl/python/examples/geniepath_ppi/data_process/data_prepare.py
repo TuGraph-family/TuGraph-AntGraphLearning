@@ -49,7 +49,7 @@ def load_data(prefix):
         if node["test"] and node["val"]:
             print("both test and val error:" + nid)
             exit(0)
-    train_graph_id = np.load(prefix + "-train_graph_id.npy")
+    train_graph_id = np.load("ppi/train_graph_id.npy")
     class_map = json.load(open(prefix + "-class_map.json"))
     with open('ppi_label.csv', 'w') as outfile:
         outfile.write('node_id,seed,label,train_flag\n')
