@@ -15,6 +15,17 @@ from pyagl.pyagl import AGLDType, SparseKVSpec, NodeSpec, EdgeSpec
 
 from agl.python.model.utils.nasa_utils import *
 
+
+def setup_seed(seed=2023):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+
+
+setup_seed()
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--lr", type=float, default=0.01, help="Initial learning rate.")
 parser.add_argument("--weight_decay", type=float, default=1e-3, help="Weight decay")
@@ -25,6 +36,7 @@ parser.add_argument("--temp", type=float, default=0.1, help="sharpen temperature
 parser.add_argument("--in_channels", type=int, default=745, help="in channels of GNN")
 parser.add_argument("--out_channels", type=int, default=8, help="out channels of GNN")
 parser.add_argument("--num_layers", type=int, default=2, help="layer number of GNN")
+parser.add_argument("--max_epoch", type=int, default=300, help="max training epoch")
 args = parser.parse_args()
 
 # step 1: 构建dataset
@@ -164,7 +176,7 @@ def test(loader, flag="test"):
 
 
 print("Training!")
-for epoch in range(1, 500):
+for epoch in range(args.max_epoch):
     t0 = time.time()
 
     loss = train(train_loader)
