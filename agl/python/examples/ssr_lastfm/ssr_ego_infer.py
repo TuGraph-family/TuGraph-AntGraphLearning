@@ -13,8 +13,8 @@ from pyagl.pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
 from ssr_ego import SSRLastfmModel
 
 # step 1: 构建dataset
-node_file_name = "./data_process/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv"
-edge_file_name = "./data_process/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv"
+node_file_name = "./data_process/data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv"
+edge_file_name = "./data_process/data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv"
 
 # node data set
 node_data_set = AGLTorchMapBasedDataset(

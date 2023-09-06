@@ -13,5 +13,5 @@ python ../../run_spark.py \
     --subgraph_spec "{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'node_feature','type':'dense','dim':1,'value':'int64'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[]}]}" \
     --algorithm link_level
 
-cp output_graph_feature_1/part* subgraph_ssr_lastfm_train.csv
-cp output_graph_feature_0/part* subgraph_ssr_lastfm_test.csv
+cp data/output_graph_feature_1/part* subgraph_ssr_lastfm_train.csv
+cp data/output_graph_feature_0/part* subgraph_ssr_lastfm_test.csv

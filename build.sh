@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# add safe.directory
+git config --global --add safe.directory /graph_ml
+
 set -e
 
 PROJECT_DIR=$(cd "$(dirname $0)" && pwd)
