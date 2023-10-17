@@ -8,13 +8,17 @@ import torch.nn.functional as F
 from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.multi_graph_feature_collate import MultiGraphFeatureCollate
 from agl.python.data.column import AGLMultiDenseColumn
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
 
 from ssr_ego import SSRLastfmModel
 
 # step 1: 构建dataset
-node_file_name = "./data_process/data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv"
-edge_file_name = "./data_process/data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv"
+node_file_name = (
+    "./data_process/data/agl_gzoo_bmdata_ssr_lastfm_open_source_node_table.csv"
+)
+edge_file_name = (
+    "./data_process/data/agl_gzoo_bmdata_ssr_lastfm_open_source_edge_table.csv"
+)
 
 # node data set
 node_data_set = AGLTorchMapBasedDataset(

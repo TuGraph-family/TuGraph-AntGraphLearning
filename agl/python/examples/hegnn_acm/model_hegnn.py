@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn
-from pyagl.pyagl import (
+from pyagl import (
     AGLDType,
     SparseKVSpec,
     NodeSpec,

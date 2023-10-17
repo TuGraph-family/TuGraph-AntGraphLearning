@@ -9,7 +9,7 @@ from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn
 from agl.python.model.encoder.drgst import DRGSTEncoder
-from pyagl.pyagl import (
+from pyagl import (
     AGLDType,
     DenseFeatureSpec,
     SparseKVSpec,

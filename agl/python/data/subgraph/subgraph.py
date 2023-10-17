@@ -4,7 +4,7 @@
 from typing import List
 import numpy as np
 
-from pyagl.pyagl import (
+from pyagl import (
     AGLDType,
     DenseFeatureSpec,
     SparseKVSpec,

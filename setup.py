@@ -81,7 +81,6 @@ include_dirs.append(ROOT_PATH + "/third_party/boost/boost_install/include")
 include_dirs.append(ROOT_PATH + "/third_party/output/protobuf/include")
 
 extra_compile_args.append("-std=c++11")
-
 extra_link_args.append("-Wl,-rpath=" + ROOT_PATH + "/agl/python/lib/")
 library_dirs.append(ROOT_PATH + "/output/lib/")
 libraries.append("agl")
@@ -96,6 +95,7 @@ try_extension = Extension(
     include_dirs=include_dirs,
     library_dirs=library_dirs,
     libraries=libraries,
+    runtime_library_dirs=["$ORIGIN/agl/python/lib/"],
 )
 extensions.append(try_extension)
 
@@ -142,7 +142,6 @@ setup(
         if not r.strip().startswith("#")
     ],
     package_dir={"pyagl": "."},
-    package_data={"agl": agl_data},
-    ext_package="pyagl",
+    package_data={"": agl_data},
     ext_modules=extensions,
 )

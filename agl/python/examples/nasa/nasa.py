@@ -11,7 +11,7 @@ from torch_geometric.nn import GCN
 from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLDenseColumn
-from pyagl.pyagl import AGLDType, SparseKVSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, SparseKVSpec, NodeSpec, EdgeSpec
 
 from agl.python.model.utils.nasa_utils import *
 

@@ -2,7 +2,9 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 
-Ant Graph Learning (AGL) 为工业级大规模图学习任务提供全链路解决方案。
+[中文文档](./README_CN.md)
+
+Ant Graph Learning (AGL) provides a comprehensive solution for graph learning tasks at an industrial scale.
 
 [//]: # (<div align="center">)
 
@@ -14,57 +16,72 @@ Ant Graph Learning (AGL) 为工业级大规模图学习任务提供全链路解�
 
 [//]: # (</div>)
 
-![](./doc/core/architecture.png)
+![](doc/core/English/images/architecture_EN.png)
 
-工业级图学习任务具有以下特点：
+Graph learning tasks in industrial settings exhibit the following characteristics:
 
-* 图数据复杂：
-    * 图数据规模大：典型有 十亿点，百亿边，亿级别样本。
-    * 数据依赖：一个点的 embedding 依赖周围点/边的 embedding
-    * 类型丰富： 同质/异质/动态图
-* 任务类型复杂
-    * 离线：离线训练，离线批量预测，离线全图预测
-    * 在线：在线训练，在线预测（需要与离线结果一致）
-* 使用方式/场景复杂：
-    * 多租户
-    * 使用方式多变：GNN-only，GNN+搜推广/多模态
-    * 异构资源：CPU/GPU cluster
+* Complex graph data:
+    * Large-scale graphs: typically consisting of billions of nodes, tens of billions of edges, and millions of samples.
+    * Data dependencies: The computation of a node's embedding relies on the embeddings of its neighboring nodes/edges.
+    * Diverse types: homogeneous/heterogeneous/dynamic graph.
+* Complex task types:
+    * Offline: offline training, offline batch prediction, offline full-graph prediction.
+    * Online: online training, online prediction (consistent with offline results).
+* Complex usage/scenarios:
+    * Multi-tenancy.
+    * Diverse usage scenarios: GNN-only, GNN + search and recommendation/multi-modal.
+    * Heterogeneous resources: CPU/GPU clusters.
 
-AGL应对这些问题的思路：
+AGL addresses these challenges by adopting the following approaches:
 
-* 图规模
-    * 图训练：训练时由大图转换为小图，解决数据依赖问题
-* 扩展性
-    * 图采样：条件过滤（索引） + 采样（随机/概率、TopK）
-    * 图表达：graph feature 能够表达 同质/异质/动态图；支持 node/edge/graph level 子图；支持只存储结构
-    * 图训练：解除图数据的数据依赖问题，可以复用成熟的DNN训练架构（如 PS, AllReduce） 进行大规模分布式训练
-* 稳定性
-    * 复用成熟的 Spark or MapReduce (图样本阶段), 以及 DNN 链路基础设施的弹性与容错能力
-* 一致性
-    * 样本一致性：图样本离线生成，在/离线预测可复用
-* 资源成本
-    * graph feature 可存储在磁盘上，减少对内存的需求
+* The Graph scale issue:
+    * AGL tackles the problem of data dependencies by transforming large graphs
+      into smaller subgraphs in advance.
+* Scalability/Extensibility:
+    * Graph sampling: conditional filtering (index) + sampling (random/probabilistic, TopK).
+    * Graph representation: AGL provides a graph-feature format that is capable of representing homogeneous,
+      heterogeneous, and dynamic graphs. Additionally, it supports node-level, edge-level, and graph-level subgraphs,
+      allowing for more granular analysis and learning. Furthermore, AGL provides the option to store only the structure
+      of the graph,
+      which can be beneficial for certain use cases.
+    * Graph training: AGL resolves the data dependency problem inherent in graph data, facilitating
+      large-scale distributed training through the utilization of mature deep neural network (DNN) training
+      architectures such as PS (Parameter Server) and AllReduce. These architectures enable efficient and scalable
+      training processes, ensuring the seamless handling of graph data on a distributed scale.
+* Stability:
+    * Reuse mature Spark or MapReduce (graph sampling phase) and DNN infrastructure for elasticity and fault tolerance.
+* Consistency:
+    * Sample consistency: graph samples generated offline can be reused for online/offline prediction.
+* Resource cost:
+    * Graph features can be stored on disk, thereby reducing the memory requirements.
 
-基于这样的考量，AGL设计了图数据构建以及学习方案，可以在普通的集群上完成大规模图学习任务：
+Based on these considerations, AGL has developed comprehensive solutions for graph data construction and learning,
+enabling the completion of large-scale graph learning tasks on regular machines or clusters:
 
-- 图样本：AGL通过 Spark (MR) 预先抽取目标节点的 k阶邻域信息，作为 GraphFeature。
+* Graph sampling:
+    * AGL leverages Spark (or MR) to pre-extract k-hop neighborhood information of target nodes as graph features.
+* Graph training:
+    * During the training phase, AGL incorporates parsing logic to convert graph features into essential components such
+      as the adjacency matrix, node feature matrix, and edge feature matrix, along with other necessary information for
+      the model. This seamless integration of graph learning tasks into the regular DNN learning mode allows for the
+      convenient reuse of mature technologies and infrastructure typically used in standard DNN workflows.
 
+AGL currently employs PyTorch as its backend and integrates open-source algorithm libraries like PyG to ease the
+development process for users.
+Furthermore, AGL has developed some in-house graph algorithms, including node classification, edge prediction, and
+representation learning, specifically tailored for handling complex graph data in various forms such as homogeneous,
+heterogeneous, and dynamic graphs.
 
-- 图训练：训练阶段提供解析逻辑，把 GraphFeature 转换为模型所需的临接矩阵，点特征矩阵，边特征矩阵等信息。
-  通过这种将图学习任务无缝衔接到普通DNN的学习模式上，能够方便复用普通DNN模式中各种成熟的技术和基础设施。
+# How to use
 
-目前AGL以Pytorch为后端，同时对接了开源算法库（PyG）, 以减少用户开发负担。同时AGL针对复杂的图数据（同质/异质/动态图），沉淀了丰富的自研图算法（点分类/边预测/表征学习等)。
+* [Installation Guide](doc/core/English/install_EN.md)
+* [Process Workflow](doc/core/English/process_description_EN.md)
+* [Generate Graph Samples](doc/core/English/sampler/0_data_preparation_EN.md)
+* [Graph Learning Tutorial](doc/core/English/graph_learning_tutorial_EN.md)
 
-# 如何使用
+# How to Contribute
 
-* [安装说明](doc/core/install.md)
-* [流程说明](doc/core/process_description.md)
-* [构建图样本](doc/core/sampler/0_data_preparation.md)
-* [图学习教程](doc/core/graph_learning_tutorial.md)
-
-# 如何贡献代码
-
-* [Contribution Guidelines](doc/core/contribution.md)
+* [Contribution Guidelines](doc/core/English/contribution_EN.md)
 
 # Cite
 

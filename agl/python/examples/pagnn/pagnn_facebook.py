@@ -1,11 +1,12 @@
 import numpy as np
+import time
 from sklearn import metrics
 import torch
 from torch.utils.data import DataLoader
 
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn, AGLMultiDenseColumn
-from pyagl.pyagl import (
+from pyagl import (
     AGLDType,
     DenseFeatureSpec,
     SparseKVSpec,
@@ -126,15 +127,16 @@ my_collate = AGLHomoCollateForPyG(
 # train loader
 train_loader = DataLoader(
     dataset=train_data_set,
-    batch_size=48,
+    batch_size=512,
     shuffle=True,
     collate_fn=my_collate,
     num_workers=4,
+    pin_memory=True,
 )
 
 val_loader = DataLoader(
     dataset=val_data_set,
-    batch_size=32,
+    batch_size=256,
     shuffle=False,
     collate_fn=my_collate,
     num_workers=2,
@@ -142,13 +144,15 @@ val_loader = DataLoader(
 
 test_loader = DataLoader(
     dataset=test_data_set,
-    batch_size=32,
+    batch_size=256,
     shuffle=False,
     collate_fn=my_collate,
     num_workers=2,
 )
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# torch.cuda.set_device(1)
+# device = torch.cuda.current_device()
 
 # step 4: model training
 # Initial node embedding
@@ -159,8 +163,6 @@ model = PaGNNModel(
 )
 loss_op = torch.nn.BCEWithLogitsLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-
-import time
 
 
 def train():

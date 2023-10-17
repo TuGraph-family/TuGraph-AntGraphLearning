@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn
-from pyagl.pyagl import AGLDType, SparseKVSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, SparseKVSpec, NodeSpec, EdgeSpec
 
 
 class DatasetAndCollateFnTest(unittest.TestCase):

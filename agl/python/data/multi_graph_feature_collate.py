@@ -12,7 +12,7 @@
 
 from typing import List, Union, Callable, Optional, Any, Dict
 
-from pyagl.pyagl import (
+from pyagl import (
     NodeSpec,
     EdgeSpec,
 )

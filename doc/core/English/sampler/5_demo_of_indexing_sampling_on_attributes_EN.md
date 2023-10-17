@@ -1,11 +1,17 @@
-# 属性索引和采样的应用
-AGL提供了基于属性[建立索引](./3_neighbor_attribute_indexing.md)的功能，
-进行邻居采样时可以基于属性进行高效的[过滤](./2_neighbor_filtering_condition.md)和[采样](./4_neighbor_sampling.md)，来满足不同算法的个性化需求。
+# Application of Attribute Indexing and Sampling
 
-## 图数据准备
+AGL provides functionality for [building indexes](../../English/sampler/3_neighbor_attribute_indexing_EN.md) based on
+attributes.
+When performing neighbor sampling, efficient [filtering](../../English/sampler/2_neighbor_filtering_condition_EN.md)
+and [sampling](../../English/sampler/4_neighbor_sampling_EN.md) based on attributes can be applied to meet the personalized
+requirements of different algorithms.
 
-举个动态图采样例子，图数据点特征为dim=3的Sparse Key特征，边特征为dim=2的Dense Float特征。图数据格式如下：
- ``` 
+## Preparing Graph Data
+
+Let's take an example of dynamic graph sampling, where the graph data consists of Sparse KV features with dim=3 for
+nodes and Dense Float features with dim=2 for edges. The graph data format is as follows:
+
+```json
 {
   'node_spec': [
     {
@@ -53,12 +59,15 @@ AGL提供了基于属性[建立索引](./3_neighbor_attribute_indexing.md)的功
     ]
   }
 }
- ``` 
+```
 
+### Input Data Tables
 
-### 输入数据表
-动态图的采样规则为：根节点的time大于第一跳节点的time，第一跳节点的time大于第二跳节点的time，以此类推。
-举例输入的点表：
+The sampling rule for the dynamic graph is as follows: the time of the root node is greater than the time of the
+first-hop node, the time of the first-hop node is greater than the time of the second-hop node, and so on.
+Here are examples of input tables:
+
+Node Table:
 
 | node_id  | node_feature |
 | -------- | ------------ |
@@ -67,7 +76,7 @@ AGL提供了基于属性[建立索引](./3_neighbor_attribute_indexing.md)的功
 |    3     |     1 3 8    |
 |    4     |     3 4 6    |
 
-举例输入的边表：
+Edge Table:
 
 |  node1_id  |  node2_id  | edge_feature | time |
 | ---------- | ---------- | ------------ | ---- |
@@ -76,7 +85,7 @@ AGL提供了基于属性[建立索引](./3_neighbor_attribute_indexing.md)的功
 |     1      |     3      |   2.5 0.8    |  21  |
 |     2      |     10     |   1.2 2.3    |  34  |
 
-样本表如下：
+Sample Table:
 
 |  node_id  |    label   |  train_flag   | time |
 | --------- | ---------- | ------------- | ---- |
@@ -84,21 +93,29 @@ AGL提供了基于属性[建立索引](./3_neighbor_attribute_indexing.md)的功
 |     2     |  1 1 ... 0 |     eval      |  20  |
 |     5     |  1 0 ... 0 |     test      |  50  |
 
-### 配置索引
-因为需要根据种子节点和边上的time属性进行过滤，所以为了加速过滤，可以配置time的range索引：
+### Configuring Index
+
+To accelerate filtering based on "time" attribute on both seed nodes and edges, you can configure a range index for "
+time":
 index="range_index:time:long"
 
-### 配置过滤条件
-动态图的采样规则为：根节点的time大于第一跳节点的time，第一跳节点的time大于第二跳节点的time。表达为:
+### Configuring Filtering Conditions
+
+The sampling rule for dynamic graphs is as follows: the time of the root node is greater than the time of the first-hop
+node, and the time of the first-hop node is greater than the time of the second-hop node.
+This can be expressed as:
 filter_cond="neighbor_1.time < seed.time AND neighbor_2.time < neighbor_1.time"
 
-### 配置采样规则
-假设用户的采样规则为选择邻居中time最大的3个邻居，采样规则表达为：
+### Configuring Sampling Rules
+
+Suppose the user's sampling rule is to select the top 3 neighbors with the highest "time" attribute value. The sampling
+rule can be expressed as:
 sample_cond="topk(by=time, limit=3, reverse=True)"
 
-## 运行Spark生成子图样本
+## Running Spark to Generate Subgraph Samples
 
-用户配置spark本地运行命令如下：
+Here is the user configuration for running Spark locally:
+
  ``` 
 /path_to/spark-3.1.1-odps0.34.1/bin/spark-submit  --master local --class com.alipay.alps.flatv3.spark_back.DynamicGraph \
     /path_to/agl.jar hop=2 \
@@ -111,15 +128,14 @@ sample_cond="topk(by=time, limit=3, reverse=True)"
     output_results='file:////path_to/output_subgraph' 2>&1 | tee logfile.txt
  ``` 
 
+### Configuration Explanation
 
-### 配置说明
-
-|                           配置                                                   |                说明              |
-| ------------------------------------------------------------------------------- | -------------------------------- |
-| --master local                                                                  | spark本地运行模式                  |
-| --class com.alipay.alps.flatv3.spark.NodeLevelSampling                          | spark程序入口：点级别图采样            |
-| hop=2                                                                           | 进行2跳邻居采样                     |
-| subgraph_spec                                                                   | 定义图数据格式                      |
-| sample_cond="topk(by=time, limit=3, reverse=True)"                              | 每个节点采样time最大3个邻居节点       |
-| filter_cond="neighbor_1.time < seed.time AND neighbor_2.time < neighbor_1.time" | 邻居过滤：根节点的time大于第一跳节点的time，第一跳节点的time大于第二跳节点的time |
-| input_node_feature="file:////path_to/node_table.csv"                            | 前缀file:///表示后续接着本地路径      |
+| Configuration | Description |
+| --- | --- |
+| --master local | Spark runs in local mode. |
+| --class com.alipay.alps.flatv3.spark.NodeLevelSampling | Spark program entry point for node-level graph sampling. |
+| hop=2 | Perform 2-hop neighbor sampling. |
+| subgraph_spec | Defines the graph data format. |
+| sample_cond="topk(by=time, limit=3, reverse=True)" | Samples the top 3 neighbors with the highest "time" for each node. |
+| filter_cond="neighbor_1.time < seed.time AND neighbor_2.time < neighbor_1.time" | Filtering condition: the time of the root node is greater than the time of the first-hop node, and the time of the first-hop node is greater than the time of the second-hop node. |
+| input_node_feature="file:////path_to/node_table.csv" | Specifies the local path for the node table. |

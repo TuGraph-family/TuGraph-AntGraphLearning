@@ -12,7 +12,7 @@ from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.multi_graph_feature_collate import MultiGraphFeatureCollate
 from agl.python.data.column import AGLMultiDenseColumn
 from agl.python.model.encoder.ssr import SSREncoder
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
 
 
 class SSRLastfmModel(torch.nn.Module):
@@ -62,8 +62,8 @@ def main():
     # step 1: 构建dataset
     train_file_name = "./data_process/subgraph_ssr_lastfm_train.csv"
     test_file_name = "./data_process/subgraph_ssr_lastfm_test.csv"
-    if not os.path.exists('./result/'):
-        os.mkdir('./result/')
+    if not os.path.exists("./result/"):
+        os.mkdir("./result/")
 
     # train data set and test data set
     train_data_set = AGLTorchMapBasedDataset(

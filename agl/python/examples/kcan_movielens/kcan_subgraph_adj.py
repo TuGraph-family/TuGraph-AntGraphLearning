@@ -17,7 +17,7 @@ from agl.python.data.subgraph.pyg_inputs import (
 )
 from agl.python.data.column import AGLRowColumn, AGLMultiDenseColumn
 from agl.python.model.encoder.kcan import KCANEncoder
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
 
 
 def delete_root_index(subgraph: TorchSubGraphBatchData):

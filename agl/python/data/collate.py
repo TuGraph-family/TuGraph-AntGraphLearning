@@ -13,7 +13,7 @@
 import torch
 from typing import List
 
-from pyagl.pyagl import (
+from pyagl import (
     NodeSpec,
     EdgeSpec,
 )

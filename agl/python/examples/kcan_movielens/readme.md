@@ -23,21 +23,21 @@
 
 首先我们要把原始数据压缩成子图(pb string)的形式，使用如下data_process/submit.sh的命令。
 
-由于link模式的样本量巨大，用户需要搭建spark集群运行。对于无法搭建集群的用户，可以从上面的链接中下载预先采样的子图数据part-subgraph_kcan_train_test.csv，放在data_process/output_graph_feature目录下
+由于link模式的样本量巨大，用户需要100G内存的机器运行spark任务，用户需要修改[start_docker_with_image.sh](../../../../docker/start_docker_with_image.sh)给虚拟机分配100G内存，同时修改[run_spark_template.sh](../run_spark_template.sh)配置spark.executor.memory=90g和spark.driver.memory=90g。
+对于缺少资源的用户，可以从上面的链接中下载预先采样的子图数据part-subgraph_kcan_train_test.csv，放在data_process/output_graph_feature目录下
 
 ```
 base=`dirname "$0"`
 cd "$base"
 
 python ../../run_spark.py \
-    --mode yarn \
     --jar_resource_path ../../../../java/target/flatv3-1.0-SNAPSHOT.jar \
     --input_edge_table_name ./edge_table.csv \
     --input_label_table_name ./link_table.csv \
     --input_node_table_name ./node_table.csv \
     --output_table_name_prefix ./output_graph_feature \
     --neighbor_distance 2 \
-	--sample_condition 'random_sampler(limit=20, seed=34, replacement=false)' \
+    --sample_condition 'random_sampler(limit=20, seed=34, replacement=false)' \
     --subgraph_spec "{'node_spec':[{'node_name':'default','id_type':'string','features':[{'name':'node_feature','type':'dense','dim':1,'value':'int64'}]}],'edge_spec':[{'edge_name':'default','n1_name':'default','n2_name':'default','id_type':'string','features':[{'name':'edge_feature','type':'dense','dim':1,'value':'int64'}]}]}" \
     --algorithm kcan
 ```
