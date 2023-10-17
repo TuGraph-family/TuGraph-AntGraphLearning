@@ -5,7 +5,7 @@ import unittest
 import os
 import numpy as np
 
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, NodeSpec, EdgeSpec
 from agl.python.data.collate import AGLHomoCollateForPyG
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn
 from agl.python.data.subgraph.pyg_inputs import TorchSubGraphBatchData

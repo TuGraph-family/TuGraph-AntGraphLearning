@@ -10,10 +10,15 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import roc_auc_score
 
+from agl.python.data.subgraph.pyg_inputs import (
+    TorchSubGraphBatchData,
+    TorchFeatures,
+    TorchEdgeIndex,
+)
 from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
-from agl.python.data.collate import AGLHomoCollateForPyG
+from agl.python.data.multi_graph_feature_collate import MultiGraphFeatureCollate
 from agl.python.data.column import AGLDenseColumn, AGLRowColumn
-from pyagl.pyagl import (
+from pyagl import (
     AGLDType,
     DenseFeatureSpec,
     SparseKVSpec,
@@ -98,12 +103,140 @@ node1_id_column = AGLRowColumn(name="node1_id")
 node2_id_column = AGLRowColumn(name="node2_id")
 time_column = AGLDenseColumn(name="time", dim=1, dtype=np.float32)
 label_column = AGLDenseColumn(name="label", dim=1, dtype=np.float32)
-my_collate = AGLHomoCollateForPyG(
+
+
+def get_temporal_neighbor(subgraph: TorchSubGraphBatchData):
+    root_index: torch.Tensor = subgraph.root_index
+    n_feats: TorchFeatures = subgraph.n_feats
+    e_feats: TorchFeatures = subgraph.e_feats
+    adj: TorchEdgeIndex = subgraph.adjs_t
+    cut_time = subgraph.other_feats["time"]
+    # todo 从 model 中获取
+    num_ngh = 10
+    # todo 从 model 中获取
+    layer = 2
+
+    def get_temporal_neighbor_inner(
+        node_indices: np.ndarray,
+        n_feats: TorchFeatures,
+        e_feats: TorchFeatures,
+        adj: TorchEdgeIndex,
+        num_ngh,
+    ):
+        ngh_node_indices = np.zeros((len(node_indices), num_ngh)).astype(np.int32)
+        ngh_edge_times = np.zeros((len(node_indices), num_ngh)).astype(np.int32)
+        ngh_edge_indices = np.zeros((len(node_indices), num_ngh)).astype(np.int32)
+        ngh_node_ids = np.zeros((len(node_indices), num_ngh)).astype(np.int32)
+        ngh_edge_ids = np.zeros((len(node_indices), num_ngh)).astype(np.int32)
+
+        row_ptr = adj.row_ptr.cpu().numpy()
+        col = adj.col.cpu().numpy()
+        edge_indices = adj.edge_indices.cpu().numpy()
+
+        for i, node_idx in enumerate(node_indices):
+            i_ngh_range = range(row_ptr[node_idx], row_ptr[node_idx + 1])
+            i_ngh_num = len(i_ngh_range)
+            if i_ngh_num >= num_ngh:
+                i_ngh_num = num_ngh
+            i_ngh_node_indices = col[i_ngh_range][:i_ngh_num]
+            i_ngh_edge_indices = edge_indices[i_ngh_range][:i_ngh_num]
+            i_ngh_edge_times = (
+                e_feats.features["time"]
+                .to_dense()
+                .cpu()
+                .numpy()[i_ngh_edge_indices]
+                .reshape([-1])
+            )
+
+            # sort neighbors by time
+            if len(i_ngh_edge_times) > 0:
+                i_ngh_edge_times, i_ngh_node_indices, i_ngh_edge_indices = list(
+                    zip(
+                        *sorted(
+                            zip(
+                                i_ngh_edge_times, i_ngh_node_indices, i_ngh_edge_indices
+                            )
+                        )
+                    )
+                )
+                i_ngh_edge_times = list(i_ngh_edge_times)
+                i_ngh_node_indices = list(i_ngh_node_indices)
+                i_ngh_edge_indices = list(i_ngh_edge_indices)
+
+                i_ngh_node_ids = (
+                    n_feats.features["node_id"]
+                    .to_dense()
+                    .cpu()
+                    .numpy()[i_ngh_node_indices]
+                    .reshape([-1])
+                )
+                i_ngh_edge_ids = (
+                    e_feats.features["edge_id"]
+                    .to_dense()
+                    .cpu()
+                    .numpy()[i_ngh_edge_indices]
+                    .reshape([-1])
+                )
+
+                ngh_node_indices[i][:i_ngh_num] = i_ngh_node_indices
+                ngh_edge_times[i][:i_ngh_num] = i_ngh_edge_times
+                ngh_edge_indices[i][:i_ngh_num] = i_ngh_edge_indices
+                ngh_node_ids[i][:i_ngh_num] = i_ngh_node_ids
+                ngh_edge_ids[i][:i_ngh_num] = i_ngh_edge_ids
+
+        return ngh_node_indices, ngh_node_ids, ngh_edge_ids, ngh_edge_times
+
+    root_index_npy = root_index.cpu().numpy()
+    cur_time = cut_time.cpu().numpy()
+
+    node_indices = root_index_npy
+    curr_time = np.repeat(cur_time, 2, axis=0)
+    for i_l in range(layer):
+        (
+            ngh_node_indices,
+            ngh_node_ids,
+            ngh_edge_ids,
+            ngh_edge_times,
+        ) = get_temporal_neighbor_inner(node_indices, n_feats, e_feats, adj, num_ngh)
+        ngh_time_delta = curr_time - ngh_edge_times
+
+        subgraph.other_feats.update(
+            {
+                f"ngh_node_indices_{layer - 1 - i_l}": torch.from_numpy(
+                    ngh_node_indices
+                ).long(),
+                f"ngh_node_ids_{layer - 1 - i_l}": torch.from_numpy(
+                    ngh_node_ids
+                ).long(),
+                f"ngh_edge_ids_{layer - 1 - i_l}": torch.from_numpy(
+                    ngh_edge_ids
+                ).long(),
+                f"ngh_edge_times_{layer - 1 - i_l}": torch.from_numpy(
+                    ngh_edge_times
+                ).float(),
+                f"ngh_time_delta_{layer - 1 - i_l}": torch.from_numpy(
+                    ngh_time_delta
+                ).float(),
+            }
+        )
+        # (batch_size, -1)
+        ngh_node_indices_flat = ngh_node_indices.flatten()
+        # (batch_size, -1)
+        ngh_edge_times_flat = np.reshape(ngh_edge_times.flatten(), [-1, 1])
+        # 下一次迭代的起点
+        node_indices = ngh_node_indices_flat
+        # 下一次计算迭代的 curr_time, 用于计算delta_time
+        curr_time = ngh_edge_times_flat
+    return subgraph
+
+
+my_collate = MultiGraphFeatureCollate(
     node_spec,
     edge_spec,
     uncompress=True,
     columns=[node1_id_column, node2_id_column, time_column, label_column],
     label_name="label",
+    after_transform=get_temporal_neighbor,
 )
 
 # step 3: build dataloader
@@ -113,7 +246,7 @@ train_loader = DataLoader(
     batch_size=200,
     shuffle=False,
     collate_fn=my_collate,
-    num_workers=2,
+    num_workers=4,
     persistent_workers=True,
 )
 
@@ -122,7 +255,7 @@ valid_loader = DataLoader(
     batch_size=200,
     shuffle=False,
     collate_fn=my_collate,
-    num_workers=1,
+    num_workers=4,
     persistent_workers=True,
 )
 
@@ -131,7 +264,7 @@ test_loader = DataLoader(
     batch_size=200,
     shuffle=False,
     collate_fn=my_collate,
-    num_workers=1,
+    num_workers=4,
     persistent_workers=True,
 )
 

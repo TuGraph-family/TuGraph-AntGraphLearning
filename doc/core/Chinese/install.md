@@ -1,6 +1,6 @@
 # AGL安装说明
 
-AGL 目前主要以镜像的方式提供使用能力。
+AGL 目前主要以镜像的方式提供使用能力，包括编译与运行环境。
 
 ## Docker镜像：
 
@@ -21,9 +21,10 @@ git clone https://github.com/TuGraph-family/TuGraph-AntGraphLearning.git
 
 ### 2. 启动 docker
 
-启动 docker 脚本 [参考](../../docker/start_docker_with_image.sh)
+启动 docker 脚本 [参考](../../../docker/start_docker_with_image.sh)
 
 ```
+cd docker
 bash start_docker_with_image.sh
 ```
 
@@ -33,6 +34,6 @@ bash start_docker_with_image.sh
 bash build.sh
 ```
 
-基于当前分支编译一个whl并覆盖安装到当前docker中, whl包位于 dist 目录中，名称类似agl-0.0.1-cp38-cp38-linux_x86_64.whl
+执行这个脚本，将会基于当前分支编译一个whl并覆盖安装到当前docker中, whl包位于 dist 目录中，名称类似agl-0.0.1-cp38-cp38-linux_x86_64.whl
 
-[镜像构建脚本](../../docker/Dockerfile.gpu)
+

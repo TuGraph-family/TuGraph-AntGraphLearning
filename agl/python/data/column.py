@@ -93,7 +93,7 @@ class AGLMultiDenseColumn(AGLColumn):
                 if isinstance(data[0], bytes):
                     # if it is instance of bytes (encoded by utf-8). call multi_dense_decode_bytes
                     # (implemented with c++) and pass those data to c++ in a zero copy way
-                    from pyagl.pyagl import multi_dense_decode_bytes
+                    from pyagl import multi_dense_decode_bytes
 
                     data_bytesarray = [bytearray(data_t) for data_t in data]
                     res = multi_dense_decode_bytes(
@@ -107,7 +107,7 @@ class AGLMultiDenseColumn(AGLColumn):
                     res_np_array_list = [np.array(res_i) for res_i in res]
                 elif isinstance(data[0], str):
                     # if data is instance of str, passing it from Python to C++ using pybind11 will trigger a copy.
-                    from pyagl.pyagl import multi_dense_decode_string
+                    from pyagl import multi_dense_decode_string
 
                     res = multi_dense_decode_string(
                         data,

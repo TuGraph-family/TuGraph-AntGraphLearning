@@ -5,7 +5,7 @@ AGL 样本构建完成之后，目前数据以 csv 的形式存储，每条样�
 基于Pytorch, AGL提供两个简单的 Dataset，读取这些csv文件，并构建模型所需的训练/验证/测试集。
 假设你构建好的 PPI 训练接名称为 ppi_train.csv:
 
-* [AGLTorchMapBasedDataset](../../agl/python/dataset/map_based_dataset.py) （map-style dataset）
+* [AGLTorchMapBasedDataset](../../../agl/python/dataset/map_based_dataset.py) （map-style dataset）
 
    ```python
     from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
@@ -13,7 +13,7 @@ AGL 样本构建完成之后，目前数据以 csv 的形式存储，每条样�
     print(train_data_set[0]) # 查看第一条数据
    ```
 
-* [AGLIterableDataset](../../agl/python/dataset/iterable_dataset.py) （iterable-stype dataset）
+* [AGLIterableDataset](../../../agl/python/dataset/iterable_dataset.py) （iterable-stype dataset）
 
   和上述 AGLTorchMapBasedDataset 使用方法类似，但需要指定batch_size (dataloader 中不要再设置batch_size)
 
@@ -27,4 +27,4 @@ AGL 样本构建完成之后，目前数据以 csv 的形式存储，每条样�
 
 不失一般性，在后面的样例中，我们都以AGLTorchMapBasedDataset作为读取数据的方式。
 
-[next 数据解析](./learning_step2_parse_data.md)
+[next 数据解析](learning_step2_parse_data.md)

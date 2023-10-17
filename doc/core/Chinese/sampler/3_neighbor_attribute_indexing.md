@@ -19,18 +19,13 @@
 
 ### hash索引配置
 hash索引的配置格式为hash_index:key_name:key_type。由三元组组成分别为：索引类型是hash，索引属性列名和属性值的类型。
-
 ### hash索引例子
 对于上面的边表我们可以利用n2_city列建立hash索引，配置为："hash_index:n2_city:String"，这样我们就利用n2_city建立了一个hash索引。
-
-### hash索引实现
 
 ## 邻居range索引
 range索引的配置格式为range_index:key_name:key_type。由三元组组成分别为：索引类型是range，索引属性列名和属性值的类型。
 ### range索引配置
 对于上面的边表我们可以利用rate列建立range索引，配置为："range_index:n2_city:String"，这样我们就利用n2_city建立了一个range索引。
-
-### range索引实现
 
 ## 建立多个索引
 我们也可以同时建立多个索引，通过配置"hash_index:n2_city:String;range_index:n2_city:String"，我们建立了一个hash索引和一个range索引，多个索引配置的分隔符为';'。

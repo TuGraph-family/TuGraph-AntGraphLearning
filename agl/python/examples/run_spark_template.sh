@@ -1,4 +1,7 @@
 spark-submit --master ${mode} \
+    --conf "spark.executor.memory=25g" --conf "spark.driver.memory=25g" \
+    --conf "spark.local.dir=/graph_ml" --conf "spark.hadoop.odps.cupid.disk.driver.device_size=20g" \
+    --conf "spark.shuffle.partitions=40" --conf "spark.default.parallelism=40" --conf "spark.sql.shuffle.partitions=40" \
     --class ${algorithm} ${jar_resource_path} \
     -input_edge "file:///${edge_table}" \
     -input_label "file:///${label_table}" \

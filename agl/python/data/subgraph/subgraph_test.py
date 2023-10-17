@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from agl.python.data.subgraph.subgraph import PySubGraph
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, DenseFeatureSpec, SparseKVSpec, NodeSpec, EdgeSpec
 
 
 class SubGraphTest(unittest.TestCase):

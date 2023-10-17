@@ -17,8 +17,8 @@
     * 定义并 call encoder层，完成图特征（结构）到embedding的映射
     * 定义并 call decoder，完成embedding到 class 的映射
 
-以 GeniePath 为例，我们提供了 [GeniePathLazyEncoder](../../agl/python/model/encoder/geniepath_encoder.py),
-组装模型的[样例](../../agl/python/examples/geniepath_ppi/train_geniepath_ppi.py)如下：
+以 GeniePath 为例，我们提供了 [GeniePathLazyEncoder](../../../agl/python/model/encoder/geniepath_encoder.py),
+组装模型的[样例](../../../agl/python/examples/geniepath_ppi/train_geniepath_ppi.py)如下：
 
   ```python
   class GeniePathPPIModel(torch.nn.Module):
@@ -57,12 +57,12 @@
 
 **注意**：
 
-* 模型 forward 的输入便是 collate 输出的对象，根据您的配置是 [TorchSubGraphBatchData](../../agl/python/data/subgraph/pyg_inputs.py)
-  或 [TorchEgoBatchData](../../agl/python/data/subgraph/pyg_inputs.py)。
+* 模型 forward 的输入便是 collate 输出的对象，根据您的配置是 [TorchSubGraphBatchData](../../../agl/python/data/subgraph/pyg_inputs.py)
+  或 [TorchEgoBatchData](../../../agl/python/data/subgraph/pyg_inputs.py)。
 * AGL 每条样本是从 带 label 节点（root ids）出发扩散得到的，label 也与 root 节点相对应。因此模型输出的信息，在计算 loss 时，需要根据 root id index 进行 lookup
   才能与 label 对应上，也即计算 loss 时需要：
   ```python
   loss_op(model(data)[data.root_index], data.y)
   ```
 
-接下来串联模型的训练pipeline的工作和正常torch上的任务基本一致，可以参考[PPI上GeniePath的样例](../../agl/python/examples/geniepath_ppi)进行处理。
+接下来串联模型的训练pipeline的工作和正常torch上的任务基本一致，可以参考[PPI上GeniePath的样例](../../../agl/python/examples/geniepath_ppi)进行处理。

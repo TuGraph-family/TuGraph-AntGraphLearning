@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from agl.python.dataset.map_based_dataset import AGLTorchMapBasedDataset
 from agl.python.data.multi_graph_feature_collate import MultiGraphFeatureCollate
 from agl.python.data.column import AGLMultiDenseColumn
-from pyagl.pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
+from pyagl import AGLDType, DenseFeatureSpec, NodeSpec, EdgeSpec
 
 from agl.python.model.encoder.ssr import SSR2Encoder
 
@@ -57,14 +57,16 @@ def get_features(filename, node_num):
 
 
 user_feat_filenames = [
-    './result/out_node_features_ui',
-    './result/out_node_features_uu',
-    './result/out_node_features_uiu']
+    "./result/out_node_features_ui",
+    "./result/out_node_features_uu",
+    "./result/out_node_features_uiu",
+]
 item_feat_filenames = [
-    './result/out_node_features_iu',
-    './result/out_node_features_iui',
-    './result/out_node_features_iuu']
-feat_filename = './result/features.txt'
+    "./result/out_node_features_iu",
+    "./result/out_node_features_iui",
+    "./result/out_node_features_iuu",
+]
+feat_filename = "./result/features.txt"
 user_num = 2101
 item_num = 18746
 node_num = user_num + item_num

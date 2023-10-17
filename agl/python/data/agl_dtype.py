@@ -16,7 +16,7 @@ from typing import *
 
 import numpy as np
 
-from pyagl.pyagl import AGLDType
+from pyagl import AGLDType
 
 DTypeValue = namedtuple("DTypeValue", ["name", "np_dtype", "c_dtype"])
 

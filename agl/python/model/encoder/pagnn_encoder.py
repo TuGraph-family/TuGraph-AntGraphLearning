@@ -11,6 +11,8 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 import torch
+from torch_geometric.utils.mask import index_to_mask
+
 from agl.python.model.layer.geniepath_layer import GeniePathLayer
 from agl.python.data.subgraph.pyg_inputs import TorchSubGraphBatchData
 from agl.python.model.encoder.geniepath_encoder import GeniePathLazyEncoder
@@ -100,28 +102,16 @@ class PaGNNBroadcast(torch.nn.Module):
             source_nodes: nodes need to spread
             num_nodes(int): number of all nodes in subgraph for building adjacency matrix
         Returns:
-            next_adj: adjacency matrix which only containing edges between source nodes and their 1-hop neighbors
+            edge_index: next edge index which only containing edges between source nodes and their 1-hop neighbors
             next_neibs: set of 1-hop neighbors of source nodes
         """
-        source_nodes = torch.reshape(source_nodes, [1, -1])
 
-        indices = torch.cat([source_nodes, source_nodes], 0)
-        values = torch.ones(source_nodes.shape[1]).to(source_nodes.device)
-        source_diagonal = torch.sparse_coo_tensor(
-            indices, values, [num_nodes, num_nodes]
-        )
-
-        next_adj = torch.sparse.mm(source_diagonal, adj.to_dense()).to_sparse()
-
-        next_neibs_indices = next_adj.coalesce().indices()
-        # avoid not edges in adj
-        next_neibs = (
-            next_neibs_indices
-            if next_neibs_indices.isnan
-            else torch.unique(next_neibs_indices[1])
-        )
-
-        return next_adj, next_neibs
+        edge_index = adj.coalesce().indices()
+        node_mask = index_to_mask(source_nodes, num_nodes)
+        edge_mask = node_mask[edge_index[0]]
+        edge_index = edge_index[:, edge_mask]
+        next_neibs = edge_index if edge_index.isnan else torch.unique(edge_index[1])
+        return edge_index, next_neibs
 
     def keep_source_embd(self, node_embd, source_nodes, num_nodes):
         """
@@ -136,7 +126,8 @@ class PaGNNBroadcast(torch.nn.Module):
         source_nodes = torch.reshape(source_nodes, [1, -1])
 
         indices = torch.cat([source_nodes, source_nodes], 0)
-        values = torch.ones(source_nodes.shape[1]).to(node_embd.device)
+        # values = torch.ones(source_nodes.shape[1]).to(node_embd.device)
+        values = torch.ones(source_nodes.shape[1], device=node_embd.device)
         source_diagonal = torch.sparse_coo_tensor(
             indices, values, [num_nodes, num_nodes]
         )
@@ -171,17 +162,19 @@ class PaGNNBroadcast(torch.nn.Module):
             -1,
         ).reshape(2, -1)
         indices = torch.unique(bi_edges, dim=1)
-        values = torch.ones(indices.shape[1]).to(device)
+        # values = torch.ones(indices.shape[1]).to(device)
+        values = torch.ones(indices.shape[1], device=device)
         adj = torch.sparse_coo_tensor(indices, values, [num_nodes, num_nodes])
 
-        x = self.keep_source_embd(node_embd, source_nodes, num_nodes).to(device)
+        x = self.keep_source_embd(node_embd, source_nodes, num_nodes)  # .to(device)
 
         h = torch.zeros(1, x.shape[0], self.embedding_size, device=x.device)
         c = torch.zeros(1, x.shape[0], self.embedding_size, device=x.device)
 
         for k, i in enumerate(range(self.n_hops)):
-            next_adj, next_neibs = self.get_next_neibs_adj(adj, source_nodes, num_nodes)
-            next_edge_index = next_adj.coalesce().indices()
+            next_edge_index, next_neibs = self.get_next_neibs_adj(
+                adj, source_nodes, num_nodes
+            )
 
             next_embd, (h, c) = self.convs[k](x, next_edge_index, h, c)
 

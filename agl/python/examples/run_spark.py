@@ -69,7 +69,7 @@ def _parse_args():
     parser.add_argument(
         "--mode",
         dest="mode",
-        default="local",
+        default="local[*]",
         type=str,
         help="spark running mode",
     )

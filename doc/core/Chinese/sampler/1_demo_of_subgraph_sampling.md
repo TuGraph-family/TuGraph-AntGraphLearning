@@ -1,9 +1,13 @@
 # 快速开始
+
 在项目的example目录下有多种图模型运行案例，下面我们以drgst为例在ind.citeseer数据集上介绍如何快速上手子图采样。
+
 ## 图数据准备
 
 ### 图数据格式
+
 ind.citeseer图数据点特征为SparkKV特征，边上没有特征。图数据格式如下：
+
  ``` 
 {
   'node_spec': [
@@ -35,11 +39,12 @@ ind.citeseer图数据点特征为SparkKV特征，边上没有特征。图数据�
  ``` 
 
 json线上format工具：http://jsonviewer.stack.hu/
-![](../../imgs/json_viewer.png)
+![](../images/json_viewer.png)
 format和 remove white space非常好用，建议json中字符串使用单引号，避免转义麻烦。
 format便于观看和编辑，remove white space便于粘贴进配置项或者代码之中。
 
 ### 输入数据表
+
 举例输入的点表：
 
 |  node_id   |                        node_feature                        |
@@ -67,6 +72,7 @@ format便于观看和编辑，remove white space便于粘贴进配置项或者�
 ## 运行Spark生成子图样本
 
 用户配置spark本地运行命令如下(目前只支持spark3.0.3及以上版本)：
+
  ``` 
 spark-submit  --master local --class com.alipay.alps.flatv3.spark.NodeLevelSampling \
     /path_to/agl.jar hop=2 \
@@ -77,7 +83,6 @@ spark-submit  --master local --class com.alipay.alps.flatv3.spark.NodeLevelSampl
     input_label="file:////path_to/label.csv" \
     output_results='file:////path_to/output_subgraph' 2>&1 | tee logfile.txt
  ``` 
-
 
 ### 配置说明
 
@@ -91,11 +96,13 @@ spark-submit  --master local --class com.alipay.alps.flatv3.spark.NodeLevelSampl
 | input_node_feature="file:////path_to/node_table.csv"      |    file:///前缀表示后续接着本地路径   |
 
 ### 图采样整体流程
+
 下图展示了2跳子图结构采样的扩展过程：
 
-![](../../imgs/join_graph_structure.png)
+![](../images/join_graph_structure.png)
 
 得到子图结构，根节点依赖的点、边信息后，再join点、边特征，生成子图样本。
+
 ### 结果数据说明
 
 输出的结果表如下：
