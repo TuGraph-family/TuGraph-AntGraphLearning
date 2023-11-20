@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-    	# 首先，通过 "actions/checkout@v2" 动作将代码仓库检出到工作目录。
+    	  # 首先，通过 "actions/checkout@v2" 动作将代码仓库检出到工作目录。
         uses: actions/checkout@v2
         with:
           # We must fetch at least the immediate parents so that if this is
@@ -52,5 +52,5 @@ jobs:
       #   make release
       # 如果自动构建失败，则需要手动构建项目并将构建命令添加到这里。
       - name: Perform CodeQL Analysis
-    	#最后，使用 "github/codeql-action/analyze@v1" 动作执行 CodeQL 分析。
+    	  #最后，使用 "github/codeql-action/analyze@v1" 动作执行 CodeQL 分析。
         uses: github/codeql-action/analyze@v1
