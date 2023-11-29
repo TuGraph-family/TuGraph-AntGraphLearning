@@ -1,56 +1,28 @@
-name: Codeql Analysis 🌊
+name: Codeql Analysis
 
-#每周五的凌晨 4 点触发执行。
 on:
   schedule:
     - cron: '0 4 * * 5'
 
 jobs:
-  # 该工作流程有一个名为 "analyse" 的任务，用于进行代码质量分析。
   analyse:
     name: CodeQL
-    runs-on: ubuntu-latest # 任务运行在最新版的 Ubuntu 操作系统上。
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-    	  # 首先，通过 "actions/checkout@v2" 动作将代码仓库检出到工作目录。
         uses: actions/checkout@v2
         with:
-          # We must fetch at least the immediate parents so that if this is
-          # a pull request then we can checkout the head.
           fetch-depth: 2
 
-      # If this run was triggered by a pull request event, then checkout
-      # the head of the pull request instead of the merge commit.
-      # 如果该运行是由 pull request 事件触发的，则使用 "git checkout" 命令将代码检出到 pull request 的 head。
       - run: git checkout HEAD^2
         if: ${{ github.event_name == 'pull_request' }}
 
-      # Initializes the CodeQL tools for scanning.
-      # 使用 "github/codeql-action/init@v1" 动作初始化 CodeQL 工具以进行扫描。
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
-        # Override language selection by uncommenting this and choosing your languages
-        # with:
-        #   languages: go, javascript, csharp, python, cpp, java
 
-      # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-      # If this step fails, then you should remove it and run the build manually (see below)
-      # 如果项目是编译语言（如 C/C++、C# 或 Java），则使用 "github/codeql-action/autobuild@v1" 动作尝试自动构建项目。
       - name: Autobuild
         uses: github/codeql-action/autobuild@v1
 
-      # ℹ️ Command-line programs to run using the OS shell.
-      # 📚 https://git.io/JvXDl
-
-      # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-      #    and modify them (or add more) to build your code if your project
-      #    uses a compiled language
-
-      #- run: |
-      #   make bootstrap
-      #   make release
-      # 如果自动构建失败，则需要手动构建项目并将构建命令添加到这里。
       - name: Perform CodeQL Analysis
-    	  #最后，使用 "github/codeql-action/analyze@v1" 动作执行 CodeQL 分析。
         uses: github/codeql-action/analyze@v1
