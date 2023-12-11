@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 
-[中文文档](./README_CN.md)
+[Website](https://openagl.openfinai.org/en-US)|[中文文档](./README_CN.md)
 
 Ant Graph Learning (AGL) provides a comprehensive solution for graph learning tasks at an industrial scale.
 
