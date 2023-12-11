@@ -12,14 +12,4 @@ jobs:
         with:
           parent_uid: ${{ secrets.ALI_PID }}
           private_key: ${{ secrets.ALI_PK }}
-          scan_type: stc  
-  # sca作业也使用了ubuntu-latest作为运行环境。sca作业也包含了一个步骤codeScan，使用了相同的GitHub Action，并传入了相同的参数。
-  sca:   # 开源合规
-    runs-on: ubuntu-latest
-    steps:
-      - name: codeScan
-        uses: layotto/alipay-cloud-devops-codescan@main
-        with:
-          parent_uid: ${{ secrets.ALI_PID }}
-          private_key: ${{ secrets.ALI_PK }}
-          scan_type: sca
+          scan_type: stc
