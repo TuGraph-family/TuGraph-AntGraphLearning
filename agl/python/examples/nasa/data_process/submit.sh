@@ -17,5 +17,5 @@ python ../../run_spark.py \
 
 cp ./output_graph_feature/part-* graph_features.csv
 sed -i 's/\btrain\b/0/g' graph_features.csv
-sed -i 's/\tval/\t1/g' graph_features.csv
-sed -i 's/test/2/g' graph_features.csv
+sed -i 's/\bval\b/1/g' graph_features.csv
+sed -i 's/\btest\b/2/g' graph_features.csv
